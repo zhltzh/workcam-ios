@@ -51,15 +51,32 @@ Response:
 
 ```json
 {
-  "valid": true,
+  "evidence_status": "verified",
+  "cryptographic_signature_valid": true,
+  "key_registration_status": "registered",
+  "device_attestation_status": "unknown",
   "summary": "All checks passed",
   "details": [
-    {"check": "structure", "passed": true, "message": "..."},
-    {"check": "photo_hash", "passed": true, "message": "SHA-256 match"},
-    {"check": "ecdsa_signature", "passed": true, "message": "Signature valid"}
-  ]
+    {"check": "structure", "status": "passed", "message": "..."},
+    {"check": "photo_hash", "status": "passed", "message": "SHA-256 match"},
+    {"check": "ecdsa_signature", "status": "passed", "message": "Signature valid"}
+  ],
+  "warnings": []
 }
 ```
+
+### Evidence Status Values
+
+- `verified`: All checks passed, key registered
+- `partial`: Signature valid but some checks incomplete
+- `unverified`: Some checks could not be performed
+- `invalid`: One or more checks failed
+
+### Check Status Values
+
+- `passed`: Check succeeded
+- `failed`: Check failed
+- `not_checked`: Check could not be performed (e.g., photo not provided)
 
 ## Run Tests
 
@@ -72,6 +89,11 @@ pytest -v
 
 - [Capture Schema](../docs/capture-schema.md)
 - [Signature Protocol](../docs/signature-protocol.md)
+- [Security Review W002](../docs/security-review-W002.md)
+
+## Test Vectors
+
+Cross-language test vectors are in `test-vectors/fixed-vectors.json`.
 
 ## Security Notes
 
@@ -80,7 +102,8 @@ pytest -v
 - `device_reported_time` is NOT trusted as server-verified time.
 - This prototype does NOT implement App Attest verification.
 - Unanchored offline hash chains cannot guarantee no deletion/replacement/rebuilding.
+- Public keys must be registered for full evidence verification.
 
 ## Branch
 
-This code lives on `dev/windows-backend`.
+This code lives on `dev/windows-security-hardening`.
