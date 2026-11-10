@@ -2,7 +2,7 @@
 
 ## Version
 
-`1.0`
+`1.0` (stable), `1.1` (enhanced float formatting)
 
 ## Cryptographic Primitives
 
@@ -19,11 +19,10 @@
 
 ## Domain Separation
 
-All signed payloads begin with the ASCII string:
+All signed payloads begin with a version-specific ASCII string:
 
-```
-WorkCam-Sig-v1
-```
+- v1.0: `WorkCam-Sig-v1`
+- v1.1: `WorkCam-Sig-v1.1`
 
 followed by a newline (`0x0a`).
 
@@ -31,7 +30,7 @@ followed by a newline (`0x0a`).
 
 The signed payload is constructed as follows:
 
-1. Start with the domain separator line: `WorkCam-Sig-v1`
+1. Start with the domain separator line (version-specific)
 2. Append each field in **fixed order** (one per line, `key=value`):
    - `version`
    - `record_id`
@@ -45,13 +44,21 @@ The signed payload is constructed as follows:
 3. End with a final newline.
 4. Encode the entire text as UTF-8.
 
+### Field Validation Rules
+
+- **Strings**: Must not contain newlines (`\n` or `\r`)
+- **Timestamps**: Must be ISO 8601 format (e.g., `2026-11-09T12:00:00+00:00` or `2026-11-09T12:00:00Z`)
+- **Floats (v1.1)**: Must be finite (no NaN or Infinity), formatted with consistent precision
+- **Hex strings**: Must be valid lowercase hex
+
 ### Location Format
 
 - If location is null: `location=none`
 - If location is present: `location={lat},{lon},{accuracy},{altitude}`
   - altitude is `none` if null
+  - v1.1: floats formatted with `.10g` precision, ensuring decimal point
 
-### Example Payload
+### Example Payload (v1.0)
 
 ```
 WorkCam-Sig-v1
@@ -66,6 +73,17 @@ device_id=test-device-001
 location=none
 ```
 
+## DER Signature Format
+
+ECDSA signatures must be DER-encoded (RFC 3279):
+
+- Must start with SEQUENCE tag (`0x30`)
+- Must contain exactly two INTEGER values (r, s)
+- No trailing data allowed
+- Total length must match declared length
+
+Invalid DER structures are rejected before cryptographic verification.
+
 ## Signing
 
 1. Construct the canonical payload bytes (UTF-8).
@@ -77,8 +95,27 @@ location=none
 
 1. Decode the `public_key` from base64 → 65-byte uncompressed point.
 2. Decode the `signature` from base64 → DER bytes.
-3. Reconstruct the canonical payload from the manifest fields.
-4. Verify the ECDSA signature over the payload using SHA-256.
+3. Validate DER structure strictly.
+4. Reconstruct the canonical payload from the manifest fields.
+5. Verify the ECDSA signature over the payload using SHA-256.
+
+## Evidence Status
+
+The verification result includes multiple status fields:
+
+| Field | Description |
+|-------|-------------|
+| `cryptographic_signature_valid` | Mathematical signature validity |
+| `key_registration_status` | Whether public key is registered |
+| `device_attestation_status` | Whether device passed attestation |
+| `evidence_status` | Overall evidence status |
+
+### Evidence Status Values
+
+- `verified`: All checks passed, key registered
+- `partial`: Signature valid but some checks incomplete (e.g., no photo, unregistered key)
+- `unverified`: Some checks could not be performed
+- `invalid`: One or more checks failed
 
 ## Hash Chain
 
@@ -95,19 +132,21 @@ where `signature_ascii` is the base64 signature string encoded as ASCII.
 
 ### Chain Verification
 
-1. Sort records by `sequence_number`.
-2. Check no duplicate sequence numbers.
-3. For seq=0: verify `previous_record_hash` is null.
-4. For seq>0: verify `previous_record_hash` matches the computed hash of the previous record.
-5. Report any gaps, mismatches, or duplicates.
+1. Preserve original submission order and detect reordering
+2. Check no duplicate sequence numbers
+3. Report missing sequence numbers (gaps may indicate rebuilding)
+4. For seq=0: verify `previous_record_hash` is null
+5. For seq>0: verify `previous_record_hash` matches the computed hash of the previous record
+6. Report any gaps, mismatches, or duplicates
 
 ## Limitations
 
 - An offline hash chain **cannot** guarantee no deletion, replacement, or rebuilding of records.
 - Only anchored chains (with server-side timestamps) provide stronger guarantees.
 - This protocol does **not** implement App Attest verification in this version.
+- `device_reported_time` is self-reported and NOT trusted as server-verified time.
 
 ## Test Vectors
 
-See `tests/test_serialization.py` and `tests/test_signature.py` for reproducible test cases.
+See `test-vectors/fixed-vectors.json` for cross-language test vectors.
 All tests use software-generated P-256 keys (clearly marked as test keys).

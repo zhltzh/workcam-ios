@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from cryptography.hazmat.primitives.asymmetric import ec
+import hashlib
+from datetime import datetime, timezone
 
 from app.services.chain import compute_record_hash, verify_chain, verify_chain_link
 from tests.conftest import make_manifest, _encode_pub
 
 
 def test_genesis_record_valid():
+    from cryptography.hazmat.primitives.asymmetric import ec
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
     m = make_manifest(priv, pub, seq=0, prev_hash=None)
@@ -15,6 +17,7 @@ def test_genesis_record_valid():
 
 
 def test_genesis_with_prev_hash_rejected():
+    from cryptography.hazmat.primitives.asymmetric import ec
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
     m = make_manifest(priv, pub, seq=0, prev_hash="aa" * 32)
@@ -23,6 +26,7 @@ def test_genesis_with_prev_hash_rejected():
 
 
 def test_chain_link_valid():
+    from cryptography.hazmat.primitives.asymmetric import ec
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
     r0 = make_manifest(priv, pub, seq=0, prev_hash=None)
@@ -33,6 +37,7 @@ def test_chain_link_valid():
 
 
 def test_chain_link_wrong_prev_hash():
+    from cryptography.hazmat.primitives.asymmetric import ec
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
     r0 = make_manifest(priv, pub, seq=0, prev_hash=None)
@@ -43,6 +48,7 @@ def test_chain_link_wrong_prev_hash():
 
 
 def test_chain_link_missing_previous():
+    from cryptography.hazmat.primitives.asymmetric import ec
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
     r1 = make_manifest(priv, pub, seq=1, prev_hash="cc" * 32)
@@ -51,6 +57,7 @@ def test_chain_link_missing_previous():
 
 
 def test_chain_link_sequence_gap():
+    from cryptography.hazmat.primitives.asymmetric import ec
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
     r0 = make_manifest(priv, pub, seq=0, prev_hash=None)
@@ -61,6 +68,7 @@ def test_chain_link_sequence_gap():
 
 
 def test_verify_chain_full():
+    from cryptography.hazmat.primitives.asymmetric import ec
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
     records = []
@@ -70,11 +78,12 @@ def test_verify_chain_full():
         records.append(r)
         prev_hash = compute_record_hash(r)
 
-    results = verify_chain(records)
-    assert all(r.get("valid") for r in results)
+    result = verify_chain(records)
+    assert all(r.get("valid") for r in result["results"])
 
 
 def test_verify_chain_tampered_middle():
+    from cryptography.hazmat.primitives.asymmetric import ec
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
     records = []
@@ -87,22 +96,23 @@ def test_verify_chain_tampered_middle():
     fake = make_manifest(priv, pub, seq=2, prev_hash="dd" * 32)
     records[2] = fake
 
-    results = verify_chain(records)
-    tampered = [r for r in results if r.get("sequence_number") == 2]
+    result = verify_chain(records)
+    tampered = [r for r in result["results"] if r.get("sequence_number") == 2]
     assert len(tampered) == 1
     assert tampered[0]["valid"] is False
 
 
 def test_verify_chain_duplicate_sequence():
+    from cryptography.hazmat.primitives.asymmetric import ec
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
     r0 = make_manifest(priv, pub, seq=0, prev_hash=None)
     r1 = make_manifest(priv, pub, seq=1, prev_hash=compute_record_hash(r0))
     r1_dup = make_manifest(priv, pub, seq=1, prev_hash=compute_record_hash(r0))
-    results = verify_chain([r0, r1, r1_dup])
-    assert any("duplicate" in str(r).lower() for r in results)
+    result = verify_chain([r0, r1, r1_dup])
+    assert any("duplicate" in str(r).lower() for r in result["results"])
 
 
 def test_verify_chain_empty():
-    results = verify_chain([])
-    assert any("error" in r for r in results)
+    result = verify_chain([])
+    assert "error" in result
