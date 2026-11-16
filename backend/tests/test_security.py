@@ -27,6 +27,7 @@ def setup_function():
 
 
 def test_unregistered_key_signature():
+    """Unregistered key -> SIGNATURE_VALID (not CRYPTOGRAPHICALLY_VALID)"""
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
     photo = make_test_photo()
@@ -38,10 +39,11 @@ def test_unregistered_key_signature():
     data = resp.json()
     assert data["cryptographic_signature_valid"] is True
     assert data["key_registration_status"] == KeyRegistrationStatus.UNREGISTERED
-    assert data["evidence_status"] == EvidenceStatus.PARTIAL
+    assert data["evidence_status"] == EvidenceStatus.SIGNATURE_VALID
 
 
 def test_missing_photo_returns_not_checked():
+    """Missing photo -> photo_hash_valid=None, not VERIFIED"""
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
     m = make_manifest(priv, pub)
@@ -49,7 +51,9 @@ def test_missing_photo_returns_not_checked():
     data = resp.json()
     photo_checks = [d for d in data["details"] if d["check"] == "photo_hash"]
     assert photo_checks[0]["status"] == CheckStatus.NOT_CHECKED
-    assert data["evidence_status"] != EvidenceStatus.VERIFIED
+    assert data["photo_hash_valid"] is None
+    assert data["evidence_status"] != EvidenceStatus.FULLY_ATTESTED
+    assert data["evidence_status"] != EvidenceStatus.CRYPTOGRAPHICALLY_VALID
 
 
 def test_newline_injection_in_record_id():
@@ -182,7 +186,8 @@ def test_missing_sequence_in_chain():
     assert any("missing" in w.lower() for w in result["warnings"])
 
 
-def test_chain_rebuild_detection():
+def test_chain_reorder_detection():
+    """Test that reordering is detected (not full rebuild detection)"""
     from app.services.chain import verify_chain
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
@@ -195,6 +200,47 @@ def test_chain_rebuild_detection():
     assert result2["original_order_preserved"] is False
 
 
+def test_chain_without_anchor_cannot_prove_immutability():
+    """
+    Document that unanchored chains cannot prove immutability.
+    An attacker with the private key could rebuild the entire chain with
+    valid signatures. The chain structure check only verifies internal
+    consistency, not that the records are the original ones.
+
+    This test demonstrates that:
+    1. A valid chain passes structure checks
+    2. A completely rebuilt chain (with same private key) also passes
+    3. Without server anchors, we cannot distinguish original from rebuilt
+    """
+    from app.services.chain import verify_chain
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+
+    original_r0 = make_manifest(priv, pub, seq=0, record_id="original-0")
+    original_r1 = make_manifest(priv, pub, seq=1, record_id="original-1",
+                                 prev_hash=compute_record_hash(original_r0))
+    original_r2 = make_manifest(priv, pub, seq=2, record_id="original-2",
+                                 prev_hash=compute_record_hash(original_r1))
+
+    original_result = verify_chain([original_r0, original_r1, original_r2])
+    assert all(r.get("valid") for r in original_result["results"])
+
+    rebuilt_r0 = make_manifest(priv, pub, seq=0, record_id="rebuilt-0")
+    rebuilt_r1 = make_manifest(priv, pub, seq=1, record_id="rebuilt-1",
+                                prev_hash=compute_record_hash(rebuilt_r0))
+    rebuilt_r2 = make_manifest(priv, pub, seq=2, record_id="rebuilt-2",
+                                prev_hash=compute_record_hash(rebuilt_r1))
+
+    rebuilt_result = verify_chain([rebuilt_r0, rebuilt_r1, rebuilt_r2])
+    assert all(r.get("valid") for r in rebuilt_result["results"])
+
+
+def compute_record_hash(manifest):
+    """Helper to compute record hash for chain building"""
+    from app.services.chain import compute_record_hash as _compute
+    return _compute(manifest)
+
+
 def test_unsupported_protocol_version():
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
@@ -204,7 +250,8 @@ def test_unsupported_protocol_version():
     assert data["evidence_status"] == EvidenceStatus.INVALID
 
 
-def test_same_record_submitted_twice():
+def test_readonly_verify_allows_duplicate():
+    """Read-only verify endpoint allows same record to be verified multiple times"""
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
     photo = make_test_photo()
@@ -221,7 +268,35 @@ def test_same_record_submitted_twice():
     assert resp2.json()["cryptographic_signature_valid"] is True
 
 
+def test_store_record_detects_replay():
+    """Store endpoint detects duplicate record_id submissions"""
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    photo = make_test_photo()
+    m = make_manifest(priv, pub, photo_bytes=photo)
+    resp1 = client.post("/store-record", json={"manifest": m.model_dump()})
+    assert resp1.json()["is_new"] is True
+    resp2 = client.post("/store-record", json={"manifest": m.model_dump()})
+    assert resp2.json()["is_new"] is False
+    assert "duplicate" in resp2.json()["message"].lower()
+
+
+def test_store_record_detects_conflict():
+    """Store endpoint detects same record_id with different content"""
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    photo = make_test_photo()
+    m1 = make_manifest(priv, pub, photo_bytes=photo)
+    resp1 = client.post("/store-record", json={"manifest": m1.model_dump()})
+    assert resp1.json()["is_new"] is True
+    m2 = m1.model_copy(update={"photo_hash": "aa" * 32})
+    resp2 = client.post("/store-record", json={"manifest": m2.model_dump()})
+    assert resp2.json()["is_new"] is False
+    assert "conflict" in resp2.json()["message"].lower()
+
+
 def test_cross_language_fixed_vector():
+    """Verify cross-language test vectors with actual signature check"""
     import json
     import os
     vector_path = os.path.join(
@@ -241,3 +316,39 @@ def test_cross_language_fixed_vector():
     assert "previous_record_hash=none" in text
     assert "location=none" in text
     assert text.endswith("\n")
+
+
+def test_evidence_status_hierarchy():
+    """
+    Test evidence status hierarchy:
+    INVALID < SIGNATURE_VALID < CRYPTOGRAPHICALLY_VALID < FULLY_ATTESTED
+    """
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
+    photo = make_test_photo()
+
+    m_invalid = make_manifest(priv, pub, photo_bytes=photo)
+    m_invalid = m_invalid.model_copy(update={"photo_hash": "aa" * 32})
+    resp_invalid = client.post("/verify", json={
+        "manifest": m_invalid.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
+    assert resp_invalid.json()["evidence_status"] == EvidenceStatus.INVALID
+
+    m_sig_valid = make_manifest(priv, pub, photo_bytes=photo)
+    resp_sig = client.post("/verify", json={
+        "manifest": m_sig_valid.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
+    assert resp_sig.json()["evidence_status"] == EvidenceStatus.SIGNATURE_VALID
+
+    registry = get_registry()
+    registry.register(pub_b64, "test-device-001")
+    m_crypto = make_manifest(priv, pub, photo_bytes=photo)
+    resp_crypto = client.post("/verify", json={
+        "manifest": m_crypto.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
+    assert resp_crypto.json()["evidence_status"] == EvidenceStatus.CRYPTOGRAPHICALLY_VALID
+    assert resp_crypto.json()["device_attestation_status"] == "unknown"

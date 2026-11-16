@@ -101,21 +101,42 @@ Invalid DER structures are rejected before cryptographic verification.
 
 ## Evidence Status
 
-The verification result includes multiple status fields:
+The verification result includes multiple status fields with a clear hierarchy:
+
+### Evidence Status Hierarchy
+
+```
+FULLY_ATTESTED > CRYPTOGRAPHICALLY_VALID > SIGNATURE_VALID > PARTIAL > UNVERIFIED > INVALID
+```
+
+| Status | Meaning | When Achieved |
+|--------|---------|---------------|
+| `FULLY_ATTESTED` | All checks passed including device attestation | **Rarely achieved.** Requires App Attest implementation. |
+| `CRYPTOGRAPHICALLY_VALID` | Signature valid, photo verified, key registered | **BUT device attestation unknown.** Cannot prove device is genuine. |
+| `SIGNATURE_VALID` | Signature math valid | Key not registered or photo not verified. |
+| `PARTIAL` | Some checks passed, some incomplete | Photo not provided, or other checks incomplete. |
+| `UNVERIFIED` | Checks could not be performed | Structural issues, unsupported version. |
+| `INVALID` | One or more checks failed | Signature invalid, photo mismatch, identity mismatch. |
+
+### Response Fields
 
 | Field | Description |
 |-------|-------------|
+| `evidence_status` | Overall evidence trust level (see hierarchy above) |
 | `cryptographic_signature_valid` | Mathematical signature validity |
+| `photo_hash_valid` | Photo bytes match signed hash (null if not checked) |
 | `key_registration_status` | Whether public key is registered |
-| `device_attestation_status` | Whether device passed attestation |
-| `evidence_status` | Overall evidence status |
+| `device_identity_consistent` | Whether manifest device_id matches registered key |
+| `device_attestation_status` | Whether device passed attestation (always `unknown` currently) |
+| `time_trust_level` | How much we trust the timestamp (`device_reported` currently) |
 
-### Evidence Status Values
+### Important Warnings
 
-- `verified`: All checks passed, key registered
-- `partial`: Signature valid but some checks incomplete (e.g., no photo, unregistered key)
-- `unverified`: Some checks could not be performed
-- `invalid`: One or more checks failed
+**Never interpret `CRYPTOGRAPHICALLY_VALID` as "device is genuine".** It only means the math checks out. Without App Attest, the device could be any computer.
+
+**Always check `device_attestation_status`.** If `unknown`, cannot prove the device is an iPhone with Secure Enclave.
+
+**Always check `time_trust_level`.** If `device_reported`, the device could have falsified the time.
 
 ## Hash Chain
 
@@ -141,10 +162,39 @@ where `signature_ascii` is the base64 signature string encoded as ASCII.
 
 ## Limitations
 
-- An offline hash chain **cannot** guarantee no deletion, replacement, or rebuilding of records.
-- Only anchored chains (with server-side timestamps) provide stronger guarantees.
-- This protocol does **not** implement App Attest verification in this version.
-- `device_reported_time` is self-reported and NOT trusted as server-verified time.
+### Hash Chain Immutability
+
+An offline hash chain **cannot** guarantee no deletion, replacement, or rebuilding of records.
+
+**What chain verification proves:**
+- Internal consistency: each record's `previous_record_hash` matches the computed hash of the previous record
+- No duplicate sequence numbers
+- No gaps in sequence numbers (if present)
+- Original submission order (if preserved)
+
+**What chain verification does NOT prove:**
+- That the records are the original ones (an attacker with the private key could rebuild the entire chain)
+- That no records were deleted (gaps could indicate deletion OR could indicate the records were never created)
+- That the chain is immutable (without server-side anchors, the chain can be reconstructed)
+
+**To achieve stronger guarantees:**
+- Implement server-side time anchoring (server records timestamp when chain is submitted)
+- Implement periodic anchoring to external systems (blockchain, notary service)
+- Use append-only storage with cryptographic proofs
+
+### Device Attestation
+
+This protocol does **not** implement App Attest verification. Without App Attest:
+- Cannot prove the device is a genuine Apple device
+- Cannot prove the private key is stored in Secure Enclave
+- Maximum evidence status is `CRYPTOGRAPHICALLY_VALID`, not `FULLY_ATTESTED`
+
+### Time Trust
+
+Timestamps are device-reported only (`time_trust_level=device_reported`). Without server-side anchoring:
+- Device could have falsified the time
+- Cannot prove when the photo was actually taken
+- Cannot correlate with external events
 
 ## Test Vectors
 
