@@ -209,6 +209,7 @@ def test_register_key_endpoint():
     resp = client.post("/register-key", params={
         "public_key_b64": pub_b64,
         "device_id": "test-device-001",
+        "allow_test_registration": True,
     })
     assert resp.status_code == 200
     data = resp.json()
@@ -402,3 +403,159 @@ def test_check_record_endpoint():
     resp2 = client.get(f"/check-record/{m.record_id}")
     assert resp2.json()["exists"] is True
     assert resp2.json()["record_id"] == m.record_id
+
+
+def test_store_record_requires_photo():
+    """Test that /store-record rejects requests without photo_base64"""
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
+    photo = make_test_photo()
+    m = make_manifest(priv, pub, photo_bytes=photo)
+
+    registry = get_registry()
+    registry.register(pub_b64, "test-device-001")
+
+    # Missing photo_base64 field
+    resp = client.post("/store-record", json={
+        "manifest": m.model_dump(),
+    })
+    assert resp.json()["stored"] is False
+    assert resp.json()["rejection_reason"] == "photo_missing"
+
+
+def test_store_record_rejects_empty_photo():
+    """Test that /store-record rejects empty photo_base64 string"""
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
+    photo = make_test_photo()
+    m = make_manifest(priv, pub, photo_bytes=photo)
+
+    registry = get_registry()
+    registry.register(pub_b64, "test-device-001")
+
+    # Empty string photo_base64
+    resp = client.post("/store-record", json={
+        "manifest": m.model_dump(),
+        "photo_base64": "",
+    })
+    assert resp.json()["stored"] is False
+    assert resp.json()["rejection_reason"] == "photo_empty"
+
+
+def test_store_record_rejects_photo_hash_mismatch():
+    """Test that /store-record rejects when photo doesn't match hash"""
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
+    photo = make_test_photo()
+    m = make_manifest(priv, pub, photo_bytes=photo)
+
+    registry = get_registry()
+    registry.register(pub_b64, "test-device-001")
+
+    # Provide different photo bytes
+    wrong_photo = b"\x00" * 1024
+    resp = client.post("/store-record", json={
+        "manifest": m.model_dump(),
+        "photo_base64": base64.b64encode(wrong_photo).decode(),
+    })
+    assert resp.json()["stored"] is False
+    assert resp.json()["rejection_reason"] == "photo_hash_mismatch"
+
+
+def test_register_key_requires_explicit_flag():
+    """Test that /register-key requires allow_test_registration=true"""
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
+
+    # Without flag
+    resp = client.post("/register-key", params={
+        "public_key_b64": pub_b64,
+        "device_id": "test-device-001",
+    })
+    assert resp.json()["error"] == "TEST_REGISTRATION_NOT_ALLOWED"
+
+
+def test_register_key_with_flag():
+    """Test that /register-key works with allow_test_registration=true"""
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
+
+    resp = client.post("/register-key", params={
+        "public_key_b64": pub_b64,
+        "device_id": "test-device-001",
+        "allow_test_registration": True,
+    })
+    assert resp.json()["registration_status"] == "registered"
+    assert "warning" in resp.json()
+
+
+def test_register_key_idempotent():
+    """Test that /register-key is idempotent for same key+device"""
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
+
+    # First registration
+    resp1 = client.post("/register-key", params={
+        "public_key_b64": pub_b64,
+        "device_id": "test-device-001",
+        "allow_test_registration": True,
+    })
+    assert resp1.json()["registration_status"] == "registered"
+
+    # Second registration with same device_id
+    resp2 = client.post("/register-key", params={
+        "public_key_b64": pub_b64,
+        "device_id": "test-device-001",
+        "allow_test_registration": True,
+    })
+    assert resp2.json()["error"] == "ALREADY_REGISTERED"
+    assert resp2.json()["idempotent"] is True
+
+
+def test_register_key_device_id_conflict():
+    """Test that /register-key rejects different device_id for same key"""
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
+
+    # First registration
+    resp1 = client.post("/register-key", params={
+        "public_key_b64": pub_b64,
+        "device_id": "test-device-001",
+        "allow_test_registration": True,
+    })
+    assert resp1.json()["registration_status"] == "registered"
+
+    # Try to register same key with different device_id
+    resp2 = client.post("/register-key", params={
+        "public_key_b64": pub_b64,
+        "device_id": "different-device-002",
+        "allow_test_registration": True,
+    })
+    assert resp2.json()["error"] == "DEVICE_ID_CONFLICT"
+    assert resp2.json()["existing_device_id"] == "test-device-001"
+    assert resp2.json()["requested_device_id"] == "different-device-002"
+
+
+def test_register_key_production_disabled(monkeypatch):
+    """Test that /register-key is disabled in production environment"""
+    import os
+    monkeypatch.setenv("WORKCAM_ENV", "production")
+
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
+
+    resp = client.post("/register-key", params={
+        "public_key_b64": pub_b64,
+        "device_id": "test-device-001",
+        "allow_test_registration": True,
+    })
+    assert resp.json()["error"] == "REGISTER_DISABLED"
+    assert "production" in resp.json()["message"].lower()

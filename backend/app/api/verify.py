@@ -257,18 +257,69 @@ def _compute_summary(
 
 
 @router.post("/register-key")
-async def register_key(public_key_b64: str, device_id: str):
+async def register_key(
+    public_key_b64: str,
+    device_id: str,
+    allow_test_registration: bool = False,
+):
     """
     Register a public key with a device_id.
-    This is a development/testing endpoint.
+
+    SECURITY: This endpoint is for DEVELOPMENT/TESTING ONLY.
+    - Requires explicit allow_test_registration=true parameter
+    - In production, this endpoint must be DISABLED
+    - Production will use App Attest formal registration flow
+    - Does NOT allow overwriting existing registrations
+    - Returns error if device_id conflicts with existing registration
     """
+    import os
+    env = os.environ.get("WORKCAM_ENV", "development")
+
+    if env == "production":
+        return {
+            "error": "REGISTER_DISABLED",
+            "message": "Test registration is disabled in production environment. Use App Attest formal registration flow.",
+            "environment": env,
+        }
+
+    if not allow_test_registration:
+        return {
+            "error": "TEST_REGISTRATION_NOT_ALLOWED",
+            "message": "Test registration requires explicit allow_test_registration=true parameter. This is a safety measure to prevent accidental key registration.",
+            "hint": "Set allow_test_registration=true to proceed in development/test environments.",
+        }
+
     registry = get_registry()
+
+    existing = registry.lookup(public_key_b64)
+    if existing.registration_status == KeyRegistrationStatus.REGISTERED:
+        if existing.device_id != device_id:
+            return {
+                "error": "DEVICE_ID_CONFLICT",
+                "message": f"Public key already registered to different device_id. Existing: '{existing.device_id}', Requested: '{device_id}'. Cannot overwrite existing registration.",
+                "existing_device_id": existing.device_id,
+                "requested_device_id": device_id,
+                "registered_at": existing.registered_at,
+            }
+        else:
+            return {
+                "error": "ALREADY_REGISTERED",
+                "message": "Public key already registered with same device_id. Idempotent operation.",
+                "public_key_hash": existing.public_key_hash,
+                "registration_status": existing.registration_status.value,
+                "registered_at": existing.registered_at,
+                "device_id": existing.device_id,
+                "idempotent": True,
+            }
+
     result = registry.register(public_key_b64, device_id)
     return {
         "public_key_hash": result.public_key_hash,
-        "registration_status": result.registration_status,
+        "registration_status": result.registration_status.value,
         "registered_at": result.registered_at,
         "device_id": result.device_id,
+        "environment": env,
+        "warning": "This is a TEST registration. Production will use App Attest formal registration.",
     }
 
 
@@ -277,19 +328,43 @@ async def store_record(req: VerifyRequest):
     """
     Store a record for replay detection.
 
-    SECURITY: This endpoint validates evidence before storing.
+    SECURITY: This endpoint enforces strict validation:
+    - photo_base64 is MANDATORY (cannot be None or empty)
     - Signature must be mathematically valid
     - Public key must be registered
     - Device identity must be consistent
-    - If photo is provided, photo hash must match
+    - Photo hash MUST match the manifest's photo_hash
 
     Invalid evidence will NOT occupy the record_id.
+
+    Zero-byte photos are supported if explicitly provided and hash matches,
+    but must be distinguished from missing photos.
 
     This is a development/testing endpoint, NOT a production-grade
     trusted registration service.
     """
     registry = get_registry()
     manifest = req.manifest
+
+    # CRITICAL: photo_base64 is MANDATORY
+    if req.photo_base64 is None:
+        return {
+            "record_id": manifest.record_id,
+            "is_new": False,
+            "stored": False,
+            "message": "REJECTED: photo_base64 is mandatory. Cannot store record without photo bytes.",
+            "rejection_reason": "photo_missing",
+        }
+
+    # Check for empty string (different from None)
+    if req.photo_base64 == "":
+        return {
+            "record_id": manifest.record_id,
+            "is_new": False,
+            "stored": False,
+            "message": "REJECTED: photo_base64 is empty string. Must provide actual photo bytes or omit field entirely.",
+            "rejection_reason": "photo_empty",
+        }
 
     sig_ok, sig_msg = verify_signature_with_details(manifest)
     if not sig_ok:
@@ -327,25 +402,25 @@ async def store_record(req: VerifyRequest):
             "rejection_reason": "device_identity_mismatch",
         }
 
-    if req.photo_base64 is not None:
-        try:
-            photo_bytes = base64.b64decode(req.photo_base64, validate=True)
-            if not verify_photo_hash(manifest, photo_bytes):
-                return {
-                    "record_id": manifest.record_id,
-                    "is_new": False,
-                    "stored": False,
-                    "message": "REJECTED: Photo hash mismatch",
-                    "rejection_reason": "photo_hash_mismatch",
-                }
-        except Exception as e:
+    # CRITICAL: Photo hash MUST be verified (not optional)
+    try:
+        photo_bytes = base64.b64decode(req.photo_base64, validate=True)
+        if not verify_photo_hash(manifest, photo_bytes):
             return {
                 "record_id": manifest.record_id,
                 "is_new": False,
                 "stored": False,
-                "message": f"REJECTED: Failed to decode photo - {e}",
-                "rejection_reason": "photo_decode_failed",
+                "message": "REJECTED: Photo hash mismatch. Provided photo does not match manifest.photo_hash.",
+                "rejection_reason": "photo_hash_mismatch",
             }
+    except Exception as e:
+        return {
+            "record_id": manifest.record_id,
+            "is_new": False,
+            "stored": False,
+            "message": f"REJECTED: Failed to decode photo - {e}",
+            "rejection_reason": "photo_decode_failed",
+        }
 
     manifest_dict = manifest.model_dump()
     manifest_hash = compute_manifest_hash(manifest_dict)
