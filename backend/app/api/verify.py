@@ -276,18 +276,85 @@ async def register_key(public_key_b64: str, device_id: str):
 async def store_record(req: VerifyRequest):
     """
     Store a record for replay detection.
-    This is a development/testing endpoint.
+
+    SECURITY: This endpoint validates evidence before storing.
+    - Signature must be mathematically valid
+    - Public key must be registered
+    - Device identity must be consistent
+    - If photo is provided, photo hash must match
+
+    Invalid evidence will NOT occupy the record_id.
+
+    This is a development/testing endpoint, NOT a production-grade
+    trusted registration service.
     """
     registry = get_registry()
+    manifest = req.manifest
 
-    manifest_dict = req.manifest.model_dump()
+    sig_ok, sig_msg = verify_signature_with_details(manifest)
+    if not sig_ok:
+        return {
+            "record_id": manifest.record_id,
+            "is_new": False,
+            "stored": False,
+            "message": f"REJECTED: Signature invalid - {sig_msg}",
+            "rejection_reason": "invalid_signature",
+        }
+
+    key_result = registry.lookup(manifest.public_key)
+    if key_result.registration_status != KeyRegistrationStatus.REGISTERED:
+        return {
+            "record_id": manifest.record_id,
+            "is_new": False,
+            "stored": False,
+            "message": "REJECTED: Public key not registered",
+            "rejection_reason": "unregistered_key",
+        }
+
+    is_consistent, registered_device_id = registry.check_device_identity(
+        manifest.public_key, manifest.device_id
+    )
+    if not is_consistent:
+        return {
+            "record_id": manifest.record_id,
+            "is_new": False,
+            "stored": False,
+            "message": (
+                f"REJECTED: Device identity mismatch. "
+                f"Key registered to '{registered_device_id}', "
+                f"manifest claims '{manifest.device_id}'"
+            ),
+            "rejection_reason": "device_identity_mismatch",
+        }
+
+    if req.photo_base64 is not None:
+        try:
+            photo_bytes = base64.b64decode(req.photo_base64, validate=True)
+            if not verify_photo_hash(manifest, photo_bytes):
+                return {
+                    "record_id": manifest.record_id,
+                    "is_new": False,
+                    "stored": False,
+                    "message": "REJECTED: Photo hash mismatch",
+                    "rejection_reason": "photo_hash_mismatch",
+                }
+        except Exception as e:
+            return {
+                "record_id": manifest.record_id,
+                "is_new": False,
+                "stored": False,
+                "message": f"REJECTED: Failed to decode photo - {e}",
+                "rejection_reason": "photo_decode_failed",
+            }
+
+    manifest_dict = manifest.model_dump()
     manifest_hash = compute_manifest_hash(manifest_dict)
-    public_key_hash = compute_public_key_hash(req.manifest.public_key)
+    public_key_hash = compute_public_key_hash(manifest.public_key)
 
     entry = RecordStoreEntry(
-        record_id=req.manifest.record_id,
-        photo_hash=req.manifest.photo_hash,
-        device_id=req.manifest.device_id,
+        record_id=manifest.record_id,
+        photo_hash=manifest.photo_hash,
+        device_id=manifest.device_id,
         public_key_hash=public_key_hash,
         stored_at=datetime.now(timezone.utc).isoformat(),
         manifest_hash=manifest_hash,
@@ -298,6 +365,7 @@ async def store_record(req: VerifyRequest):
     return {
         "record_id": entry.record_id,
         "is_new": is_new,
+        "stored": is_new,
         "message": message,
         "stored_at": entry.stored_at,
     }

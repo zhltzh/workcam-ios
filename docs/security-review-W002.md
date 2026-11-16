@@ -1,210 +1,100 @@
-# WorkCam Security Review — WC-W002 (Updated with R1)
+# WorkCam Security Review — WC-W002 (Updated with R1 and R2)
 
 ## Summary
 
-WC-W002 addresses security issues identified in WC-W001. WC-W002-R1 addresses review feedback on WC-W002. This report documents all fixes and remaining limitations.
-
-## WC-W002 Original Fixes
-
-### 1. Public Key Trust Model
-
-**Problem**: Client-submitted public keys were used directly for verification without registration status.
-
-**Fix**: 
-- Added `KeyRegistrationStatus` (registered/unregistered/unknown)
-- Added `DeviceAttestationStatus` (attested/not_attested/unknown)
-- Added `EvidenceStatus` (verified/partial/unverified/invalid)
-- Created `InMemoryKeyRegistry` for key registration (test/prototype)
-- Unregistered keys are flagged in warnings but signature validity is still reported
-
-### 2. Missing Photo Verification
-
-**Problem**: When photo bytes were not provided, `photo_hash` check was marked as `passed`.
-
-**Fix**:
-- Changed to three-state check: `passed` / `failed` / `not_checked`
-- When photo not provided, status is `not_checked` with warning
-- `evidence_status` cannot be `verified` without photo verification
-
-### 3. Serialization Protocol
-
-**Problem**: 
-- Float formatting could vary across languages
-- Strings could contain newlines, enabling injection
-- Timestamp formats not validated
-
-**Fix**:
-- Added strict ISO 8601 timestamp validation
-- Added newline rejection in all string fields
-- Added NaN/Infinity rejection in float fields
-- Added v1.1 protocol with deterministic float formatting
-- Domain separator includes version for future compatibility
-
-### 4. DER Signature Validation
-
-**Problem**: Invalid exception handling allowed malformed DER to pass initial checks.
-
-**Fix**:
-- Removed invalid exception catch logic
-- Added strict DER structure validation
-
-### 5. Hash Chain Integrity
-
-**Problem**: Sorting records by sequence number could hide original submission order anomalies.
-
-**Fix**:
-- Added `original_order_preserved` flag
-- Added warnings when submission order differs from sequence order
-- Added detection of missing sequence numbers (gaps)
-- Added detection of duplicate sequence numbers
-
-## WC-W002-R1 Additional Fixes
-
-### 1. Evidence Status Hierarchy (Critical)
-
-**Problem**: `verified` status was too optimistic. When App Attest is unknown, returning `verified` could be misinterpreted as full device trust.
-
-**Fix**: Redesigned `EvidenceStatus` with clear hierarchy:
-
-```
-FULLY_ATTESTED > CRYPTOGRAPHICALLY_VALID > SIGNATURE_VALID > PARTIAL > UNVERIFIED > INVALID
-```
-
-| Status | Meaning |
-|--------|---------|
-| `FULLY_ATTESTED` | All checks passed including device attestation. **Rarely achieved.** |
-| `CRYPTOGRAPHICALLY_VALID` | Signature valid, photo verified, key registered. **BUT device attestation unknown.** |
-| `SIGNATURE_VALID` | Signature math valid, but key not registered or photo not verified. |
-| `PARTIAL` | Some checks passed, some incomplete. |
-| `UNVERIFIED` | Checks could not be performed. |
-| `INVALID` | One or more checks failed. |
-
-**Key change**: Without App Attest, maximum status is `CRYPTOGRAPHICALLY_VALID`, not `FULLY_ATTESTED`.
-
-### 2. Device Identity Binding
-
-**Problem**: Public key registration recorded `device_id`, but verification didn't check consistency.
-
-**Fix**:
-- Added `device_identity_consistent` field to response
-- Verification checks if manifest's `device_id` matches registered key's `device_id`
-- Mismatch results in `INVALID` status
-- Added warning when identity doesn't match
-
-### 3. Replay Detection
-
-**Problem**: `test_same_record_submitted_twice` only verified signature validity, didn't test replay detection.
-
-**Fix**:
-- Added `RecordStoreEntry` model for record storage
-- Added `/store-record` endpoint for registering records
-- Added `/check-record/{record_id}` endpoint for checking existence
-- Distinguishes:
-  - Read-only verification (allows duplicates)
-  - Record registration (detects duplicates and conflicts)
-- Same `record_id` with identical content → "Duplicate submission"
-- Same `record_id` with different content → "CONFLICT"
-
-### 4. Time Trust Level
-
-**Problem**: No explicit indication of time trustworthiness.
-
-**Fix**:
-- Added `TimeTrustLevel` enum: `server_anchored` / `device_reported` / `unknown`
-- Current implementation always returns `device_reported`
-- Warning explains that device could have falsified time
-
-### 5. Hash Chain Immutability Disclaimer
-
-**Problem**: Test name `test_chain_rebuild_detection` was misleading. Chain structure checks don't prove immutability.
-
-**Fix**:
-- Renamed test to `test_chain_reorder_detection`
-- Added `test_chain_without_anchor_cannot_prove_immutability` demonstrating that:
-  - Original chain passes structure checks
-  - Completely rebuilt chain (same private key) also passes
-  - Without server anchors, cannot distinguish original from rebuilt
-- Updated documentation to clarify limitations
-
-### 6. Input Validation
-
-**Problem**: No length limits on string fields.
-
-**Fix**:
-- Added `max_length=256` to `record_id` and `device_id`
-- Added `le=1000000` to `sequence_number`
-
-## API Changes (WC-W002-R1)
-
-### VerifyResponse (updated)
-
-```python
-class VerifyResponse(BaseModel):
-    evidence_status: EvidenceStatus  # Refined hierarchy
-    cryptographic_signature_valid: bool
-    photo_hash_valid: bool | None  # NEW: explicit field
-    key_registration_status: KeyRegistrationStatus
-    device_identity_consistent: bool | None  # NEW
-    device_attestation_status: DeviceAttestationStatus
-    time_trust_level: TimeTrustLevel  # NEW
-    summary: str
-    details: list[VerifyDetail]
-    warnings: list[str] = []
-```
-
-### New Endpoints
-
-- `POST /register-key` — Register public key with device_id
-- `POST /store-record` — Store record for replay detection
-- `GET /check-record/{record_id}` — Check if record exists
+WC-W002 addresses security issues identified in WC-W001. WC-W002-R1 addresses review feedback on WC-W002. WC-W002-R2 addresses final review feedback including cross-language test vectors and record storage security.
 
 ## Test Results
 
 ```
-68 passed, 1 warning in 0.89s
+86 passed, 1 warning in 1.63s
 ```
 
-### New Tests (WC-W002-R1)
+## WC-W002-R2 Fixes
 
-- `test_verify_registered_key_identity_match`
-- `test_verify_registered_key_identity_mismatch`
-- `test_verify_time_trust_level`
-- `test_register_key_endpoint`
-- `test_store_record_endpoint`
-- `test_store_record_duplicate`
-- `test_store_record_conflict`
-- `test_check_record_endpoint`
-- `test_chain_without_anchor_cannot_prove_immutability`
-- `test_readonly_verify_allows_duplicate`
-- `test_store_record_detects_replay`
-- `test_store_record_detects_conflict`
-- `test_evidence_status_hierarchy`
+### 1. Cross-Language Test Vectors (Critical)
+
+**Problem**: Previous test vectors didn't include real cryptographic signatures.
+
+**Fix**:
+- Generated real P-256 key pair using Python cryptography library
+- Created fixed photo bytes with correct SHA-256
+- Generated v1.1 canonical payload
+- Created real DER-encoded ECDSA signature
+- Added 14 tests in `test_vectors.py` that verify:
+  - Public key format (65-byte uncompressed P-256 point)
+  - Photo SHA-256 correctness
+  - Canonical payload matches manifest
+  - **Signature verifies with public key** (critical test)
+  - **Modified payload fails verification** (critical test)
+  - Wrong public key fails verification
+- Tests FAIL if test vectors file doesn't exist
+
+**Test vectors location**: `test-vectors/fixed-vectors.json`
+
+### 2. Record Storage Security
+
+**Problem**: `/store-record` could store records without validating evidence.
+
+**Fix**:
+- Store endpoint now validates before storing:
+  1. Signature must be mathematically valid
+  2. Public key must be registered
+  3. Device identity must be consistent
+  4. If photo provided, photo hash must match
+- Invalid evidence does NOT occupy record_id
+- Returns `stored: false` with `rejection_reason` for each failure case
+- Duplicate submissions return idempotent result
+- Added tests for all rejection scenarios
+
+### 3. Evidence Status Verification
+
+**Confirmed**: Without App Attest, maximum status is `CRYPTOGRAPHICALLY_VALID`, never `FULLY_ATTESTED`.
+
+Evidence hierarchy:
+```
+FULLY_ATTESTED > CRYPTOGRAPHICALLY_VALID > SIGNATURE_VALID > PARTIAL > UNVERIFIED > INVALID
+```
+
+### 4. GitHub Merge Status
+
+PR #2 status: `mergeable=True`, `mergeStateStatus=clean` — no conflicts.
+
+## All Fixes Summary (WC-W002 + R1 + R2)
+
+| Issue | Fix |
+|-------|-----|
+| Public key trust model | Separate `cryptographic_signature_valid` from `key_registration_status` |
+| Missing photo verification | Three-state check: `passed`/`failed`/`not_checked` |
+| Serialization protocol | ISO 8601 validation, newline rejection, NaN/Infinity rejection, v1.1 float format |
+| DER validation | Strict structure checks |
+| Hash chain | Preserve original order, detect reordering |
+| Evidence status hierarchy | 6 levels, no `FULLY_ATTESTED` without App Attest |
+| Device identity binding | Check manifest device_id matches registered key |
+| Replay detection | `/store-record` validates evidence before storing |
+| Cross-language vectors | Real P-256 keys, real signatures, 14 verification tests |
+| Time trust level | Explicit `device_reported` with warnings |
 
 ## Remaining Limitations
 
-1. **No App Attest**: Device attestation is not implemented. `device_attestation_status` is always `unknown`. Maximum evidence status is `CRYPTOGRAPHICALLY_VALID`.
+1. **No App Attest**: `device_attestation_status=unknown`, max evidence is `CRYPTOGRAPHICALLY_VALID`
+2. **In-memory storage**: Registry and record store are in-memory only
+3. **No server time anchor**: `time_trust_level=device_reported`
+4. **Test keys only**: All vectors use software-generated keys
+5. **Hash chain limitations**: Without server anchors, cannot prove immutability
 
-2. **In-memory registry**: Key registry and record store are in-memory only. Production needs persistent storage.
+## Files Changed
 
-3. **No server-side time anchoring**: Timestamps are device-reported only. `time_trust_level=device_reported`.
-
-4. **Test keys only**: All test vectors use software-generated keys, not Secure Enclave keys.
-
-5. **Hash chain limitations**: Without server anchors, chains cannot prove immutability. An attacker with the private key could rebuild the entire chain.
-
-6. **No cross-language signature verification**: Test vectors exist but don't include actual signatures to verify across languages.
-
-## Security Recommendations
-
-1. **Never interpret `CRYPTOGRAPHICALLY_VALID` as "device is genuine"**. It only means the math checks out.
-
-2. **Always check `device_attestation_status`**. If `unknown`, the device could be any computer, not necessarily an iPhone with Secure Enclave.
-
-3. **Use `/store-record` for audit trails**. Read-only `/verify` allows unlimited replays; `/store-record` detects conflicts.
-
-4. **Implement server-side time anchoring** for production. Without it, timestamps are untrusted.
-
-5. **Implement App Attest** before claiming `FULLY_ATTESTED` status.
+- `backend/app/api/verify.py` — Store endpoint security
+- `backend/app/models/capture.py` — New fields and enums
+- `backend/app/services/key_registry.py` — Device identity check
+- `backend/tests/test_api.py` — Store endpoint tests
+- `backend/tests/test_security.py` — Security tests
+- `backend/tests/test_vectors.py` — Cross-language vector tests (NEW)
+- `backend/generate_test_vectors.py` — Vector generator (NEW)
+- `test-vectors/fixed-vectors.json` — Real test vectors
+- `docs/security-review-W002.md` — This report
+- `docs/signature-protocol.md` — Updated documentation
 
 ## Commit
 

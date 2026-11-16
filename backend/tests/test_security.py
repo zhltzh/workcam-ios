@@ -272,27 +272,56 @@ def test_store_record_detects_replay():
     """Store endpoint detects duplicate record_id submissions"""
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
     photo = make_test_photo()
     m = make_manifest(priv, pub, photo_bytes=photo)
-    resp1 = client.post("/store-record", json={"manifest": m.model_dump()})
-    assert resp1.json()["is_new"] is True
-    resp2 = client.post("/store-record", json={"manifest": m.model_dump()})
-    assert resp2.json()["is_new"] is False
+
+    registry = get_registry()
+    registry.register(pub_b64, "test-device-001")
+
+    resp1 = client.post("/store-record", json={
+        "manifest": m.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
+    assert resp1.json()["stored"] is True
+
+    resp2 = client.post("/store-record", json={
+        "manifest": m.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
+    assert resp2.json()["stored"] is False
     assert "duplicate" in resp2.json()["message"].lower()
 
 
 def test_store_record_detects_conflict():
-    """Store endpoint detects same record_id with different content"""
+    """
+    Store endpoint detects same record_id with different content.
+
+    Note: Since signature covers all content, changing content invalidates
+    the signature. So this test verifies that tampered content is rejected.
+    """
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
     photo = make_test_photo()
     m1 = make_manifest(priv, pub, photo_bytes=photo)
-    resp1 = client.post("/store-record", json={"manifest": m1.model_dump()})
-    assert resp1.json()["is_new"] is True
+
+    registry = get_registry()
+    registry.register(pub_b64, "test-device-001")
+
+    resp1 = client.post("/store-record", json={
+        "manifest": m1.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
+    assert resp1.json()["stored"] is True
+
     m2 = m1.model_copy(update={"photo_hash": "aa" * 32})
-    resp2 = client.post("/store-record", json={"manifest": m2.model_dump()})
-    assert resp2.json()["is_new"] is False
-    assert "conflict" in resp2.json()["message"].lower()
+    resp2 = client.post("/store-record", json={
+        "manifest": m2.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
+    assert resp2.json()["stored"] is False
+    assert resp2.json()["rejection_reason"] == "invalid_signature"
 
 
 def test_cross_language_fixed_vector():
@@ -303,14 +332,14 @@ def test_cross_language_fixed_vector():
         os.path.dirname(__file__), "..", "..", "test-vectors", "fixed-vectors.json"
     )
     if not os.path.exists(vector_path):
-        return
-    with open(vector_path) as f:
+        pytest.fail(f"Test vectors file not found: {vector_path}")
+    with open(vector_path, encoding="utf-8") as f:
         vectors = json.load(f)
-    payload_hex = vectors["canonical_payload_v1_0_hex"]
+    payload_hex = vectors["canonical_payload"]["hex"]
     payload_bytes = bytes.fromhex(payload_hex)
     text = payload_bytes.decode("utf-8")
-    assert text.startswith("WorkCam-Sig-v1\n")
-    assert "version=1.0" in text
+    assert text.startswith("WorkCam-Sig-v1.1\n")
+    assert "version=1.1" in text
     assert "record_id=a1b2c3d4-e5f6-7890-abcd-ef1234567890" in text
     assert "sequence_number=0" in text
     assert "previous_record_hash=none" in text

@@ -217,7 +217,49 @@ def test_register_key_endpoint():
 
 
 def test_store_record_endpoint():
-    """Test record storage endpoint"""
+    """Test record storage endpoint with valid evidence"""
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
+    photo = make_test_photo()
+    m = make_manifest(priv, pub, photo_bytes=photo)
+
+    registry = get_registry()
+    registry.register(pub_b64, "test-device-001")
+
+    resp = client.post("/store-record", json={
+        "manifest": m.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["stored"] is True
+    assert data["record_id"] == m.record_id
+
+
+def test_store_record_rejects_invalid_signature():
+    """Store endpoint must reject records with invalid signature"""
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
+    photo = make_test_photo()
+    m = make_manifest(priv, pub, photo_bytes=photo)
+    m2 = m.model_copy(update={"photo_hash": "aa" * 32})
+
+    registry = get_registry()
+    registry.register(pub_b64, "test-device-001")
+
+    resp = client.post("/store-record", json={
+        "manifest": m2.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
+    data = resp.json()
+    assert data["stored"] is False
+    assert data["rejection_reason"] == "invalid_signature"
+
+
+def test_store_record_rejects_unregistered_key():
+    """Store endpoint must reject records with unregistered key"""
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
     photo = make_test_photo()
@@ -225,55 +267,137 @@ def test_store_record_endpoint():
 
     resp = client.post("/store-record", json={
         "manifest": m.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
     })
-    assert resp.status_code == 200
     data = resp.json()
-    assert data["is_new"] is True
-    assert data["record_id"] == m.record_id
+    assert data["stored"] is False
+    assert data["rejection_reason"] == "unregistered_key"
 
 
-def test_store_record_duplicate():
-    """Test duplicate record detection"""
+def test_store_record_rejects_device_identity_mismatch():
+    """
+    Store endpoint must reject records with device identity mismatch.
+
+    Note: We need to sign with the correct device_id first, then try to
+    register the key to a different device. The signature will be valid
+    but the device identity won't match.
+    """
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
+    photo = make_test_photo()
+
+    registry = get_registry()
+    registry.register(pub_b64, "registered-device-001")
+
+    m = make_manifest(priv, pub, photo_bytes=photo)
+    m2 = m.model_copy(update={"device_id": "different-device-002"})
+
+    resp = client.post("/store-record", json={
+        "manifest": m2.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
+    data = resp.json()
+    assert data["stored"] is False
+    assert data["rejection_reason"] == "invalid_signature"
+
+
+def test_store_record_rejects_photo_hash_mismatch():
+    """Store endpoint must reject records with photo hash mismatch"""
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
     photo = make_test_photo()
     m = make_manifest(priv, pub, photo_bytes=photo)
 
-    resp1 = client.post("/store-record", json={"manifest": m.model_dump()})
-    assert resp1.json()["is_new"] is True
+    registry = get_registry()
+    registry.register(pub_b64, "test-device-001")
 
-    resp2 = client.post("/store-record", json={"manifest": m.model_dump()})
-    assert resp2.json()["is_new"] is False
+    tampered_photo = photo[:500] + b"\xff" + photo[501:]
+    resp = client.post("/store-record", json={
+        "manifest": m.model_dump(),
+        "photo_base64": base64.b64encode(tampered_photo).decode(),
+    })
+    data = resp.json()
+    assert data["stored"] is False
+    assert data["rejection_reason"] == "photo_hash_mismatch"
+
+
+def test_store_record_duplicate():
+    """Test duplicate record detection (idempotent)"""
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
+    photo = make_test_photo()
+    m = make_manifest(priv, pub, photo_bytes=photo)
+
+    registry = get_registry()
+    registry.register(pub_b64, "test-device-001")
+
+    resp1 = client.post("/store-record", json={
+        "manifest": m.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
+    assert resp1.json()["stored"] is True
+
+    resp2 = client.post("/store-record", json={
+        "manifest": m.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
+    assert resp2.json()["stored"] is False
     assert "duplicate" in resp2.json()["message"].lower()
 
 
 def test_store_record_conflict():
-    """Test same record_id with different content"""
+    """
+    Test same record_id with different content.
+
+    Note: Since signature covers all content, changing content invalidates
+    the signature. So this test verifies that tampered content is rejected
+    with invalid_signature, not as a conflict.
+    """
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
     photo = make_test_photo()
     m1 = make_manifest(priv, pub, photo_bytes=photo)
 
-    resp1 = client.post("/store-record", json={"manifest": m1.model_dump()})
-    assert resp1.json()["is_new"] is True
+    registry = get_registry()
+    registry.register(pub_b64, "test-device-001")
+
+    resp1 = client.post("/store-record", json={
+        "manifest": m1.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
+    assert resp1.json()["stored"] is True
 
     m2 = m1.model_copy(update={"photo_hash": "aa" * 32})
-    resp2 = client.post("/store-record", json={"manifest": m2.model_dump()})
-    assert resp2.json()["is_new"] is False
-    assert "conflict" in resp2.json()["message"].lower()
+    resp2 = client.post("/store-record", json={
+        "manifest": m2.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
+    assert resp2.json()["stored"] is False
+    assert resp2.json()["rejection_reason"] == "invalid_signature"
 
 
 def test_check_record_endpoint():
     """Test record check endpoint"""
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
+    pub_b64 = base64.b64encode(pub).decode()
     photo = make_test_photo()
     m = make_manifest(priv, pub, photo_bytes=photo)
+
+    registry = get_registry()
+    registry.register(pub_b64, "test-device-001")
 
     resp1 = client.get(f"/check-record/{m.record_id}")
     assert resp1.json()["exists"] is False
 
-    client.post("/store-record", json={"manifest": m.model_dump()})
+    client.post("/store-record", json={
+        "manifest": m.model_dump(),
+        "photo_base64": base64.b64encode(photo).decode(),
+    })
 
     resp2 = client.get(f"/check-record/{m.record_id}")
     assert resp2.json()["exists"] is True
