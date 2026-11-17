@@ -13,7 +13,7 @@ Endpoints:
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from app.models.time_anchor import (
     TimeAnchorReceipt,
@@ -57,22 +57,30 @@ async def create_anchor(request: TimeAnchorRequest):
 
 
 @router.post("/verify", response_model=TimeAnchorVerification)
-async def verify_anchor(receipt: TimeAnchorReceipt):
+async def verify_anchor(
+    receipt: TimeAnchorReceipt,
+    check_storage: bool = Query(True, description="Check against server storage"),
+):
     """
     Verify a time anchor receipt.
 
     EXPERIMENTAL: This endpoint is for research only.
 
     Checks:
-    1. Signature is valid
-    2. Challenge matches stored value
-    3. Anchor exists in store
+    1. Signature is valid (can be done offline with public key)
+    2. All signed fields match stored values
+    3. Receipt exists in server storage (if check_storage=true)
+
+    Args:
+        receipt: The receipt to verify
+        check_storage: If True, also check against server storage.
+                      If False, only verify signature offline.
 
     Returns:
         TimeAnchorVerification with trust level analysis
     """
     service = get_time_anchor_service()
-    verification = service.verify_anchor(receipt)
+    verification = service.verify_anchor(receipt, check_storage=check_storage)
     return verification
 
 
@@ -84,11 +92,12 @@ async def get_public_key():
     EXPERIMENTAL: This endpoint is for research only.
 
     Returns:
-        Public key in PEM format
+        Public key in PEM format with key_id
     """
     service = get_time_anchor_service()
     return {
         "public_key_pem": service.get_public_key_pem(),
+        "key_id": service.get_key_id(),
         "algorithm": "ECDSA",
         "curve": "P-256",
         "warning": "This is a TEST key. Do not use in production.",

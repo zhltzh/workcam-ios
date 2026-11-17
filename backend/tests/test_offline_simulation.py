@@ -1,5 +1,5 @@
 """
-Tests for Offline Scenario Simulator (WC-W003)
+Tests for Offline Scenario Simulator (WC-W003-R1)
 
 Tests various offline scenarios and their impact on time trust.
 """
@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from app.models.time_anchor import TimeTrustLevel
+from app.models.time_anchor import TimeTrustLevel, VerificationStatus
 from app.services.offline_simulator import OfflineSimulator
 
 
@@ -32,6 +32,8 @@ def test_normal_session(simulator):
     assert session.session_id == "normal-001"
     assert session.records_created == 10
     assert session.device_time_offset_seconds == 0
+    assert session.record_times is not None
+    assert len(session.record_times) == 10
 
     # Verify chain
     chain = simulator.chains[f"batch-normal-001"]
@@ -129,8 +131,34 @@ def test_chain_reconstruction(simulator):
     assert original_chain.get_tail_hash() != new_chain.get_tail_hash()
 
 
-def test_time_trust_analysis(simulator):
-    """Test time trust analysis."""
+def test_content_tampering_detection(simulator):
+    """Test that content tampering is detected."""
+    start_time = datetime.now(timezone.utc) - timedelta(hours=1)
+    simulator.create_normal_session(
+        session_id="tamper-001",
+        num_records=5,
+        start_time=start_time,
+    )
+
+    chain = simulator.chains["batch-tamper-001"]
+
+    # Initially no tampering
+    clean, tampering = chain.detect_content_tampering()
+    assert clean is True
+    assert len(tampering) == 0
+
+    # Tamper with a record
+    chain.records[2].tamper_content("x" * 64)
+
+    # Now tampering should be detected
+    clean, tampering = chain.detect_content_tampering()
+    assert clean is False
+    assert len(tampering) > 0
+    assert "record 2" in tampering[0].lower()
+
+
+def test_time_trust_analysis_no_anchor(simulator):
+    """Test time trust analysis without anchor."""
     start_time = datetime.now(timezone.utc) - timedelta(hours=1)
     simulator.create_normal_session(
         session_id="analysis-001",
@@ -138,34 +166,78 @@ def test_time_trust_analysis(simulator):
         start_time=start_time,
     )
 
-    analysis = simulator.analyze_time_trust("batch-analysis-001")
+    analysis = simulator.analyze_time_trust(
+        "batch-analysis-001",
+        has_anchor=False,
+    )
 
     assert analysis.batch_id == "batch-analysis-001"
+    assert analysis.trust_level == TimeTrustLevel.UNVERIFIED
+    assert analysis.verification_status == VerificationStatus.DIGEST_ANCHORED
+    assert len(analysis.cannot_prove) > 0
+    assert any("no server anchor" in p.lower() for p in analysis.cannot_prove)
+
+
+def test_time_trust_analysis_with_anchor(simulator):
+    """Test time trust analysis with anchor."""
+    start_time = datetime.now(timezone.utc) - timedelta(hours=1)
+    simulator.create_normal_session(
+        session_id="analysis-002",
+        num_records=10,
+        start_time=start_time,
+    )
+
+    analysis = simulator.analyze_time_trust(
+        "batch-analysis-002",
+        has_anchor=True,
+        verification_status=VerificationStatus.DIGEST_ANCHORED,
+    )
+
     assert analysis.trust_level == TimeTrustLevel.SERVER_ANCHORED
     assert len(analysis.can_prove) > 0
-    assert len(analysis.cannot_prove) > 0
-    assert len(analysis.risks) > 0
-    assert len(analysis.recommendations) > 0
+    assert any("digest" in p.lower() for p in analysis.can_prove)
+    assert any("chain" in p.lower() for p in analysis.cannot_prove)
 
-    # Check specific items
-    assert any("existed before" in p.lower() for p in analysis.can_prove)
-    assert any("exact creation time" in p.lower() for p in analysis.cannot_prove)
-    assert any("clock" in r.lower() for r in analysis.risks)
+
+def test_time_trust_analysis_chain_verified(simulator):
+    """Test time trust analysis with chain verification."""
+    start_time = datetime.now(timezone.utc) - timedelta(hours=1)
+    simulator.create_normal_session(
+        session_id="analysis-003",
+        num_records=10,
+        start_time=start_time,
+    )
+
+    analysis = simulator.analyze_time_trust(
+        "batch-analysis-003",
+        has_anchor=True,
+        verification_status=VerificationStatus.CHAIN_VERIFIED,
+    )
+
+    assert analysis.trust_level == TimeTrustLevel.SERVER_ANCHORED
+    assert any("chain integrity" in p.lower() for p in analysis.can_prove)
 
 
 def test_72_hour_offline_simulation(simulator):
-    """Test 72-hour offline simulation."""
+    """Test 72-hour offline simulation with realistic distribution."""
     result = simulator.simulate_72_hour_offline(session_id="72h-001")
 
     assert result["offline_duration_hours"] == 72
-    assert result["session"].records_created == 100
-    assert result["analysis"].trust_level == TimeTrustLevel.SERVER_ANCHORED
+    assert result["session"].records_created == 72
+    assert result["analysis"].trust_level == TimeTrustLevel.UNVERIFIED  # No anchor yet
 
-    # Check trust assessment
-    assessment = result["trust_assessment"]
-    assert len(assessment["can_prove"]) > 0
-    assert len(assessment["cannot_prove"]) > 0
-    assert "low" in assessment["confidence"].lower()
+    # Check record distribution
+    dist = result["record_distribution"]
+    assert dist["total_records"] == 72
+    assert dist["interval_seconds"] == 3600  # 1 hour
+    assert dist["first_record_time"] is not None
+    assert dist["last_record_time"] is not None
+
+    # Records should be distributed across 72 hours
+    first_time = datetime.fromisoformat(dist["first_record_time"])
+    last_time = datetime.fromisoformat(dist["last_record_time"])
+    duration = (last_time - first_time).total_seconds() / 3600
+    assert 70 < duration < 74  # Approximately 72 hours
 
 
 def test_chain_head_and_tail(simulator):
@@ -220,3 +292,43 @@ def test_single_record_chain(simulator):
 
     valid, errors = chain.verify_chain_integrity()
     assert valid is True
+
+
+def test_record_has_actual_timestamp(simulator):
+    """Test that records track both device and actual timestamps."""
+    start_time = datetime.now(timezone.utc) - timedelta(hours=1)
+    simulator.create_normal_session(
+        session_id="timestamp-001",
+        num_records=5,
+        start_time=start_time,
+        device_time_offset_seconds=3600,  # 1 hour offset
+    )
+
+    chain = simulator.chains["batch-timestamp-001"]
+
+    for record in chain.records:
+        assert record.device_timestamp is not None
+        assert record.actual_timestamp is not None
+        # They should be different due to offset
+        device_time = datetime.fromisoformat(record.device_timestamp)
+        actual_time = datetime.fromisoformat(record.actual_timestamp)
+        diff = abs((device_time - actual_time).total_seconds())
+        assert 3599 < diff < 3601  # Approximately 1 hour
+
+
+def test_content_hash_vs_chain_hash(simulator):
+    """Test that content hash and chain hash are different."""
+    start_time = datetime.now(timezone.utc) - timedelta(hours=1)
+    simulator.create_normal_session(
+        session_id="hash-001",
+        num_records=3,
+        start_time=start_time,
+    )
+
+    chain = simulator.chains["batch-hash-001"]
+
+    for record in chain.records:
+        assert record.content_hash is not None
+        assert record.record_hash is not None
+        # Content hash and chain hash should be different
+        assert record.content_hash != record.record_hash
