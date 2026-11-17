@@ -1,0 +1,147 @@
+"""
+Time Anchor API Endpoints for WC-W003
+
+EXPERIMENTAL: These endpoints are for research and testing only.
+NOT for production use.
+
+Endpoints:
+- POST /time-anchor/anchor: Create a new time anchor
+- POST /time-anchor/verify: Verify an anchor receipt
+- GET /time-anchor/public-key: Get server's public key
+- GET /time-anchor/receipt/{anchor_id}: Get anchor receipt by ID
+"""
+
+from __future__ import annotations
+
+from fastapi import APIRouter, HTTPException, Query
+
+from app.models.time_anchor import (
+    TimeAnchorReceipt,
+    TimeAnchorRequest,
+    TimeAnchorResponse,
+    TimeAnchorVerification,
+)
+from app.services.time_anchor import (
+    PersistenceError,
+    get_time_anchor_service,
+)
+
+router = APIRouter(prefix="/time-anchor", tags=["time-anchor-experimental"])
+
+
+@router.post("/anchor", response_model=TimeAnchorResponse)
+async def create_anchor(request: TimeAnchorRequest):
+    """
+    Create a time anchor for a batch of offline records.
+
+    EXPERIMENTAL: This endpoint is for research only.
+
+    The server will:
+    1. Record the current time
+    2. Generate a random challenge
+    3. Sign the anchor data
+    4. Return the signed receipt
+
+    IMPORTANT: The server time proves the records existed BEFORE this time,
+    but does NOT prove when they were actually created.
+
+    Returns:
+        TimeAnchorResponse with signed receipt
+
+    Raises:
+        HTTPException: If validation fails (400), conflict (409), or persistence error (500)
+    """
+    service = get_time_anchor_service()
+    try:
+        response = service.create_anchor(request)
+        return response
+    except ValueError as e:
+        error_msg = str(e)
+        # Distinguish between validation errors and conflicts
+        if "conflict" in error_msg.lower():
+            raise HTTPException(status_code=409, detail=error_msg)
+        else:
+            # Validation error (e.g., invalid characters)
+            raise HTTPException(status_code=400, detail=error_msg)
+    except PersistenceError as e:
+        raise HTTPException(status_code=500, detail=f"Persistence error: {e}")
+
+
+@router.post("/verify", response_model=TimeAnchorVerification)
+async def verify_anchor(
+    receipt: TimeAnchorReceipt,
+    check_storage: bool = Query(True, description="Check against server storage"),
+):
+    """
+    Verify a time anchor receipt.
+
+    EXPERIMENTAL: This endpoint is for research only.
+
+    Checks:
+    1. key_id is registered (reject unknown keys)
+    2. Signature is valid using the correct public key
+    3. verification_status matches signed value (prevent elevation)
+    4. All signed fields match stored values
+    5. Receipt exists in server storage (requires server)
+
+    Args:
+        receipt: The receipt to verify
+        check_storage: If True, also check against server storage.
+                      If False, only verify signature offline.
+
+    Returns:
+        TimeAnchorVerification with trust level analysis
+    """
+    service = get_time_anchor_service()
+    verification = service.verify_anchor(receipt, check_storage=check_storage)
+    return verification
+
+
+@router.get("/public-key")
+async def get_public_key():
+    """
+    Get the server's public key for verifying anchor signatures.
+
+    EXPERIMENTAL: This endpoint is for research only.
+
+    Returns:
+        Public key in PEM format with key_id
+    """
+    service = get_time_anchor_service()
+    return {
+        "public_key_pem": service.get_public_key_pem(),
+        "key_id": service.get_key_id(),
+        "algorithm": "ECDSA",
+        "curve": "P-256",
+        "warning": "This is a TEST key. Do not use in production.",
+    }
+
+
+@router.get("/receipt/{anchor_id}", response_model=TimeAnchorReceipt)
+async def get_receipt(anchor_id: str):
+    """
+    Get an anchor receipt by anchor_id.
+
+    EXPERIMENTAL: This endpoint is for research only.
+
+    Returns:
+        TimeAnchorReceipt if found
+
+    Raises:
+        HTTPException: If anchor not found
+    """
+    service = get_time_anchor_service()
+    receipt = service._store.get_by_anchor_id(anchor_id)
+    if not receipt:
+        raise HTTPException(status_code=404, detail="Anchor not found")
+    return receipt
+
+
+@router.get("/health")
+async def health():
+    """Health check for time anchor service."""
+    return {
+        "status": "ok",
+        "service": "workcam-time-anchor-experimental",
+        "warning": "This is an EXPERIMENTAL service for research only.",
+    }
