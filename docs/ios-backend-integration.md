@@ -1,4 +1,4 @@
-# WorkCam iOS-Backend 联调指南
+# WorkCam iOS-Backend 联调指南（修订版）
 
 ## 概述
 
@@ -6,36 +6,47 @@
 
 **目标**：确保 iOS 端生成的签名清单能够被 Python 后端正确验证。
 
+**重要声明**：
+- 本文档中的 Swift 代码示例**未经实际编译验证**，仅供逻辑参考
+- 所有接口格式已对照后端真实代码核对
+- Secure Enclave 示例需要真机测试，模拟器不支持
+
 ---
 
 ## 1. 签名清单字段定义
 
 ### 1.1 必需字段
 
-iOS 端需要生成以下字段：
+iOS 端需要生成以下字段（**注意：JSON 字段名使用 snake_case，与后端一致**）：
 
 | 字段名 | 类型 | 格式要求 | 示例 |
 |--------|------|----------|------|
 | `version` | string | `"1.0"` 或 `"1.1"` | `"1.1"` |
-| `record_id` | string | UUID v4，无换行符 | `"a1b2c3d4-e5f6-7890-abcd-ef1234567890"` |
-| `sequence_number` | integer | >= 0 | `0` |
+| `record_id` | string | UUID v4，无换行符，<=256字符 | `"a1b2c3d4-e5f6-7890-abcd-ef1234567890"` |
+| `sequence_number` | integer | >= 0, <= 1000000 | `0` |
 | `previous_record_hash` | string/null | 64位十六进制或null | `null` 或 `"abc123..."` |
 | `photo_hash` | string | 64位小写十六进制 | `"e3b0c44298fc1c14..."` |
 | `capture_timestamp` | string | ISO 8601，无换行符 | `"2026-11-17T10:00:00+00:00"` |
 | `device_reported_time` | string | ISO 8601，无换行符 | `"2026-11-17T10:00:00+00:00"` |
 | `device_id` | string | 无换行符，<=256字符 | `"iphone-pro-001"` |
-| `location` | object/null | 见下方格式 | `null` 或 `{"lat":39.9,"lon":116.4,...}` |
-| `public_key` | string | Base64编码的65字节公钥 | `"BKPE8J4NAqS79PcCCWucQk+j7XAg..."` |
-| `signature` | string | Base64编码的DER签名 | `"MEUCIQDx..."` |
+| `location` | object/null | 见下方格式 | `null` 或 `{"latitude":39.9,...}` |
+| `public_key` | string | Base64编码的65字节公钥 | `"BEw0ZJJUZjUJh3U5..."` |
+| `signature` | string | Base64编码的DER签名 | `"MEUCIGmFpTm0pQqW..."` |
+
+**重要**：
+- 所有字符串字段**不能包含换行符**（`\n` 或 `\r`）
+- 所有字符串字段**不能包含等号**（`=`）
+- 时间戳必须是 ISO 8601 格式
 
 ### 1.2 Location 对象格式
 
 ```swift
+// 注意：JSON 字段名使用 snake_case
 struct LocationData: Codable {
-    let latitude: Double      // -90.0 到 90.0
-    let longitude: Double     // -180.0 到 180.0
-    let horizontal_accuracy: Double  // > 0
-    let altitude: Double?     // 可选，米
+    let latitude: Double           // -90.0 到 90.0，有限值
+    let longitude: Double          // -180.0 到 180.0，有限值
+    let horizontal_accuracy: Double // > 0，有限值
+    let altitude: Double?          // 可选，-1000.0 到 100000.0，有限值
 }
 ```
 
@@ -59,7 +70,8 @@ record_id={record_id}\n
 sequence_number={sequence_number}\n
 previous_record_hash={previous_record_hash or "none"}\n
 photo_hash={photo_hash}\n
-capture_timestamp={capture_timestamp}\ndevice_reported_time={device_reported_time}\n
+capture_timestamp={capture_timestamp}\n
+device_reported_time={device_reported_time}\n
 device_id={device_id}\n
 location={location_string}\n
 ```
@@ -70,11 +82,26 @@ location={location_string}\n
 - 如果 location 存在: `location={lat},{lon},{accuracy},{altitude}`
   - altitude 为 null 时: `location={lat},{lon},{accuracy},none`
 
-### 2.3 Swift 实现示例
+### 2.3 Swift 实现示例（伪代码，未编译验证）
 
 ```swift
 import Foundation
 import CryptoKit
+
+// 注意：这个结构体使用 snake_case 与后端 JSON 字段一致
+struct SignatureManifest: Codable {
+    let version: String
+    let record_id: String
+    let sequence_number: Int
+    let previous_record_hash: String?
+    let photo_hash: String
+    let capture_timestamp: String
+    let device_reported_time: String
+    let device_id: String
+    let location: LocationData?
+    let public_key: String
+    var signature: String  // 注意：使用 var 因为需要后续赋值
+}
 
 func buildCanonicalPayload(manifest: SignatureManifest) -> Data {
     var lines: [String] = []
@@ -82,20 +109,20 @@ func buildCanonicalPayload(manifest: SignatureManifest) -> Data {
     // 域分隔符
     lines.append("WorkCam-Sig-v1.1")
     
-    // 按固定顺序添加字段
+    // 按固定顺序添加字段（使用 snake_case 字段名）
     lines.append("version=\(manifest.version)")
     lines.append("record_id=\(manifest.record_id)")
-    lines.append("sequence_number=\(manifest.sequenceNumber)")
-    lines.append("previous_record_hash=\(manifest.previousRecordHash ?? "none")")
-    lines.append("photo_hash=\(manifest.photoHash)")
-    lines.append("capture_timestamp=\(manifest.captureTimestamp)")
-    lines.append("device_reported_time=\(manifest.deviceReportedTime)")
-    lines.append("device_id=\(manifest.deviceId)")
+    lines.append("sequence_number=\(manifest.sequence_number)")
+    lines.append("previous_record_hash=\(manifest.previous_record_hash ?? "none")")
+    lines.append("photo_hash=\(manifest.photo_hash)")
+    lines.append("capture_timestamp=\(manifest.capture_timestamp)")
+    lines.append("device_reported_time=\(manifest.device_reported_time)")
+    lines.append("device_id=\(manifest.device_id)")
     
     // Location 格式化
     if let loc = manifest.location {
         let alt = loc.altitude.map { formatFloat($0) } ?? "none"
-        lines.append("location=\(formatFloat(loc.latitude)),\(formatFloat(loc.longitude)),\(formatFloat(loc.horizontalAccuracy)),\(alt)")
+        lines.append("location=\(formatFloat(loc.latitude)),\(formatFloat(loc.longitude)),\(formatFloat(loc.horizontal_accuracy)),\(alt)")
     } else {
         lines.append("location=none")
     }
@@ -123,6 +150,8 @@ func formatFloat(_ value: Double) -> String {
 }
 ```
 
+**编译状态**：⚠️ 未验证（伪代码）
+
 ---
 
 ## 3. P-256 签名兼容要求
@@ -133,11 +162,13 @@ func formatFloat(_ value: Double) -> String {
 - 未压缩点格式：`0x04 || x || y`（65字节）
 - Base64 编码（标准，带填充）
 
-**Swift 实现**：
+#### 3.1.1 普通软件密钥（仅用于测试）
+
 ```swift
 import CryptoKit
 
-// 生成密钥对（Secure Enclave）
+// ⚠️ 警告：这是普通软件密钥， NOT Secure Enclave 密钥
+// 私钥存储在应用内存中，可以被提取
 let privateKey = try P256.Signing.PrivateKey()
 let publicKey = privateKey.publicKey
 
@@ -148,23 +179,51 @@ let publicKeyBytes = publicKey.x963Representation  // 0x04 || x || y
 let publicKeyBase64 = publicKeyBytes.base64EncodedString()
 ```
 
-**Python 验证**：
-```python
-from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives import serialization
-import base64
+**编译状态**：⚠️ 未验证（伪代码）
 
-# 解码公钥
-pub_bytes = base64.b64decode(public_key_base64)
-assert len(pub_bytes) == 65
-assert pub_bytes[0] == 0x04
+#### 3.1.2 Secure Enclave 密钥（推荐用于生产）
 
-# 加载公钥
-public_key = ec.EllipticCurvePublicKey.from_encoded_point(
-    ec.SECP256R1(), 
-    pub_bytes
+```swift
+import CryptoKit
+import SecureEnclave
+
+// ✅ Secure Enclave 密钥：私钥永不出硬件
+// 需要真机测试，模拟器不支持
+
+// 生成 Secure Enclave 密钥
+let accessControl = SecAccessControlCreateWithFlags(
+    nil,
+    kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+    .privateKeyUsage,
+    nil
+)!
+
+let privateKey = try SecureEnclave.P256.Signing.PrivateKey(
+    compactRepresentable: false,
+    accessControl: accessControl,
+    authenticationContext: nil
 )
+
+// 获取公钥
+let publicKey = privateKey.publicKey
+let publicKeyBytes = publicKey.x963Representation  // 65字节
+let publicKeyBase64 = publicKeyBytes.base64EncodedString()
+
+// 签名
+let payload = buildCanonicalPayload(manifest: manifest)
+let signature = try privateKey.signature(for: payload)
+
+// ⚠️ 注意：SecureEnclave.P256.Signing.ECDSASignature 已经是 DER 格式
+// 不需要转换
+let signatureBase64 = signature.base64EncodedString()
 ```
+
+**编译状态**：⚠️ 未验证（伪代码，需要真机测试）
+
+**重要区别**：
+- `P256.Signing.PrivateKey`：普通软件密钥，私钥在内存中
+- `SecureEnclave.P256.Signing.PrivateKey`：硬件保护密钥，私钥不出 Secure Enclave
+- Secure Enclave 签名**不等于** App Attest 设备认证
 
 ### 3.2 签名格式
 
@@ -172,20 +231,44 @@ public_key = ec.EllipticCurvePublicKey.from_encoded_point(
 - DER 编码（RFC 3279）
 - Base64 编码（标准，带填充）
 
-**Swift 实现**：
+#### 3.2.1 普通密钥签名（需要 DER 转换）
+
 ```swift
 import CryptoKit
 
-// 签名
+let privateKey = try P256.Signing.PrivateKey()
 let payload = buildCanonicalPayload(manifest: manifest)
+
+// 签名
 let signature = try privateKey.signature(for: payload)
 
-// CryptoKit 返回的是 raw 格式 (r || s)，需要转换为 DER
+// ⚠️ 注意：CryptoKit 的 P256.Signing.ECDSASignature 返回的是 raw 格式 (r || s)
+// 必须转换为 DER 格式
 let derSignature = signature.derRepresentation
 
 // Base64 编码
 let signatureBase64 = derSignature.base64EncodedString()
 ```
+
+**编译状态**：⚠️ 未验证（伪代码）
+
+#### 3.2.2 Secure Enclave 签名（已经是 DER 格式）
+
+```swift
+import SecureEnclave
+
+let privateKey = try SecureEnclave.P256.Signing.PrivateKey(...)
+let payload = buildCanonicalPayload(manifest: manifest)
+
+// 签名
+let signature = try privateKey.signature(for: payload)
+
+// ✅ SecureEnclave.P256.Signing.ECDSASignature 已经是 DER 格式
+// 不需要调用 .derRepresentation
+let signatureBase64 = signature.base64EncodedString()
+```
+
+**编译状态**：⚠️ 未验证（伪代码，需要真机测试）
 
 **Python 验证**：
 ```python
@@ -210,10 +293,9 @@ public_key.verify(
 
 ### 3.3 关键兼容性注意事项
 
-1. **CryptoKit 签名格式**：
-   - `P256.Signing.ECDSASignature` 默认返回 raw 格式 (r || s)
-   - 必须使用 `.derRepresentation` 获取 DER 格式
-   - 或者手动转换：`ECDSASignature(rawRepresentation:).derRepresentation`
+1. **CryptoKit 签名格式差异**：
+   - `P256.Signing.ECDSASignature`（普通密钥）：返回 raw 格式，需要 `.derRepresentation`
+   - `SecureEnclave.P256.Signing.ECDSASignature`（Secure Enclave）：已经是 DER 格式
 
 2. **DER 结构要求**：
    - 必须以 `0x30` 开头（SEQUENCE tag）
@@ -225,6 +307,11 @@ public_key.verify(
    - 使用标准 Base64（不是 URL-safe）
    - 包含填充（`=`）
    - 不包含换行符
+
+4. **Secure Enclave 限制**：
+   - 仅支持真机，模拟器不支持
+   - 需要用户认证（Face ID/Touch ID）
+   - 私钥永不离开硬件
 
 ---
 
@@ -241,6 +328,8 @@ func computePhotoHash(photoData: Data) -> String {
 }
 ```
 
+**编译状态**：⚠️ 未验证（伪代码）
+
 ### 4.2 Python 验证
 
 ```python
@@ -251,197 +340,169 @@ def verify_photo_hash(photo_bytes: bytes, expected_hash: str) -> bool:
     return actual_hash == expected_hash
 ```
 
-### 4.3 注意事项
+### 4.3 关键要求
 
-- 必须使用原始照片字节（未压缩、未修改）
-- 哈希值为 64 位小写十六进制字符串
-- 不能包含换行符或空格
+**必须遵守**：
 
----
+1. **使用实际保存的文件字节**
+   - JPEG、HEIC 等编码格式都可以
+   - 哈希必须针对**实际保存到磁盘的文件**
+   - 不能是内存中的临时数据
 
-## 5. 时间锚点 v2 提交
+2. **禁止重新编码**
+   - ❌ 计算哈希后不能重新压缩
+   - ❌ 不能修改 EXIF 数据
+   - ❌ 不能转换格式（如 HEIC → JPEG）
 
-### 5.1 提交数据结构
+3. **文件保存前后一致性检查**
+   ```swift
+   // 1. 拍照后计算哈希
+   let photoData = try await capturePhoto()
+   let hash1 = computePhotoHash(photoData: photoData)
+   
+   // 2. 保存到文件
+   let fileURL = getDocumentsDirectory().appendingPathComponent("photo_\(UUID()).jpg")
+   try photoData.write(to: fileURL)
+   
+   // 3. 重新读取并计算哈希
+   let reloadedData = try Data(contentsOf: fileURL)
+   let hash2 = computePhotoHash(photoData: reloadedData)
+   
+   // 4. 验证一致性
+   assert(hash1 == hash2, "Photo file was modified during save!")
+   
+   // 5. 使用 hash1 作为 photo_hash
+   ```
 
-```swift
-struct TimeAnchorRequest: Codable {
-    let batch_id: String           // 批次标识符
-    let chain_head_hash: String    // 链头哈希（64位十六进制）
-    let chain_tail_hash: String    // 链尾哈希（64位十六进制）
-    let record_count: Int          // 记录数量
-    let device_reported_start_time: String  // ISO 8601
-    let device_reported_end_time: String    // ISO 8601
-}
-```
-
-### 5.2 提交示例
-
-```swift
-let request = TimeAnchorRequest(
-    batch_id: "batch-20261117-001",
-    chain_head_hash: "abc123...",  // 第一条记录的哈希
-    chain_tail_hash: "def456...",  // 最后一条记录的哈希
-    record_count: 10,
-    device_reported_start_time: "2026-11-17T09:00:00+00:00",
-    device_reported_end_time: "2026-11-17T10:00:00+00:00"
-)
-
-// POST /time-anchor/anchor
-let responseData = try await apiClient.post("/time-anchor/anchor", body: request)
-let response = try JSONDecoder().decode(TimeAnchorResponse.self, from: responseData)
-```
-
-### 5.3 响应结构
-
-```swift
-struct TimeAnchorResponse: Codable {
-    let anchor_id: String
-    let key_id: String
-    let batch_id: String
-    let server_received_at: String
-    let challenge: String
-    let server_signature: String
-    let chain_head_hash: String
-    let chain_tail_hash: String
-    let record_count: Int
-    let verification_status: String  // "digest_anchored", "chain_verified", etc.
-}
-```
-
-### 5.4 回执验证
-
-```swift
-// 保存回执用于后续验证
-let receipt = TimeAnchorReceipt(
-    anchor_id: response.anchor_id,
-    key_id: response.key_id,
-    batch_id: response.batch_id,
-    server_received_at: response.server_received_at,
-    challenge: response.challenge,
-    server_signature: response.server_signature,
-    chain_head_hash: response.chain_head_hash,
-    chain_tail_hash: response.chain_tail_hash,
-    record_count: response.record_count,
-    verification_status: response.verification_status,
-    device_reported_start_time: request.device_reported_start_time,
-    device_reported_end_time: request.device_reported_end_time,
-    stored_at: response.server_received_at
-)
-
-// 保存到本地数据库
-try saveReceipt(receipt)
-```
+4. **哈希格式**
+   - 64 位小写十六进制字符串
+   - 不能包含换行符或空格
 
 ---
 
-## 6. 完整联调测试步骤
+## 5. 公钥注册接口
 
-### 6.1 环境准备
+### 5.1 接口格式（已核对后端代码）
 
-**后端**：
+**端点**：`POST /register-key`
+
+**请求格式**：`application/x-www-form-urlencoded`（不是 JSON）
+
+**必需参数**：
+- `public_key_b64`: Base64 编码的公钥
+- `device_id`: 设备标识符
+- `allow_test_registration`: 必须为 `true`（开发/测试环境）
+
+**示例**：
 ```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+curl -X POST "http://localhost:8000/register-key" \
+  -d "public_key_b64=BEw0ZJJUZjUJh3U5mTh2H+zyQH6cIo5JIYmpQ6t34t4D..." \
+  -d "device_id=iphone-pro-001" \
+  -d "allow_test_registration=true"
 ```
 
-**iOS**：
-- Xcode 15+
-- iOS 17+
-- iPhone Pro（带 Secure Enclave）
-
-### 6.2 测试流程
-
-#### 步骤 1：生成测试密钥
-
+**iOS 实现**（伪代码）：
 ```swift
-// iOS 端
-let privateKey = try P256.Signing.PrivateKey()
-let publicKey = privateKey.publicKey
-
-// 注册公钥到后端
-let pubKeyBase64 = publicKey.x963Representation.base64EncodedString()
-try await apiClient.post("/register-key", params: [
-    "public_key_b64": pubKeyBase64,
+// 注意：使用 URL 编码的表单数据，不是 JSON
+let params: [String: String] = [
+    "public_key_b64": publicKeyBase64,
     "device_id": "iphone-pro-001",
     "allow_test_registration": "true"
-])
+]
+
+var request = URLRequest(url: URL(string: "http://localhost:8000/register-key")!)
+request.httpMethod = "POST"
+request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+request.httpBody = params.map { "\($0.key)=\($0.value)" }
+    .joined(separator: "&")
+    .data(using: .utf8)
+
+let (data, response) = try await URLSession.shared.data(for: request)
 ```
 
-#### 步骤 2：拍照并生成清单
+**编译状态**：⚠️ 未验证（伪代码）
 
-```swift
-// 拍照
-let photoData = try await capturePhoto()
+### 5.2 响应格式
 
-// 计算哈希
-let photoHash = computePhotoHash(photoData: photoData)
-
-// 生成清单
-let manifest = SignatureManifest(
-    version: "1.1",
-    record_id: UUID().uuidString,
-    sequenceNumber: 0,
-    previousRecordHash: nil,
-    photoHash: photoHash,
-    captureTimestamp: ISO8601DateFormatter().string(from: Date()),
-    deviceReportedTime: ISO8601DateFormatter().string(from: Date()),
-    deviceId: "iphone-pro-001",
-    location: nil,
-    publicKey: publicKey.x963Representation.base64EncodedString(),
-    signature: ""  // 待填充
-)
-
-// 构建签名数据
-let payload = buildCanonicalPayload(manifest: manifest)
-
-// 签名
-let signature = try privateKey.signature(for: payload)
-manifest.signature = signature.derRepresentation.base64EncodedString()
+**成功响应**：
+```json
+{
+  "public_key_hash": "abc123...",
+  "registration_status": "registered",
+  "registered_at": "2026-11-17T10:00:00+00:00",
+  "device_id": "iphone-pro-001",
+  "environment": "development",
+  "warning": "This is a TEST registration. Production will use App Attest formal registration."
+}
 ```
 
-#### 步骤 3：提交到后端验证
+**错误响应**：
+- `TEST_REGISTRATION_NOT_ALLOWED`: 缺少 `allow_test_registration=true`
+- `DEVICE_ID_CONFLICT`: 公钥已注册到不同 device_id
+- `REGISTER_DISABLED`: 生产环境禁用测试注册
 
+---
+
+## 6. 验证接口
+
+### 6.1 接口格式（已核对后端代码）
+
+**端点**：`POST /verify`
+
+**请求格式**：`application/json`
+
+**请求结构**：
 ```swift
-// 提交清单和照片
-let verifyRequest = VerifyRequest(
+struct VerifyRequest: Codable {
+    let manifest: SignatureManifest
+    let photo_base64: String?  // 可选，但强烈建议提供
+}
+```
+
+**示例**：
+```swift
+let request = VerifyRequest(
     manifest: manifest,
     photo_base64: photoData.base64EncodedString()
 )
 
-let response = try await apiClient.post("/verify", body: verifyRequest)
+let jsonData = try JSONEncoder().encode(request)
+var urlRequest = URLRequest(url: URL(string: "http://localhost:8000/verify")!)
+urlRequest.httpMethod = "POST"
+urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+urlRequest.httpBody = jsonData
 
-// 检查响应
-assert(response.evidence_status == "cryptographically_valid")
-assert(response.cryptographic_signature_valid == true)
-assert(response.photo_hash_valid == true)
-assert(response.key_registration_status == "registered")
+let (data, response) = try await URLSession.shared.data(for: urlRequest)
+let verifyResponse = try JSONDecoder().decode(VerifyResponse.self, from: data)
 ```
 
-#### 步骤 4：验证时间锚点
+**编译状态**：⚠️ 未验证（伪代码）
+
+### 6.2 响应结构
 
 ```swift
-// 提交时间锚点
-let anchorRequest = TimeAnchorRequest(
-    batch_id: "test-batch-\(UUID().uuidString)",
-    chain_head_hash: computeRecordHash(manifest: manifest),
-    chain_tail_hash: computeRecordHash(manifest: manifest),
-    record_count: 1,
-    device_reported_start_time: manifest.captureTimestamp,
-    device_reported_end_time: manifest.captureTimestamp
-)
+struct VerifyResponse: Codable {
+    let evidence_status: String              // "cryptographically_valid", "signature_valid", etc.
+    let cryptographic_signature_valid: Bool
+    let photo_hash_valid: Bool?              // nil if photo not provided
+    let key_registration_status: String      // "registered", "unregistered", "unknown"
+    let device_identity_consistent: Bool?    // nil if key not registered
+    let device_attestation_status: String    // always "unknown" currently
+    let time_trust_level: String             // "device_reported"
+    let summary: String
+    let details: [VerifyDetail]
+    let warnings: [String]
+}
 
-let anchorResponse = try await apiClient.post("/time-anchor/anchor", body: anchorRequest)
-
-// 验证回执
-let verification = try await apiClient.post("/time-anchor/verify", body: anchorResponse)
-assert(verification.valid == true)
-assert(verification.signature_valid == true)
+struct VerifyDetail: Codable {
+    let check: String        // "structure", "photo_hash", "ecdsa_signature"
+    let status: String       // "passed", "failed", "not_checked"
+    let message: String
+}
 ```
 
-### 6.3 预期结果
+### 6.3 预期成功响应
 
-**成功响应**：
 ```json
 {
   "evidence_status": "cryptographically_valid",
@@ -466,9 +527,346 @@ assert(verification.signature_valid == true)
 
 ---
 
-## 7. 常见失败场景及排查
+## 7. 记录存储接口
 
-### 7.1 签名验证失败
+### 7.1 接口格式（已核对后端代码）
+
+**端点**：`POST /store-record`
+
+**用途**：用于重放检测，存储已验证的记录
+
+**重要限制**：
+- `photo_base64` **必须提供**（不能为 null 或空）
+- 签名必须有效
+- 公钥必须已注册
+- 设备身份必须一致
+- 照片哈希必须匹配
+
+**请求结构**：与 `/verify` 相同
+```swift
+struct StoreRecordRequest: Codable {
+    let manifest: SignatureManifest
+    let photo_base64: String  // 必须提供
+}
+```
+
+**响应结构**：
+```swift
+struct StoreRecordResponse: Codable {
+    let record_id: String
+    let is_new: Bool
+    let stored: Bool
+    let message: String
+    let stored_at: String?
+    let rejection_reason: String?  // 如果 stored=false
+}
+```
+
+**拒绝原因**：
+- `photo_missing`: 未提供照片
+- `photo_empty`: 照片为空字符串
+- `invalid_signature`: 签名无效
+- `unregistered_key`: 公钥未注册
+- `device_identity_mismatch`: 设备身份不匹配
+- `photo_hash_mismatch`: 照片哈希不匹配
+
+---
+
+## 8. 时间锚点 v2 接口
+
+### 8.1 提交时间锚点
+
+**端点**：`POST /time-anchor/anchor`
+
+**请求结构**：
+```swift
+struct TimeAnchorRequest: Codable {
+    let batch_id: String                    // 批次标识符，<=256字符
+    let chain_head_hash: String             // 链头哈希，64位十六进制
+    let chain_tail_hash: String             // 链尾哈希，64位十六进制
+    let record_count: Int                   // 记录数量，>0, <=10000
+    let device_reported_start_time: String  // ISO 8601
+    let device_reported_end_time: String    // ISO 8601
+}
+```
+
+**示例**：
+```swift
+let request = TimeAnchorRequest(
+    batch_id: "batch-20261117-001",
+    chain_head_hash: "abc123...",  // 第一条记录的哈希
+    chain_tail_hash: "def456...",  // 最后一条记录的哈希
+    record_count: 10,
+    device_reported_start_time: "2026-11-17T09:00:00+00:00",
+    device_reported_end_time: "2026-11-17T10:00:00+00:00"
+)
+
+let jsonData = try JSONEncoder().encode(request)
+var urlRequest = URLRequest(url: URL(string: "http://localhost:8000/time-anchor/anchor")!)
+urlRequest.httpMethod = "POST"
+urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+urlRequest.httpBody = jsonData
+
+let (data, response) = try await URLSession.shared.data(for: urlRequest)
+let anchorResponse = try JSONDecoder().decode(TimeAnchorResponse.self, from: data)
+```
+
+**编译状态**：⚠️ 未验证（伪代码）
+
+### 8.2 响应结构（TimeAnchorResponse）
+
+```swift
+struct TimeAnchorResponse: Codable {
+    let anchor_id: String
+    let key_id: String
+    let batch_id: String
+    let server_received_at: String
+    let challenge: String
+    let server_signature: String
+    let chain_head_hash: String
+    let chain_tail_hash: String
+    let record_count: Int
+    let verification_status: String  // "digest_anchored", "chain_verified", etc.
+}
+```
+
+**重要**：
+- `TimeAnchorResponse` **不包含** `device_reported_start_time`、`device_reported_end_time`、`stored_at`
+- 这些字段需要从请求中获取
+
+### 8.3 构造完整回执（TimeAnchorReceipt）
+
+```swift
+// 必须从响应和请求中构造完整回执
+let receipt = TimeAnchorReceipt(
+    anchor_id: anchorResponse.anchor_id,
+    key_id: anchorResponse.key_id,
+    batch_id: anchorResponse.batch_id,
+    server_received_at: anchorResponse.server_received_at,
+    challenge: anchorResponse.challenge,
+    server_signature: anchorResponse.server_signature,
+    chain_head_hash: anchorResponse.chain_head_hash,
+    chain_tail_hash: anchorResponse.chain_tail_hash,
+    record_count: anchorResponse.record_count,
+    verification_status: anchorResponse.verification_status,
+    // 以下字段从请求中获取
+    device_reported_start_time: request.device_reported_start_time,
+    device_reported_end_time: request.device_reported_end_time,
+    stored_at: anchorResponse.server_received_at
+)
+
+// 保存到本地数据库
+try saveReceipt(receipt)
+```
+
+**编译状态**：⚠️ 未验证（伪代码）
+
+### 8.4 验证时间锚点回执
+
+**端点**：`POST /time-anchor/verify`
+
+**请求格式**：`application/json`
+
+**请求结构**：完整的 `TimeAnchorReceipt`
+
+**查询参数**：
+- `check_storage`: 是否检查服务器存储（默认 `true`）
+  - `true`: 检查服务器存储（需要网络）
+  - `false`: 仅验证签名（离线模式）
+
+**示例**：
+```swift
+// 在线验证
+let jsonData = try JSONEncoder().encode(receipt)
+var urlRequest = URLRequest(url: URL(string: "http://localhost:8000/time-anchor/verify?check_storage=true")!)
+urlRequest.httpMethod = "POST"
+urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+urlRequest.httpBody = jsonData
+
+let (data, response) = try await URLSession.shared.data(for: urlRequest)
+let verification = try JSONDecoder().decode(TimeAnchorVerification.self, from: data)
+
+// 离线验证
+var offlineRequest = URLRequest(url: URL(string: "http://localhost:8000/time-anchor/verify?check_storage=false")!)
+offlineRequest.httpMethod = "POST"
+offlineRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+offlineRequest.httpBody = jsonData
+```
+
+**编译状态**：⚠️ 未验证（伪代码）
+
+### 8.5 验证响应结构
+
+```swift
+struct TimeAnchorVerification: Codable {
+    let valid: Bool
+    let anchor_id: String
+    let key_id: String
+    let server_received_at: String
+    let signature_valid: Bool
+    let challenge_matches: Bool
+    let storage_matches: Bool
+    let verification_status: String
+    let trust_level: String
+    let message: String
+    let warnings: [String]
+    let signed_fields_verified: Bool
+    let unsigned_fields_note: String
+}
+```
+
+### 8.6 重要说明
+
+**verification_status 已纳入 v2 签名**：
+- 客户端**不能**篡改 `verification_status`
+- 篡改会导致签名验证失败
+
+**DIGEST_ANCHORED 的含义**：
+- 服务器只签署了提交的摘要（哈希、数量、时间）
+- **不代表**服务器验证了照片内容
+- **不代表**服务器验证了完整记录链
+- 要获得 `PHOTO_VERIFIED` 或 `CHAIN_VERIFIED`，需要提交完整内容
+
+---
+
+## 9. 完整联调测试步骤
+
+### 9.1 环境准备
+
+**后端**：
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**iOS**：
+- Xcode 15+
+- iOS 17+
+- iPhone Pro（带 Secure Enclave）- 用于 Secure Enclave 测试
+- iPhone 或模拟器 - 用于普通密钥测试
+
+### 9.2 测试流程
+
+#### 步骤 1：生成并注册密钥
+
+```swift
+// 使用普通密钥（模拟器可用）
+let privateKey = try P256.Signing.PrivateKey()
+let publicKey = privateKey.publicKey
+let publicKeyBase64 = publicKey.x963Representation.base64EncodedString()
+
+// 注册公钥到后端
+let params: [String: String] = [
+    "public_key_b64": publicKeyBase64,
+    "device_id": "iphone-pro-001",
+    "allow_test_registration": "true"
+]
+
+// ... 发送 POST /register-key 请求
+```
+
+#### 步骤 2：拍照并生成清单
+
+```swift
+// 拍照
+let photoData = try await capturePhoto()
+
+// 计算哈希
+let photoHash = computePhotoHash(photoData: photoData)
+
+// 生成时间戳
+let formatter = ISO8601DateFormatter()
+formatter.formatOptions = [.withInternetDateTime]
+let timestamp = formatter.string(from: Date())
+
+// 生成清单（使用 var 因为需要赋值 signature）
+var manifest = SignatureManifest(
+    version: "1.1",
+    record_id: UUID().uuidString,
+    sequence_number: 0,
+    previous_record_hash: nil,
+    photo_hash: photoHash,
+    capture_timestamp: timestamp,
+    device_reported_time: timestamp,
+    device_id: "iphone-pro-001",
+    location: nil,
+    public_key: publicKeyBase64,
+    signature: ""  // 待填充
+)
+
+// 构建签名数据
+let payload = buildCanonicalPayload(manifest: manifest)
+
+// 签名（普通密钥需要 DER 转换）
+let signature = try privateKey.signature(for: payload)
+manifest.signature = signature.derRepresentation.base64EncodedString()
+```
+
+#### 步骤 3：提交到后端验证
+
+```swift
+let verifyRequest = VerifyRequest(
+    manifest: manifest,
+    photo_base64: photoData.base64EncodedString()
+)
+
+// ... 发送 POST /verify 请求
+
+// 检查响应
+assert(verifyResponse.evidence_status == "cryptographically_valid")
+assert(verifyResponse.cryptographic_signature_valid == true)
+assert(verifyResponse.photo_hash_valid == true)
+assert(verifyResponse.key_registration_status == "registered")
+```
+
+#### 步骤 4：提交时间锚点
+
+```swift
+// 计算记录哈希
+let recordHash = computeRecordHash(manifest: manifest)
+
+// 提交时间锚点
+let anchorRequest = TimeAnchorRequest(
+    batch_id: "test-batch-\(UUID().uuidString)",
+    chain_head_hash: recordHash,
+    chain_tail_hash: recordHash,
+    record_count: 1,
+    device_reported_start_time: manifest.capture_timestamp,
+    device_reported_end_time: manifest.capture_timestamp
+)
+
+// ... 发送 POST /time-anchor/anchor 请求
+
+// 构造完整回执
+let receipt = TimeAnchorReceipt(
+    anchor_id: anchorResponse.anchor_id,
+    key_id: anchorResponse.key_id,
+    batch_id: anchorResponse.batch_id,
+    server_received_at: anchorResponse.server_received_at,
+    challenge: anchorResponse.challenge,
+    server_signature: anchorResponse.server_signature,
+    chain_head_hash: anchorResponse.chain_head_hash,
+    chain_tail_hash: anchorResponse.chain_tail_hash,
+    record_count: anchorResponse.record_count,
+    verification_status: anchorResponse.verification_status,
+    device_reported_start_time: anchorRequest.device_reported_start_time,
+    device_reported_end_time: anchorRequest.device_reported_end_time,
+    stored_at: anchorResponse.server_received_at
+)
+
+// 验证回执
+// ... 发送 POST /time-anchor/verify 请求
+
+assert(verification.valid == true)
+assert(verification.signature_valid == true)
+```
+
+---
+
+## 10. 常见失败场景及排查
+
+### 10.1 签名验证失败
 
 **症状**：`cryptographic_signature_valid = false`
 
@@ -494,16 +892,16 @@ assert(verification.signature_valid == true)
    - Base64 解码后检查长度
 
 3. **检查签名格式**：
-   - 必须是 DER 格式
+   - 普通密钥：必须使用 `.derRepresentation`
+   - Secure Enclave：已经是 DER 格式，不需要转换
    - 必须以 `0x30` 开头
-   - 使用 `signature.derRepresentation`，不是 `signature.rawRepresentation`
 
 4. **检查字段值**：
    - 不能包含换行符（`\n` 或 `\r`）
    - 不能包含等号（`=`）
    - 时间戳必须是 ISO 8601 格式
 
-### 7.2 照片哈希不匹配
+### 10.2 照片哈希不匹配
 
 **症状**：`photo_hash_valid = false`
 
@@ -515,30 +913,32 @@ assert(verification.signature_valid == true)
    print("Photo hash:", computePhotoHash(photoData: photoData))
    ```
 
-2. **检查 Base64 编码**：
+2. **检查文件保存一致性**：
    ```swift
-   let base64 = photoData.base64EncodedString()
-   print("Base64 length:", base64.count)
+   // 保存前
+   let hash1 = computePhotoHash(photoData: photoData)
+   
+   // 保存后
+   let reloadedData = try Data(contentsOf: fileURL)
+   let hash2 = computePhotoHash(photoData: reloadedData)
+   
+   assert(hash1 == hash2)
    ```
 
 3. **确认使用原始照片**：
-   - 不能是压缩后的 JPEG
+   - 不能是压缩后的 JPEG（如果原始是 HEIC）
    - 不能是修改过的数据
    - 必须是相机原始输出
 
-### 7.3 公钥未注册
+### 10.3 公钥未注册
 
 **症状**：`key_registration_status = "unregistered"`
 
 **排查步骤**：
 
-1. **检查注册请求**：
-   ```bash
-   curl -X POST "http://localhost:8000/register-key" \
-     -d "public_key_b64=..." \
-     -d "device_id=iphone-pro-001" \
-     -d "allow_test_registration=true"
-   ```
+1. **检查注册请求格式**：
+   - 必须使用 `application/x-www-form-urlencoded`
+   - 必须包含 `allow_test_registration=true`
 
 2. **检查公钥一致性**：
    - 注册时使用的公钥
@@ -550,105 +950,29 @@ assert(verification.signature_valid == true)
    - 清单中的 device_id
    - 必须完全相同
 
-### 7.4 设备身份不匹配
-
-**症状**：`device_identity_consistent = false`
-
-**排查步骤**：
-
-1. **检查注册的 device_id**：
-   ```bash
-   curl "http://localhost:8000/check-record/..." 
-   ```
-
-2. **检查清单中的 device_id**：
-   ```swift
-   print("Manifest device_id:", manifest.deviceId)
-   ```
-
-3. **确保一致**：
-   - 注册时的 device_id
-   - 清单中的 device_id
-   - 必须完全相同（区分大小写）
-
-### 7.5 时间锚点验证失败
+### 10.4 时间锚点验证失败
 
 **症状**：`verification.valid = false`
 
 **排查步骤**：
 
-1. **检查 key_id**：
-   - 回执中的 key_id 必须是已注册的
+1. **检查回执完整性**：
+   - 必须包含所有必需字段
+   - `device_reported_start_time` 和 `device_reported_end_time` 从请求中获取
+
+2. **检查 verification_status**：
+   - 不能篡改
+   - 必须与服务器返回的值一致
+
+3. **检查 key_id**：
+   - 必须是已注册的
    - 检查服务器公钥端点：`GET /time-anchor/public-key`
 
-2. **检查签名字段**：
-   - 不能修改任何已签名字段
-   - verification_status 包含在签名中，不能篡改
-
-3. **检查服务器存储**：
-   - 回执必须在服务器存储中存在
-   - 使用 `check_storage=false` 进行离线验证
-
-### 7.6 协议版本不匹配
-
-**症状**：`evidence_status = "unverified"`
-
-**排查步骤**：
-
-1. **检查 version 字段**：
-   ```swift
-   print("Manifest version:", manifest.version)
-   ```
-
-2. **确认支持的版本**：
-   - 当前支持：`"1.0"` 和 `"1.1"`
-   - 推荐使用：`"1.1"`（改进的浮点数格式）
-
-3. **检查域分隔符**：
-   - v1.0: `WorkCam-Sig-v1`
-   - v1.1: `WorkCam-Sig-v1.1`
-
 ---
 
-## 8. 调试工具
+## 11. 测试向量
 
-### 8.1 后端日志
-
-```bash
-# 启动时启用详细日志
-uvicorn app.main:app --reload --log-level debug
-```
-
-### 8.2 请求/响应记录
-
-```swift
-// iOS 端记录请求
-print("Request:", String(data: try JSONEncoder().encode(manifest), encoding: .utf8)!)
-
-// 记录响应
-print("Response:", String(data: responseData, encoding: .utf8)!)
-```
-
-### 8.3 十六进制对比
-
-```swift
-// Swift
-let payloadHex = payload.map { String(format: "%02x", $0) }.joined()
-print("Swift payload:", payloadHex)
-```
-
-```python
-# Python
-print("Python payload:", payload.hex())
-```
-
-**对比两个十六进制字符串，必须完全一致**。
-
----
-
-## 9. 测试向量
-
-### 9.1 固定测试向量
+### 11.1 固定测试向量
 
 后端提供了固定测试向量：`test-vectors/fixed-vectors.json`
 
@@ -659,9 +983,7 @@ print("Python payload:", payload.hex())
 - 固定规范化数据（十六进制）
 - 固定签名（Base64）
 
-iOS 端可以使用这些向量验证实现的正确性。
-
-### 9.2 验证测试向量
+### 11.2 验证测试向量
 
 ```swift
 // 加载测试向量
@@ -682,67 +1004,40 @@ let payload = buildCanonicalPayload(manifest: testManifest)
 let payloadHex = payload.map { String(format: "%02x", $0) }.joined()
 assert(payloadHex == vectors.canonical_payload.hex)
 
-// 验证签名
+// 验证签名（使用普通密钥）
 let publicKey = try P256.Signing.PublicKey(x963Representation: pubKeyData)
 let signature = try P256.Signing.ECDSASignature(derRepresentation: Data(base64Encoded: vectors.signature.base64)!)
 let isValid = publicKey.isValidSignature(signature, for: payload)
 assert(isValid)
 ```
 
----
-
-## 10. 下一步
-
-完成联调后，下一步是：
-
-1. **实现 Secure Enclave 签名**
-   - 使用 `SecKey` API 生成 Secure Enclave 密钥
-   - 确保证书链正确
-
-2. **实现离线哈希链**
-   - 本地存储记录
-   - 计算链哈希
-   - 支持离线拍摄
-
-3. **实现时间锚点客户端**
-   - 批量提交离线记录
-   - 保存服务器回执
-   - 离线验证回执
-
-4. **实现 App Attest**（可选）
-   - 提升设备信任等级
-   - 达到 `FULLY_ATTESTED` 状态
+**编译状态**：⚠️ 未验证（伪代码）
 
 ---
 
-## 附录 A：完整代码示例
+## 12. 编译状态总结
 
-### A.1 SignatureManifest 结构
+| 代码示例 | 编译状态 | 说明 |
+|---------|---------|------|
+| SignatureManifest 结构 | ⚠️ 未验证 | 伪代码，需要实际编译 |
+| buildCanonicalPayload | ⚠️ 未验证 | 伪代码，需要实际编译 |
+| 普通密钥生成 | ⚠️ 未验证 | 伪代码，需要实际编译 |
+| Secure Enclave 密钥生成 | ⚠️ 未验证 | 需要真机测试 |
+| 普通密钥签名 | ⚠️ 未验证 | 伪代码，需要实际编译 |
+| Secure Enclave 签名 | ⚠️ 未验证 | 需要真机测试 |
+| 照片哈希计算 | ⚠️ 未验证 | 伪代码，需要实际编译 |
+| API 请求示例 | ⚠️ 未验证 | 伪代码，需要实际编译 |
 
-```swift
-struct SignatureManifest: Codable {
-    let version: String
-    let record_id: String
-    let sequence_number: Int
-    let previous_record_hash: String?
-    let photo_hash: String
-    let capture_timestamp: String
-    let device_reported_time: String
-    let device_id: String
-    let location: LocationData?
-    let public_key: String
-    let signature: String
-}
+**重要**：所有 Swift 代码示例均为伪代码，未经实际编译验证。Mac 端开发时需要：
+1. 根据实际 Swift 语法调整
+2. 处理错误和异常
+3. 在真机上测试 Secure Enclave 功能
 
-struct LocationData: Codable {
-    let latitude: Double
-    let longitude: Double
-    let horizontal_accuracy: Double
-    let altitude: Double?
-}
-```
+---
 
-### A.2 完整签名流程
+## 附录 A：完整代码示例（伪代码）
+
+### A.1 WorkCamSigner 类
 
 ```swift
 import Foundation
@@ -784,7 +1079,7 @@ class WorkCamSigner {
         // 4. 构建签名数据
         let payload = buildCanonicalPayload(manifest: manifest)
         
-        // 5. 签名
+        // 5. 签名（普通密钥需要 DER 转换）
         let signature = try privateKey.signature(for: payload)
         manifest.signature = signature.derRepresentation.base64EncodedString()
         
@@ -833,69 +1128,60 @@ class WorkCamSigner {
 }
 ```
 
----
-
-## 附录 B：API 端点参考
-
-### B.1 验证端点
-
-```
-POST /verify
-Content-Type: application/json
-
-{
-  "manifest": { ... },
-  "photo_base64": "..."
-}
-```
-
-### B.2 公钥注册端点
-
-```
-POST /register-key
-Content-Type: application/x-www-form-urlencoded
-
-public_key_b64=...&device_id=...&allow_test_registration=true
-```
-
-### B.3 时间锚点端点
-
-```
-POST /time-anchor/anchor
-Content-Type: application/json
-
-{
-  "batch_id": "...",
-  "chain_head_hash": "...",
-  "chain_tail_hash": "...",
-  "record_count": 10,
-  "device_reported_start_time": "...",
-  "device_reported_end_time": "..."
-}
-```
-
-### B.4 时间锚点验证端点
-
-```
-POST /time-anchor/verify
-Content-Type: application/json
-
-{ ... receipt ... }
-```
+**编译状态**：⚠️ 未验证（伪代码）
 
 ---
 
-## 附录 C：错误代码
+## 附录 B：API 端点参考（已核对）
 
-| HTTP 状态码 | 含义 | 排查方向 |
-|------------|------|----------|
-| 400 | 请求格式错误 | 检查 JSON 结构、字段类型 |
-| 404 | 资源未找到 | 检查 anchor_id、record_id |
-| 409 | 冲突 | 检查 batch_id 是否重复 |
-| 500 | 服务器错误 | 检查后端日志 |
+| 端点 | 方法 | Content-Type | 说明 |
+|------|------|--------------|------|
+| `/register-key` | POST | `application/x-www-form-urlencoded` | 注册公钥 |
+| `/verify` | POST | `application/json` | 验证签名清单 |
+| `/store-record` | POST | `application/json` | 存储记录（重放检测） |
+| `/time-anchor/anchor` | POST | `application/json` | 提交时间锚点 |
+| `/time-anchor/verify` | POST | `application/json` | 验证时间锚点回执 |
+| `/time-anchor/public-key` | GET | - | 获取服务器公钥 |
 
 ---
 
-**文档版本**：1.0  
+## 附录 C：修订摘要
+
+### WC-W004-R1 修订内容
+
+1. **Secure Enclave 示例修复**
+   - ✅ 明确区分普通密钥和 Secure Enclave 密钥
+   - ✅ 提供正确的 Secure Enclave 密钥生成示例
+   - ✅ 说明 Secure Enclave 签名已经是 DER 格式
+   - ✅ 明确 Secure Enclave 签名不等于 App Attest
+
+2. **Swift 编译问题修复**
+   - ✅ 统一使用 snake_case 字段名（与后端一致）
+   - ✅ 修复不可变属性赋值问题（使用 `var`）
+   - ✅ 标注所有示例为"伪代码，未编译验证"
+
+3. **时间锚点验证流程修复**
+   - ✅ 明确 TimeAnchorResponse 与 TimeAnchorReceipt 的差异
+   - ✅ 说明需要从请求中构造完整回执
+   - ✅ 说明 verification_status 已纳入 v2 签名
+   - ✅ 明确 DIGEST_ANCHORED 的含义
+
+4. **照片哈希说明修复**
+   - ✅ 强调必须使用实际保存的文件字节
+   - ✅ 说明 JPEG、HEIC 等编码格式都可以
+   - ✅ 禁止重新编码或修改证据文件
+   - ✅ 增加文件保存前后一致性检查
+
+5. **后端接口核对**
+   - ✅ 核对 `/register-key` 请求格式（表单数据）
+   - ✅ 核对 `/verify` 请求与响应
+   - ✅ 核对 `/store-record` 使用条件
+   - ✅ 核对 `/time-anchor/anchor` 和 `/time-anchor/verify`
+   - ✅ 核对测试向量字段名称
+
+---
+
+**文档版本**：1.1（WC-W004-R1 修订版）  
 **最后更新**：2026-11-17  
-**适用协议版本**：签名 v1.1，时间锚点 v2
+**适用协议版本**：签名 v1.1，时间锚点 v2  
+**编译验证状态**：所有 Swift 示例均为伪代码，未实际编译
