@@ -185,7 +185,7 @@ let publicKeyBase64 = publicKeyBytes.base64EncodedString()
 
 ```swift
 import CryptoKit
-import SecureEnclave
+import Security
 
 // ✅ Secure Enclave 密钥：私钥永不出硬件
 // 需要真机测试，模拟器不支持
@@ -198,8 +198,8 @@ let accessControl = SecAccessControlCreateWithFlags(
     nil
 )!
 
-let privateKey = try SecureEnclave.P256.Signing.PrivateKey(
-    compactRepresentable: false,
+let privateKey = try P256.Signing.PrivateKey(
+    secureEnclave: true,
     accessControl: accessControl,
     authenticationContext: nil
 )
@@ -222,8 +222,8 @@ let signatureBase64 = derSignature.base64EncodedString()
 **编译状态**：⚠️ 未验证（伪代码，需要真机测试）
 
 **重要区别**：
-- `P256.Signing.PrivateKey`：普通软件密钥，私钥在内存中
-- `SecureEnclave.P256.Signing.PrivateKey`：硬件保护密钥，私钥不出 Secure Enclave
+- `P256.Signing.PrivateKey()`：普通软件密钥，私钥在内存中
+- `P256.Signing.PrivateKey(secureEnclave: true)`：硬件保护密钥，私钥不出 Secure Enclave
 - Secure Enclave 签名**不等于** App Attest 设备认证
 - Secure Enclave 签名也需要使用 `.derRepresentation` 获取 DER 字节
 
@@ -260,7 +260,8 @@ let signatureBase64 = derSignature.base64EncodedString()
 import CryptoKit
 import Security
 
-let privateKey = try SecureEnclave.P256.Signing.PrivateKey(...)
+// 使用 Secure Enclave 密钥（需要真机）
+let privateKey = try P256.Signing.PrivateKey(secureEnclave: true, ...)
 let payload = buildCanonicalPayload(manifest: manifest)
 
 // 签名
@@ -299,7 +300,7 @@ public_key.verify(
 
 1. **CryptoKit 签名格式**：
    - `P256.Signing.ECDSASignature`（普通密钥）：返回 raw 格式，需要 `.derRepresentation`
-   - `SecureEnclave.P256.Signing.ECDSASignature`（Secure Enclave）：也需要 `.derRepresentation`
+   - `P256.Signing.ECDSASignature`（Secure Enclave 密钥）：也需要 `.derRepresentation`
    - **两者都需要调用 `.derRepresentation` 获取 DER 字节**
 
 2. **DER 结构要求**：
@@ -757,11 +758,17 @@ if isValid {
 
 **编译状态**：⚠️ 未验证（伪代码）
 
-**离线验证的限制**：
-- 只能验证签名有效性
-- 不能验证 `verification_status` 是否被篡改（需要检查服务器存储）
-- 不能验证 `challenge` 是否被重用（需要检查服务器存储）
+**离线验证的能力**：
+- ✅ 可以验证签名有效性
+- ✅ 可以验证 `verification_status` 是否被篡改（因为已纳入 v2 签名）
+- ✅ 可以验证所有已签名字段的完整性
 - 需要预先信任服务器公钥
+
+**离线验证的限制**：
+- ❌ 不能核实服务器当前存储状态（需要访问服务器）
+- ❌ 不能验证回执是否被撤销（需要访问服务器）
+- ❌ 不能验证摘要对应的照片是否真实（需要原始照片数据）
+- ❌ 不能验证 `challenge` 是否被重用（需要检查服务器存储）
 
 ### 8.5 验证响应结构
 
@@ -1215,6 +1222,23 @@ class WorkCamSigner {
 
 ## 附录 C：修订摘要
 
+### WC-W004-R3 修订内容
+
+1. **删除错误的 `import SecureEnclave`**
+   - ✅ 全文删除 `import SecureEnclave`（不存在的模块）
+   - ✅ Secure Enclave 示例统一使用 `import CryptoKit` 和 `import Security`
+   - ✅ 使用 `P256.Signing.PrivateKey(secureEnclave: true)` 代替 `SecureEnclave.P256.Signing.PrivateKey`
+
+2. **修正离线验证说明**
+   - ✅ 修正错误：本地验签**可以**验证 `verification_status` 是否被篡改（因为已纳入 v2 签名）
+   - ✅ 明确离线验证的能力：可以验证签名有效性、verification_status 完整性
+   - ✅ 保留离线验证的限制：不能核实服务器存储状态、回执是否被撤销、照片是否真实
+
+3. **统一矛盾表述**
+   - ✅ 全文搜索并修正所有 `SecureEnclave.P256` 引用
+   - ✅ 统一使用 `P256.Signing.PrivateKey(secureEnclave: true)` 表述
+   - ✅ 确保所有 Secure Enclave 示例使用正确的导入
+
 ### WC-W004-R2 修订内容
 
 1. **Secure Enclave 签名示例修正**
@@ -1269,7 +1293,7 @@ class WorkCamSigner {
 
 ---
 
-**文档版本**：1.2（WC-W004-R2 修订版）  
+**文档版本**：1.3（WC-W004-R3 修订版）  
 **最后更新**：2026-11-17  
 **适用协议版本**：签名 v1.1，时间锚点 v2  
 **编译验证状态**：所有 Swift 示例均为伪代码，未实际编译
