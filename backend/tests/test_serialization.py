@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime, timezone
 
-from app.services.serialization import canonical_payload, DOMAIN_SEPARATOR
+from app.services.serialization import canonical_payload, DOMAIN_SEPARATOR_V1_0
 from tests.conftest import make_manifest, make_test_photo, _encode_pub
 
 
@@ -22,8 +22,19 @@ def test_canonical_payload_deterministic():
     priv = ec.generate_private_key(ec.SECP256R1())
     pub = _encode_pub(priv.public_key())
     photo = make_test_photo()
-    m1 = make_manifest(priv, pub, photo_bytes=photo, record_id="fixed-id-001")
-    m2 = make_manifest(priv, pub, photo_bytes=photo, record_id="fixed-id-001")
+    ts = "2026-11-09T12:00:00+00:00"
+    m1 = make_manifest(
+        priv, pub, photo_bytes=photo,
+        record_id="fixed-id-001",
+        capture_timestamp=ts,
+        device_reported_time=ts,
+    )
+    m2 = make_manifest(
+        priv, pub, photo_bytes=photo,
+        record_id="fixed-id-001",
+        capture_timestamp=ts,
+        device_reported_time=ts,
+    )
     p1 = canonical_payload(m1)
     p2 = canonical_payload(m2)
     assert p1 == p2
@@ -80,3 +91,26 @@ def test_location_with_values():
     m = make_manifest(priv, pub, location=loc)
     text = canonical_payload(m).decode("utf-8")
     assert "location=39.9042,116.4074,5.0,50.0" in text
+
+
+def test_v1_1_float_formatting():
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from app.models.capture import LocationData
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    loc = LocationData(
+        latitude=39.90420000, longitude=116.40740000,
+        horizontal_accuracy=5.0, altitude=50.0
+    )
+    m = make_manifest(priv, pub, location=loc, version="1.1")
+    text = canonical_payload(m).decode("utf-8")
+    assert "location=39.9042,116.4074,5.0,50.0" in text
+
+
+def test_v1_1_domain_separator():
+    from cryptography.hazmat.primitives.asymmetric import ec
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    m = make_manifest(priv, pub, version="1.1")
+    text = canonical_payload(m).decode("utf-8")
+    assert text.startswith("WorkCam-Sig-v1.1\n")

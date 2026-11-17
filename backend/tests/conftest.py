@@ -31,6 +31,9 @@ def make_manifest(
     location: LocationData | None = None,
     tamper_photo_hash: bool = False,
     tamper_sequence: int | None = None,
+    version: str = "1.0",
+    capture_timestamp: str | None = None,
+    device_reported_time: str | None = None,
 ) -> SignatureManifest:
     if photo_bytes is None:
         photo_bytes = make_test_photo()
@@ -40,15 +43,16 @@ def make_manifest(
         photo_hash = "aa" * 32
 
     actual_seq = tamper_sequence if tamper_sequence is not None else seq
+    now = datetime.now(timezone.utc).isoformat()
 
     manifest = SignatureManifest(
-        version="1.0",
+        version=version,
         record_id=record_id or str(uuid.uuid4()),
         sequence_number=actual_seq,
         previous_record_hash=prev_hash,
         photo_hash=photo_hash,
-        capture_timestamp=datetime.now(timezone.utc).isoformat(),
-        device_reported_time=datetime.now(timezone.utc).isoformat(),
+        capture_timestamp=capture_timestamp or now,
+        device_reported_time=device_reported_time or now,
         device_id="test-device-001",
         location=location,
         signature="",

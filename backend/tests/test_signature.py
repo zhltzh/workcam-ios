@@ -116,3 +116,46 @@ def test_structure_invalid_public_key():
     m2 = m.model_copy(update={"public_key": base64.b64encode(b"\x00\x01").decode()})
     errors = validate_manifest_structure(m2)
     assert any("public_key" in e.lower() for e in errors)
+
+
+def test_newline_in_record_id_rejected():
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from app.models.capture import SignatureManifest
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    m = make_manifest(priv, pub)
+    m2 = m.model_copy(update={"record_id": "test\ninjected"})
+    errors = validate_manifest_structure(m2)
+    assert any("newline" in e.lower() for e in errors)
+
+
+def test_invalid_timestamp_format():
+    from cryptography.hazmat.primitives.asymmetric import ec
+    priv = ec.generate_private_key(ec.SECP256R1())
+    pub = _encode_pub(priv.public_key())
+    m = make_manifest(priv, pub)
+    m2 = m.model_copy(update={"capture_timestamp": "not-a-timestamp"})
+    errors = validate_manifest_structure(m2)
+    assert any("iso 8601" in e.lower() for e in errors)
+
+
+def test_nan_rejected_in_location():
+    from app.models.capture import LocationData
+    import pytest
+    with pytest.raises(Exception):
+        LocationData(
+            latitude=float("nan"),
+            longitude=0.0,
+            horizontal_accuracy=1.0,
+        )
+
+
+def test_infinity_rejected_in_location():
+    from app.models.capture import LocationData
+    import pytest
+    with pytest.raises(Exception):
+        LocationData(
+            latitude=float("inf"),
+            longitude=0.0,
+            horizontal_accuracy=1.0,
+        )

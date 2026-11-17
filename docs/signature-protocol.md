@@ -2,7 +2,7 @@
 
 ## Version
 
-`1.0`
+`1.0` (stable), `1.1` (enhanced float formatting)
 
 ## Cryptographic Primitives
 
@@ -19,11 +19,10 @@
 
 ## Domain Separation
 
-All signed payloads begin with the ASCII string:
+All signed payloads begin with a version-specific ASCII string:
 
-```
-WorkCam-Sig-v1
-```
+- v1.0: `WorkCam-Sig-v1`
+- v1.1: `WorkCam-Sig-v1.1`
 
 followed by a newline (`0x0a`).
 
@@ -31,7 +30,7 @@ followed by a newline (`0x0a`).
 
 The signed payload is constructed as follows:
 
-1. Start with the domain separator line: `WorkCam-Sig-v1`
+1. Start with the domain separator line (version-specific)
 2. Append each field in **fixed order** (one per line, `key=value`):
    - `version`
    - `record_id`
@@ -45,13 +44,21 @@ The signed payload is constructed as follows:
 3. End with a final newline.
 4. Encode the entire text as UTF-8.
 
+### Field Validation Rules
+
+- **Strings**: Must not contain newlines (`\n` or `\r`)
+- **Timestamps**: Must be ISO 8601 format (e.g., `2026-11-09T12:00:00+00:00` or `2026-11-09T12:00:00Z`)
+- **Floats (v1.1)**: Must be finite (no NaN or Infinity), formatted with consistent precision
+- **Hex strings**: Must be valid lowercase hex
+
 ### Location Format
 
 - If location is null: `location=none`
 - If location is present: `location={lat},{lon},{accuracy},{altitude}`
   - altitude is `none` if null
+  - v1.1: floats formatted with `.10g` precision, ensuring decimal point
 
-### Example Payload
+### Example Payload (v1.0)
 
 ```
 WorkCam-Sig-v1
@@ -66,6 +73,17 @@ device_id=test-device-001
 location=none
 ```
 
+## DER Signature Format
+
+ECDSA signatures must be DER-encoded (RFC 3279):
+
+- Must start with SEQUENCE tag (`0x30`)
+- Must contain exactly two INTEGER values (r, s)
+- No trailing data allowed
+- Total length must match declared length
+
+Invalid DER structures are rejected before cryptographic verification.
+
 ## Signing
 
 1. Construct the canonical payload bytes (UTF-8).
@@ -77,8 +95,48 @@ location=none
 
 1. Decode the `public_key` from base64 → 65-byte uncompressed point.
 2. Decode the `signature` from base64 → DER bytes.
-3. Reconstruct the canonical payload from the manifest fields.
-4. Verify the ECDSA signature over the payload using SHA-256.
+3. Validate DER structure strictly.
+4. Reconstruct the canonical payload from the manifest fields.
+5. Verify the ECDSA signature over the payload using SHA-256.
+
+## Evidence Status
+
+The verification result includes multiple status fields with a clear hierarchy:
+
+### Evidence Status Hierarchy
+
+```
+FULLY_ATTESTED > CRYPTOGRAPHICALLY_VALID > SIGNATURE_VALID > PARTIAL > UNVERIFIED > INVALID
+```
+
+| Status | Meaning | When Achieved |
+|--------|---------|---------------|
+| `FULLY_ATTESTED` | All checks passed including device attestation | **Rarely achieved.** Requires App Attest implementation. |
+| `CRYPTOGRAPHICALLY_VALID` | Signature valid, photo verified, key registered | **BUT device attestation unknown.** Cannot prove device is genuine. |
+| `SIGNATURE_VALID` | Signature math valid | Key not registered or photo not verified. |
+| `PARTIAL` | Some checks passed, some incomplete | Photo not provided, or other checks incomplete. |
+| `UNVERIFIED` | Checks could not be performed | Structural issues, unsupported version. |
+| `INVALID` | One or more checks failed | Signature invalid, photo mismatch, identity mismatch. |
+
+### Response Fields
+
+| Field | Description |
+|-------|-------------|
+| `evidence_status` | Overall evidence trust level (see hierarchy above) |
+| `cryptographic_signature_valid` | Mathematical signature validity |
+| `photo_hash_valid` | Photo bytes match signed hash (null if not checked) |
+| `key_registration_status` | Whether public key is registered |
+| `device_identity_consistent` | Whether manifest device_id matches registered key |
+| `device_attestation_status` | Whether device passed attestation (always `unknown` currently) |
+| `time_trust_level` | How much we trust the timestamp (`device_reported` currently) |
+
+### Important Warnings
+
+**Never interpret `CRYPTOGRAPHICALLY_VALID` as "device is genuine".** It only means the math checks out. Without App Attest, the device could be any computer.
+
+**Always check `device_attestation_status`.** If `unknown`, cannot prove the device is an iPhone with Secure Enclave.
+
+**Always check `time_trust_level`.** If `device_reported`, the device could have falsified the time.
 
 ## Hash Chain
 
@@ -95,19 +153,50 @@ where `signature_ascii` is the base64 signature string encoded as ASCII.
 
 ### Chain Verification
 
-1. Sort records by `sequence_number`.
-2. Check no duplicate sequence numbers.
-3. For seq=0: verify `previous_record_hash` is null.
-4. For seq>0: verify `previous_record_hash` matches the computed hash of the previous record.
-5. Report any gaps, mismatches, or duplicates.
+1. Preserve original submission order and detect reordering
+2. Check no duplicate sequence numbers
+3. Report missing sequence numbers (gaps may indicate rebuilding)
+4. For seq=0: verify `previous_record_hash` is null
+5. For seq>0: verify `previous_record_hash` matches the computed hash of the previous record
+6. Report any gaps, mismatches, or duplicates
 
 ## Limitations
 
-- An offline hash chain **cannot** guarantee no deletion, replacement, or rebuilding of records.
-- Only anchored chains (with server-side timestamps) provide stronger guarantees.
-- This protocol does **not** implement App Attest verification in this version.
+### Hash Chain Immutability
+
+An offline hash chain **cannot** guarantee no deletion, replacement, or rebuilding of records.
+
+**What chain verification proves:**
+- Internal consistency: each record's `previous_record_hash` matches the computed hash of the previous record
+- No duplicate sequence numbers
+- No gaps in sequence numbers (if present)
+- Original submission order (if preserved)
+
+**What chain verification does NOT prove:**
+- That the records are the original ones (an attacker with the private key could rebuild the entire chain)
+- That no records were deleted (gaps could indicate deletion OR could indicate the records were never created)
+- That the chain is immutable (without server-side anchors, the chain can be reconstructed)
+
+**To achieve stronger guarantees:**
+- Implement server-side time anchoring (server records timestamp when chain is submitted)
+- Implement periodic anchoring to external systems (blockchain, notary service)
+- Use append-only storage with cryptographic proofs
+
+### Device Attestation
+
+This protocol does **not** implement App Attest verification. Without App Attest:
+- Cannot prove the device is a genuine Apple device
+- Cannot prove the private key is stored in Secure Enclave
+- Maximum evidence status is `CRYPTOGRAPHICALLY_VALID`, not `FULLY_ATTESTED`
+
+### Time Trust
+
+Timestamps are device-reported only (`time_trust_level=device_reported`). Without server-side anchoring:
+- Device could have falsified the time
+- Cannot prove when the photo was actually taken
+- Cannot correlate with external events
 
 ## Test Vectors
 
-See `tests/test_serialization.py` and `tests/test_signature.py` for reproducible test cases.
+See `test-vectors/fixed-vectors.json` for cross-language test vectors.
 All tests use software-generated P-256 keys (clearly marked as test keys).

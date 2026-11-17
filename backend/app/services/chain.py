@@ -53,17 +53,75 @@ def verify_chain_link(
     return True, "Chain link valid"
 
 
-def verify_chain(records: list[SignatureManifest]) -> list[dict]:
-    results: list[dict] = []
+class ChainVerificationResult:
+    def __init__(self) -> None:
+        self.results: list[dict] = []
+        self.warnings: list[str] = []
+        self.original_order_preserved: bool = True
+
+    def add_result(self, result: dict) -> None:
+        self.results.append(result)
+
+    def add_warning(self, warning: str) -> None:
+        self.warnings.append(warning)
+
+    def to_dict(self) -> dict:
+        return {
+            "results": self.results,
+            "warnings": self.warnings,
+            "original_order_preserved": self.original_order_preserved,
+        }
+
+
+def verify_chain(
+    records: list[SignatureManifest],
+    preserve_original_order: bool = True,
+) -> dict:
+    result = ChainVerificationResult()
 
     if not records:
-        return [{"error": "Empty record list"}]
+        return {"error": "Empty record list", "results": [], "warnings": []}
 
-    sorted_records = sorted(records, key=lambda r: r.sequence_number)
+    original_indices = {id(r): i for i, r in enumerate(records)}
 
-    seen_seqs = [r.sequence_number for r in sorted_records]
-    if len(seen_seqs) != len(set(seen_seqs)):
-        results.append({"error": "Duplicate sequence numbers detected"})
+    if preserve_original_order:
+        sorted_records = list(records)
+        sorted_records.sort(key=lambda r: r.sequence_number)
+        for i, r in enumerate(sorted_records):
+            orig_idx = original_indices[id(r)]
+            if orig_idx != i:
+                result.original_order_preserved = False
+                result.add_warning(
+                    f"Record seq={r.sequence_number} was at original index "
+                    f"{orig_idx}, not {i}. Original submission order differs "
+                    f"from sequence order."
+                )
+    else:
+        sorted_records = sorted(records, key=lambda r: r.sequence_number)
+
+    seen_seqs: dict[int, int] = {}
+    for i, r in enumerate(sorted_records):
+        if r.sequence_number in seen_seqs:
+            result.add_result({
+                "sequence_number": r.sequence_number,
+                "valid": False,
+                "reason": (
+                    f"Duplicate sequence number {r.sequence_number} "
+                    f"(first at index {seen_seqs[r.sequence_number]}, "
+                    f"second at index {i})"
+                ),
+            })
+        else:
+            seen_seqs[r.sequence_number] = i
+
+    expected_seqs = set(range(len(sorted_records)))
+    actual_seqs = set(r.sequence_number for r in sorted_records)
+    missing_seqs = expected_seqs - actual_seqs
+    if missing_seqs:
+        result.add_warning(
+            f"Missing sequence numbers: {sorted(missing_seqs)}. "
+            f"Chain may have been rebuilt with gaps."
+        )
 
     for i, record in enumerate(sorted_records):
         prev_record = sorted_records[i - 1] if i > 0 else None
@@ -71,7 +129,7 @@ def verify_chain(records: list[SignatureManifest]) -> list[dict]:
         if i > 0 and prev_record is not None:
             expected_prev_seq = record.sequence_number - 1
             if prev_record.sequence_number != expected_prev_seq:
-                results.append({
+                result.add_result({
                     "sequence_number": record.sequence_number,
                     "valid": False,
                     "reason": (
@@ -83,13 +141,13 @@ def verify_chain(records: list[SignatureManifest]) -> list[dict]:
 
         if record.sequence_number == 0:
             if record.previous_record_hash is not None:
-                results.append({
+                result.add_result({
                     "sequence_number": 0,
                     "valid": False,
                     "reason": "Genesis record must have previous_record_hash=null",
                 })
             else:
-                results.append({
+                result.add_result({
                     "sequence_number": 0,
                     "valid": True,
                     "reason": "Genesis record",
@@ -97,7 +155,7 @@ def verify_chain(records: list[SignatureManifest]) -> list[dict]:
             continue
 
         if record.previous_record_hash is None:
-            results.append({
+            result.add_result({
                 "sequence_number": record.sequence_number,
                 "valid": False,
                 "reason": "Non-genesis record missing previous_record_hash",
@@ -105,7 +163,7 @@ def verify_chain(records: list[SignatureManifest]) -> list[dict]:
             continue
 
         if prev_record is None:
-            results.append({
+            result.add_result({
                 "sequence_number": record.sequence_number,
                 "valid": False,
                 "reason": "Previous record not provided",
@@ -114,16 +172,16 @@ def verify_chain(records: list[SignatureManifest]) -> list[dict]:
 
         prev_hash = compute_record_hash(prev_record)
         if prev_hash != record.previous_record_hash:
-            results.append({
+            result.add_result({
                 "sequence_number": record.sequence_number,
                 "valid": False,
                 "reason": "Hash chain mismatch",
             })
         else:
-            results.append({
+            result.add_result({
                 "sequence_number": record.sequence_number,
                 "valid": True,
                 "reason": "Chain link valid",
             })
 
-    return results
+    return result.to_dict()
