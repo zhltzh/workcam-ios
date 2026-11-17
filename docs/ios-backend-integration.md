@@ -213,9 +213,10 @@ let publicKeyBase64 = publicKeyBytes.base64EncodedString()
 let payload = buildCanonicalPayload(manifest: manifest)
 let signature = try privateKey.signature(for: payload)
 
-// ⚠️ 注意：SecureEnclave.P256.Signing.ECDSASignature 已经是 DER 格式
-// 不需要转换
-let signatureBase64 = signature.base64EncodedString()
+// ⚠️ 注意：Secure Enclave 签名也需要转换为 DER 格式
+// 与 CryptoKit 的普通密钥一样，使用 .derRepresentation
+let derSignature = signature.derRepresentation
+let signatureBase64 = derSignature.base64EncodedString()
 ```
 
 **编译状态**：⚠️ 未验证（伪代码，需要真机测试）
@@ -224,6 +225,7 @@ let signatureBase64 = signature.base64EncodedString()
 - `P256.Signing.PrivateKey`：普通软件密钥，私钥在内存中
 - `SecureEnclave.P256.Signing.PrivateKey`：硬件保护密钥，私钥不出 Secure Enclave
 - Secure Enclave 签名**不等于** App Attest 设备认证
+- Secure Enclave 签名也需要使用 `.derRepresentation` 获取 DER 字节
 
 ### 3.2 签名格式
 
@@ -252,10 +254,11 @@ let signatureBase64 = derSignature.base64EncodedString()
 
 **编译状态**：⚠️ 未验证（伪代码）
 
-#### 3.2.2 Secure Enclave 签名（已经是 DER 格式）
+#### 3.2.2 Secure Enclave 签名（也需要 DER 转换）
 
 ```swift
-import SecureEnclave
+import CryptoKit
+import Security
 
 let privateKey = try SecureEnclave.P256.Signing.PrivateKey(...)
 let payload = buildCanonicalPayload(manifest: manifest)
@@ -263,9 +266,10 @@ let payload = buildCanonicalPayload(manifest: manifest)
 // 签名
 let signature = try privateKey.signature(for: payload)
 
-// ✅ SecureEnclave.P256.Signing.ECDSASignature 已经是 DER 格式
-// 不需要调用 .derRepresentation
-let signatureBase64 = signature.base64EncodedString()
+// ⚠️ 注意：Secure Enclave 签名也需要使用 .derRepresentation 获取 DER 字节
+// 与 CryptoKit 的普通密钥处理方式相同
+let derSignature = signature.derRepresentation
+let signatureBase64 = derSignature.base64EncodedString()
 ```
 
 **编译状态**：⚠️ 未验证（伪代码，需要真机测试）
@@ -293,9 +297,10 @@ public_key.verify(
 
 ### 3.3 关键兼容性注意事项
 
-1. **CryptoKit 签名格式差异**：
+1. **CryptoKit 签名格式**：
    - `P256.Signing.ECDSASignature`（普通密钥）：返回 raw 格式，需要 `.derRepresentation`
-   - `SecureEnclave.P256.Signing.ECDSASignature`（Secure Enclave）：已经是 DER 格式
+   - `SecureEnclave.P256.Signing.ECDSASignature`（Secure Enclave）：也需要 `.derRepresentation`
+   - **两者都需要调用 `.derRepresentation` 获取 DER 字节**
 
 2. **DER 结构要求**：
    - 必须以 `0x30` 开头（SEQUENCE tag）
@@ -395,32 +400,48 @@ def verify_photo_hash(photo_bytes: bytes, expected_hash: str) -> bool:
 
 **示例**：
 ```bash
+# ✅ 推荐：使用 --data-urlencode 自动编码特殊字符
 curl -X POST "http://localhost:8000/register-key" \
-  -d "public_key_b64=BEw0ZJJUZjUJh3U5mTh2H+zyQH6cIo5JIYmpQ6t34t4D..." \
-  -d "device_id=iphone-pro-001" \
-  -d "allow_test_registration=true"
+  --data-urlencode "public_key_b64=BEw0ZJJUZjUJh3U5mTh2H+zyQH6cIo5JIYmpQ6t34t4D..." \
+  --data-urlencode "device_id=iphone-pro-001" \
+  --data-urlencode "allow_test_registration=true"
 ```
 
 **iOS 实现**（伪代码）：
 ```swift
-// 注意：使用 URL 编码的表单数据，不是 JSON
+// ⚠️ 重要：Base64 字符串包含 +、=、/ 等特殊字符，必须 URL 编码
+// 不能直接拼接，必须使用 percent-encoding
+
+func urlEncode(_ string: String) -> String {
+    // 使用 urlQueryAllowed 字符集，但需要额外编码 +、=、/
+    var allowed = CharacterSet.urlQueryAllowed
+    allowed.remove(charactersIn: "+=&/")
+    return string.addingPercentEncoding(withAllowedCharacters: allowed) ?? string
+}
+
 let params: [String: String] = [
-    "public_key_b64": publicKeyBase64,
-    "device_id": "iphone-pro-001",
-    "allow_test_registration": "true"
+    "public_key_b64": urlEncode(publicKeyBase64),
+    "device_id": urlEncode("iphone-pro-001"),
+    "allow_test_registration": urlEncode("true")
 ]
+
+let bodyString = params.map { "\($0.key)=\($0.value)" }
+    .joined(separator: "&")
 
 var request = URLRequest(url: URL(string: "http://localhost:8000/register-key")!)
 request.httpMethod = "POST"
 request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-request.httpBody = params.map { "\($0.key)=\($0.value)" }
-    .joined(separator: "&")
-    .data(using: .utf8)
+request.httpBody = bodyString.data(using: .utf8)
 
 let (data, response) = try await URLSession.shared.data(for: request)
 ```
 
 **编译状态**：⚠️ 未验证（伪代码）
+
+**Base64 编码示例**：
+- 原始 Base64：`BEw0ZJJUZjUJh3U5mTh2H+zyQH6cIo5JIYmpQ6t34t4D`
+- URL 编码后：`BEw0ZJJUZjUJh3U5mTh2H%2BzyQH6cIo5JIYmpQ6t34t4D`
+- 注意 `+` 被编码为 `%2B`
 
 ### 5.2 响应格式
 
@@ -672,11 +693,16 @@ try saveReceipt(receipt)
 **查询参数**：
 - `check_storage`: 是否检查服务器存储（默认 `true`）
   - `true`: 检查服务器存储（需要网络）
-  - `false`: 仅验证签名（离线模式）
+  - `false`: 跳过服务器存储核对，**但仍需要访问服务器**
+
+**⚠️ 重要澄清**：
+- `check_storage=false` **不是真正的离线验证**
+- 它仍然需要访问服务器，只是跳过存储核对
+- 真正的离线验证应该在 iOS 本地完成（见下方说明）
 
 **示例**：
 ```swift
-// 在线验证
+// 在线验证（检查服务器存储）
 let jsonData = try JSONEncoder().encode(receipt)
 var urlRequest = URLRequest(url: URL(string: "http://localhost:8000/time-anchor/verify?check_storage=true")!)
 urlRequest.httpMethod = "POST"
@@ -686,14 +712,56 @@ urlRequest.httpBody = jsonData
 let (data, response) = try await URLSession.shared.data(for: urlRequest)
 let verification = try JSONDecoder().decode(TimeAnchorVerification.self, from: data)
 
-// 离线验证
-var offlineRequest = URLRequest(url: URL(string: "http://localhost:8000/time-anchor/verify?check_storage=false")!)
-offlineRequest.httpMethod = "POST"
-offlineRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
-offlineRequest.httpBody = jsonData
+// 跳过存储核对（仍需网络）
+var skipStorageRequest = URLRequest(url: URL(string: "http://localhost:8000/time-anchor/verify?check_storage=false")!)
+skipStorageRequest.httpMethod = "POST"
+skipStorageRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+skipStorageRequest.httpBody = jsonData
 ```
 
 **编译状态**：⚠️ 未验证（伪代码）
+
+### 8.4.1 真正的离线验证（iOS 本地）
+
+**真正的离线验证**应该在 iOS 本地完成，不需要访问服务器：
+
+```swift
+import CryptoKit
+
+// 1. 预先信任的服务器公钥（从安全渠道获取）
+let trustedServerPublicKeyPem = """
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE...
+-----END PUBLIC KEY-----
+"""
+
+// 2. 加载公钥
+let publicKeyData = /* 从 PEM 解析公钥字节 */
+let publicKey = try P256.Signing.PublicKey(x963Representation: publicKeyData)
+
+// 3. 重建签名字节（与后端 _create_sign_data 相同）
+let signData = buildTimeAnchorSignData(receipt: receipt)
+
+// 4. 验证签名
+let signatureData = Data(base64Encoded: receipt.server_signature)!
+let signature = try P256.Signing.ECDSASignature(derRepresentation: signatureData)
+let isValid = publicKey.isValidSignature(signature, for: signData)
+
+if isValid {
+    print("Receipt signature is valid")
+    print("Server received at: \(receipt.server_received_at)")
+} else {
+    print("Receipt signature is invalid")
+}
+```
+
+**编译状态**：⚠️ 未验证（伪代码）
+
+**离线验证的限制**：
+- 只能验证签名有效性
+- 不能验证 `verification_status` 是否被篡改（需要检查服务器存储）
+- 不能验证 `challenge` 是否被重用（需要检查服务器存储）
+- 需要预先信任服务器公钥
 
 ### 8.5 验证响应结构
 
@@ -1147,12 +1215,32 @@ class WorkCamSigner {
 
 ## 附录 C：修订摘要
 
+### WC-W004-R2 修订内容
+
+1. **Secure Enclave 签名示例修正**
+   - ✅ 修正错误：Secure Enclave 签名**也需要**使用 `.derRepresentation` 获取 DER 字节
+   - ✅ 删除"Secure Enclave 签名天然就是 DER、无需转换"的错误表述
+   - ✅ 明确说明：普通密钥和 Secure Enclave 密钥都需要调用 `.derRepresentation`
+   - ✅ 保留 Secure Enclave 与 App Attest 的安全边界说明
+
+2. **公钥注册表单编码修正**
+   - ✅ 强调 Base64 字符串中的 `+`、`=`、`/` 等字符必须 URL 编码
+   - ✅ 提供正确的 URL 编码函数示例
+   - ✅ curl 示例使用 `--data-urlencode` 自动编码
+   - ✅ 增加包含特殊字符的测试示例
+
+3. **离线验证表述修正**
+   - ✅ 澄清 `check_storage=false` 仍需要访问服务器
+   - ✅ 明确说明这不是真正的离线验证
+   - ✅ 提供真正的离线验证示例（iOS 本地使用预先信任的服务器公钥）
+   - ✅ 说明离线验证的限制
+
 ### WC-W004-R1 修订内容
 
 1. **Secure Enclave 示例修复**
    - ✅ 明确区分普通密钥和 Secure Enclave 密钥
    - ✅ 提供正确的 Secure Enclave 密钥生成示例
-   - ✅ 说明 Secure Enclave 签名已经是 DER 格式
+   - ✅ ~~说明 Secure Enclave 签名已经是 DER 格式~~（R2 修正：需要 `.derRepresentation`）
    - ✅ 明确 Secure Enclave 签名不等于 App Attest
 
 2. **Swift 编译问题修复**
@@ -1181,7 +1269,7 @@ class WorkCamSigner {
 
 ---
 
-**文档版本**：1.1（WC-W004-R1 修订版）  
+**文档版本**：1.2（WC-W004-R2 修订版）  
 **最后更新**：2026-11-17  
 **适用协议版本**：签名 v1.1，时间锚点 v2  
 **编译验证状态**：所有 Swift 示例均为伪代码，未实际编译
