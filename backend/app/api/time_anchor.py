@@ -21,7 +21,10 @@ from app.models.time_anchor import (
     TimeAnchorResponse,
     TimeAnchorVerification,
 )
-from app.services.time_anchor import get_time_anchor_service
+from app.services.time_anchor import (
+    PersistenceError,
+    get_time_anchor_service,
+)
 
 router = APIRouter(prefix="/time-anchor", tags=["time-anchor-experimental"])
 
@@ -46,14 +49,22 @@ async def create_anchor(request: TimeAnchorRequest):
         TimeAnchorResponse with signed receipt
 
     Raises:
-        HTTPException: If batch_id is duplicate or content conflicts
+        HTTPException: If validation fails (400), conflict (409), or persistence error (500)
     """
     service = get_time_anchor_service()
     try:
         response = service.create_anchor(request)
         return response
     except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        error_msg = str(e)
+        # Distinguish between validation errors and conflicts
+        if "conflict" in error_msg.lower():
+            raise HTTPException(status_code=409, detail=error_msg)
+        else:
+            # Validation error (e.g., invalid characters)
+            raise HTTPException(status_code=400, detail=error_msg)
+    except PersistenceError as e:
+        raise HTTPException(status_code=500, detail=f"Persistence error: {e}")
 
 
 @router.post("/verify", response_model=TimeAnchorVerification)
@@ -67,9 +78,11 @@ async def verify_anchor(
     EXPERIMENTAL: This endpoint is for research only.
 
     Checks:
-    1. Signature is valid (can be done offline with public key)
-    2. All signed fields match stored values
-    3. Receipt exists in server storage (if check_storage=true)
+    1. key_id is registered (reject unknown keys)
+    2. Signature is valid using the correct public key
+    3. verification_status matches signed value (prevent elevation)
+    4. All signed fields match stored values
+    5. Receipt exists in server storage (requires server)
 
     Args:
         receipt: The receipt to verify

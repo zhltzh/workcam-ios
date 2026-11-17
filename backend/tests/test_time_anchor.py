@@ -441,3 +441,110 @@ def test_unsigned_fields_note():
     # Should have note about unsigned fields
     assert "unsigned_fields_note" in verification
     assert "unsigned" in verification["unsigned_fields_note"].lower()
+
+
+def test_reject_newline_in_batch_id():
+    """Test that newline characters in batch_id are rejected."""
+    request = TimeAnchorRequest(
+        batch_id="test-batch\ninjection",
+        chain_head_hash="a" * 64,
+        chain_tail_hash="b" * 64,
+        record_count=10,
+        device_reported_start_time="2026-11-17T10:00:00+00:00",
+        device_reported_end_time="2026-11-17T10:10:00+00:00",
+    )
+
+    resp = client.post("/time-anchor/anchor", json=request.model_dump())
+    # Should fail due to validation (400 Bad Request)
+    assert resp.status_code == 400
+    assert "control character" in resp.json()["detail"].lower() or "invalid" in resp.json()["detail"].lower()
+
+
+def test_reject_equals_in_batch_id():
+    """Test that equals sign in batch_id is rejected (prevents field injection)."""
+    request = TimeAnchorRequest(
+        batch_id="test=batch",
+        chain_head_hash="a" * 64,
+        chain_tail_hash="b" * 64,
+        record_count=10,
+        device_reported_start_time="2026-11-17T10:00:00+00:00",
+        device_reported_end_time="2026-11-17T10:10:00+00:00",
+    )
+
+    resp = client.post("/time-anchor/anchor", json=request.model_dump())
+    # Should fail due to validation (400 Bad Request)
+    assert resp.status_code == 400
+    assert "invalid" in resp.json()["detail"].lower()
+
+
+def test_reject_control_characters():
+    """Test that control characters are rejected."""
+    request = TimeAnchorRequest(
+        batch_id="test\x00batch",  # Null byte
+        chain_head_hash="a" * 64,
+        chain_tail_hash="b" * 64,
+        record_count=10,
+        device_reported_start_time="2026-11-17T10:00:00+00:00",
+        device_reported_end_time="2026-11-17T10:10:00+00:00",
+    )
+
+    resp = client.post("/time-anchor/anchor", json=request.model_dump())
+    # Should fail due to validation (400 Bad Request)
+    assert resp.status_code == 400
+
+
+def test_verification_status_in_signature():
+    """Test that verification_status is included in signature to prevent elevation."""
+    request = TimeAnchorRequest(
+        batch_id="test-batch-sig-status",
+        chain_head_hash="a" * 64,
+        chain_tail_hash="b" * 64,
+        record_count=10,
+        device_reported_start_time="2026-11-17T10:00:00+00:00",
+        device_reported_end_time="2026-11-17T10:10:00+00:00",
+    )
+
+    resp = client.post("/time-anchor/anchor", json=request.model_dump())
+    anchor_data = resp.json()
+
+    # Get receipt
+    resp = client.get(f"/time-anchor/receipt/{anchor_data['anchor_id']}")
+    receipt = resp.json()
+
+    # Try to elevate verification_status
+    receipt["verification_status"] = "photo_verified"
+
+    # Verify should fail because verification_status is now signed
+    resp = client.post("/time-anchor/verify", json=receipt)
+    verification = resp.json()
+
+    # Should detect tampering
+    assert verification["valid"] is False or "mismatch" in " ".join(verification["warnings"]).lower()
+
+
+def test_unknown_key_id_rejected():
+    """Test that receipts with unknown key_id are rejected."""
+    from app.models.time_anchor import TimeAnchorReceipt
+
+    # Create receipt with unknown key_id
+    receipt = TimeAnchorReceipt(
+        anchor_id="test-anchor",
+        key_id="unknown-key-999",  # Unknown key
+        batch_id="test-batch",
+        server_received_at="2026-11-17T10:00:00+00:00",
+        challenge="test-challenge",
+        server_signature="test-signature",
+        chain_head_hash="a" * 64,
+        chain_tail_hash="b" * 64,
+        record_count=10,
+        device_reported_start_time="2026-11-17T09:00:00+00:00",
+        device_reported_end_time="2026-11-17T10:00:00+00:00",
+        verification_status=VerificationStatus.DIGEST_ANCHORED,
+        stored_at="2026-11-17T10:00:00+00:00",
+    )
+
+    resp = client.post("/time-anchor/verify", json=receipt.model_dump())
+    verification = resp.json()
+
+    assert verification["valid"] is False
+    assert "unknown key_id" in verification["message"].lower()
