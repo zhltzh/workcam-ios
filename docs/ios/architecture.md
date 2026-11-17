@@ -1,0 +1,9 @@
+# Architecture
+
+Task 002: WorkCamApp → ContentView → CameraView. CameraModel publishes UI state on MainActor; CameraController confines capture configuration, start/stop, capture requests and file writes to one serial queue. Session is exposed to AVCaptureVideoPreviewLayer solely for preview. Notification observers handle interruptions and runtime errors. Single in-flight capture prevents overlapping requests.
+
+Core/Storage/CaptureStore writes original AVFoundation JPEG bytes atomically to Application Support/Captures with UUID names, complete file protection and backup exclusion. No image re-encoding, metadata augmentation, location lookup, signature, history database or network is added. UI displays filename only after write succeeds. Captures are unsigned and not verified. Rear wide camera, fixed portrait orientation; no front camera, zoom or flash UI.
+
+Only entering Camera requests permission. Page disappearance or inactive scene stops session; returning active rechecks authorization and starts session. Runtime error asks user to close/reopen camera; interruption end attempts restart. Permission denied/restricted leaves Capture disabled and offers Settings.
+
+Reserved modules: CaptureHistory, Verification, Security, Location, Sync, Models, Resources and Tests. No third-party dependencies. Device acceptance steps: task-002-validation.md. Unit/UI automated tests are not yet configured; physical capture remains unvalidated.
