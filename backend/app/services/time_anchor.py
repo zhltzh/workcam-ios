@@ -152,18 +152,25 @@ class TimeAnchorStore:
             True if stored successfully, False if duplicate
 
         Raises:
-            PersistenceError: If persistence fails
+            PersistenceError: If persistence fails (memory is rolled back)
         """
         if receipt.anchor_id in self._anchors:
             return False
         if receipt.batch_id in self._batch_index:
             return False
 
+        # Add to memory first
         self._anchors[receipt.anchor_id] = receipt
         self._batch_index[receipt.batch_id] = receipt.anchor_id
 
-        # Save to file (will raise PersistenceError on failure)
-        self._save_to_file()
+        # Try to save to file
+        try:
+            self._save_to_file()
+        except PersistenceError:
+            # Rollback memory changes on persistence failure
+            del self._anchors[receipt.anchor_id]
+            del self._batch_index[receipt.batch_id]
+            raise
 
         return True
 
@@ -219,14 +226,55 @@ class KeyRegistry:
     Registry for managing multiple signing keys.
 
     Supports key rotation by maintaining multiple key_id -> public_key mappings.
+    
+    Security rules:
+    - Same key_id + same public_key: Idempotent registration (allowed)
+    - Same key_id + different public_key: Reject (prevent override)
+    - Different key_id: Allow (legitimate rotation)
     """
 
     def __init__(self):
         self._keys: dict[str, ec.EllipticCurvePublicKey] = {}
 
-    def register_key(self, key_id: str, public_key: ec.EllipticCurvePublicKey):
-        """Register a public key with a key_id."""
+    def register_key(self, key_id: str, public_key: ec.EllipticCurvePublicKey) -> bool:
+        """
+        Register a public key with a key_id.
+        
+        Args:
+            key_id: Unique identifier for the key
+            public_key: The public key to register
+            
+        Returns:
+            True if registered successfully, False if duplicate (idempotent)
+            
+        Raises:
+            ValueError: If key_id exists with different public key
+        """
+        if key_id in self._keys:
+            # Check if it's the same key (idempotent)
+            existing_key = self._keys[key_id]
+            existing_bytes = existing_key.public_bytes(
+                encoding=serialization.Encoding.X962,
+                format=serialization.PublicFormat.UncompressedPoint
+            )
+            new_bytes = public_key.public_bytes(
+                encoding=serialization.Encoding.X962,
+                format=serialization.PublicFormat.UncompressedPoint
+            )
+            
+            if existing_bytes == new_bytes:
+                # Idempotent: same key_id and same public key
+                return False
+            else:
+                # Security violation: same key_id but different public key
+                raise ValueError(
+                    f"key_id '{key_id}' already registered with different public key. "
+                    "Cannot override existing key registration."
+                )
+        
+        # New registration
         self._keys[key_id] = public_key
+        return True
 
     def get_public_key(self, key_id: str) -> Optional[ec.EllipticCurvePublicKey]:
         """Get public key by key_id. Returns None if not found."""
