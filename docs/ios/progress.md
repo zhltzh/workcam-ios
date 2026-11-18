@@ -57,3 +57,7 @@ Result: BUILD SUCCEEDED. Unsigned compile/link validation only. iPhone installat
 ## WC-M003 — 2026-11-19
 
 Latest main fetched successfully. Local main fast-forwarded to 17d9699; independent dev/mac-evidence-m003 created, original branch retained. Added evidence hashing, Secure Enclave key reference persistence, DER signatures, protected staged local records and a debug verification entry. See m003.md for exact build/test commands, PASS results, protocol limitations and Pending hardware acceptance. Backend unchanged. No production network synchronization added.
+
+## WC-M003-R1
+
+Strengthened expected-invalid assertions, signature deletion/corruption and forged-status tests. Local evidence inspection compares the public key against the existing Keychain reference without creating one. Debug unsigned build and macOS automatic tests passed. Device now connected and recognized by Xcode, but signed build exits 65 because no Development Team is selected. Installation and all hardware acceptance remain Pending. Full commands and limitations in m003.md. Update existing Draft PR #6 only.
