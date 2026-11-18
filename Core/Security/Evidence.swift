@@ -37,7 +37,7 @@ func evidenceHash(_ data: Data) -> String {
 
 struct EvidenceKey {
     // dataRepresentation is an opaque device-bound wrapped reference, never raw private scalar bytes.
-    static func load() throws -> SecureEnclave.P256.Signing.PrivateKey {
+    static func load(createIfMissing: Bool = true) throws -> SecureEnclave.P256.Signing.PrivateKey {
         guard SecureEnclave.isAvailable else { throw EvidenceError.unavailable }
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: "WorkCam.M003", kSecAttrAccount as String: "signing-key"]
@@ -50,6 +50,7 @@ struct EvidenceKey {
             return try SecureEnclave.P256.Signing.PrivateKey(dataRepresentation: data)
         }
         guard status == errSecItemNotFound else { throw EvidenceError.keychain(status) }
+        guard createIfMissing else { throw EvidenceError.unavailable }
         let key = try SecureEnclave.P256.Signing.PrivateKey()
         var insert = query
         insert[kSecValueData as String] = key.dataRepresentation
@@ -112,28 +113,44 @@ struct EvidenceStore {
         return final
     }
 
-    static func verify(_ record: EvidenceRecord, photo: Data) throws -> String {
+    static func verify(_ record: EvidenceRecord, photo: Data, expectedPublicKey: Data? = nil) throws -> String {
         guard evidenceHash(photo) == record.sha256 else { throw EvidenceError.invalid }
-        guard let m = record.manifest else { return "Unsigned" }
+        guard let m = record.manifest else {
+            guard record.publicKeyID == nil else { throw EvidenceError.invalid }
+            return "Unsigned"
+        }
         guard m.record_id == record.photoID, m.photo_hash == record.sha256,
               let publicData = Data(base64Encoded: m.public_key),
               evidenceHash(publicData) == record.publicKeyID,
               let signature = Data(base64Encoded: m.signature) else { throw EvidenceError.invalid }
-        let key = try P256.Signing.PublicKey(x963Representation: publicData)
-        let sig = try P256.Signing.ECDSASignature(derRepresentation: signature)
+        if let expectedPublicKey {
+            guard publicData == expectedPublicKey, m.device_id == evidenceHash(expectedPublicKey) else { throw EvidenceError.invalid }
+        }
+        let key: P256.Signing.PublicKey
+        let sig: P256.Signing.ECDSASignature
+        do {
+            key = try P256.Signing.PublicKey(x963Representation: publicData)
+            sig = try P256.Signing.ECDSASignature(derRepresentation: signature)
+        } catch { throw EvidenceError.invalid }
         guard key.isValidSignature(sig, for: try m.payload()) else { throw EvidenceError.invalid }
-        return "Signed — local verification passed"
+        return expectedPublicKey == nil ? "Signed — local verification passed; device key not checked" : "Signed — local verification passed; matches this installation key"
     }
 
-    static func inspect(_ directory: URL) -> String {
+    static func inspect(_ directory: URL, expectedPublicKey: Data? = nil) -> String {
         do {
             let record = try JSONDecoder().decode(EvidenceRecord.self, from: Data(contentsOf: directory.appendingPathComponent("record.json")))
-            let result = try verify(record, photo: Data(contentsOf: directory.appendingPathComponent("photo.jpg")))
+            let trustedKey = try record.manifest.map { _ in
+                try expectedPublicKey ?? EvidenceKey.load(createIfMissing: false).publicKey.x963Representation
+            }
+            if record.manifest == nil, FileManager.default.fileExists(atPath: directory.appendingPathComponent("signature.der").path) {
+                throw EvidenceError.invalid
+            }
+            let result = try verify(record, photo: Data(contentsOf: directory.appendingPathComponent("photo.jpg")), expectedPublicKey: trustedKey)
             if let m = record.manifest {
                 guard try Data(contentsOf: directory.appendingPathComponent("signature.der")) == Data(base64Encoded: m.signature) else { throw EvidenceError.invalid }
             }
             try Data(result.utf8).write(to: directory.appendingPathComponent("local-status.txt"), options: [.atomic, .completeFileProtection])
-            return "Photo ID: \(record.photoID)\nSHA-256: \(record.sha256)\nSecure Enclave: \(record.manifest == nil ? "Unavailable or failed" : "Used at capture; hardware acceptance Pending")\nSignature / Local Verification: \(result)\n\(record.failure ?? "")"
+            return "Photo ID: \(record.photoID)\nSHA-256: \(record.sha256)\nSecure Enclave: \(record.manifest == nil ? "Unavailable or failed" : "Matches installation key; hardware acceptance Pending")\nSignature / Local Verification: \(result)\n\(record.failure ?? "")"
         } catch { return "Verification Failed: \(directory.lastPathComponent) — \(error)" }
     }
 
@@ -150,12 +167,16 @@ struct EvidenceStore {
             do {
                 _ = try verify(record, photo: changedPhoto)
                 return "FAIL: photo tampering accepted"
-            } catch {}
+            } catch EvidenceError.invalid {
+                // Expected mismatch. Other errors propagate to setup failure.
+            }
             record.manifest?.device_id.append("tampered")
             do {
                 _ = try verify(record, photo: photo)
                 return "FAIL: field tampering accepted"
-            } catch {}
+            } catch EvidenceError.invalid {
+                // Expected mismatch. Other errors propagate to setup failure.
+            }
             return "PASS: photo and signed-field tampering rejected (in-memory copies)"
         } catch { return "Tamper test setup failed: \(error)" }
     }
