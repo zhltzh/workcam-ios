@@ -53,3 +53,7 @@ xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -sdk 
 ```
 
 Result: BUILD SUCCEEDED. Unsigned compile/link validation only. iPhone installation and camera acceptance remain pending.
+
+## WC-M003 — 2026-11-19
+
+Latest main fetched successfully. Local main fast-forwarded to 17d9699; independent dev/mac-evidence-m003 created, original branch retained. Added evidence hashing, Secure Enclave key reference persistence, DER signatures, protected staged local records and a debug verification entry. See m003.md for exact build/test commands, PASS results, protocol limitations and Pending hardware acceptance. Backend unchanged. No production network synchronization added.

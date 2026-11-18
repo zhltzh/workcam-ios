@@ -7,3 +7,5 @@ Core/Storage/CaptureStore writes original AVFoundation JPEG bytes atomically to 
 Only entering Camera requests permission. Page disappearance or inactive scene stops session; returning active rechecks authorization and starts session. Runtime error asks user to close/reopen camera; interruption end attempts restart. Permission denied/restricted leaves Capture disabled and offers Settings.
 
 Reserved modules: CaptureHistory, Verification, Security, Location, Sync, Models, Resources and Tests. No third-party dependencies. Device acceptance steps: task-002-validation.md. Unit/UI automated tests are not yet configured; physical capture remains unvalidated.
+
+M003 routes new JPEG captures to EvidenceStore. Protected pending directories become committed records after photo, JSON and optional DER writes. Evidence Debug reloads and verifies hashes/signatures on demand. Keychain persists the Secure Enclave opaque reference. See m003.md for independent-genesis scope and supported null location.
