@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var evidenceReport = "Local verification pending"
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 24) {
@@ -12,6 +13,20 @@ struct ContentView: View {
                 status("Signing Status")
                 status("Network Status")
                 NavigationLink("Open Camera") { CameraView() }
+                NavigationLink("Evidence Debug") {
+                    ScrollView {
+                        VStack {
+                            Button("Reverify Saved Evidence") {
+                                Task { evidenceReport = await Task.detached { EvidenceStore.report() }.value }
+                            }
+                            Button("Test Tamper Detection on Copies") {
+                                Task { evidenceReport = await Task.detached { EvidenceStore.tamperReport() }.value }
+                            }
+                            Text(evidenceReport).font(.caption).textSelection(.enabled)
+                        }.padding()
+                    }
+                        .task { evidenceReport = await Task.detached { EvidenceStore.report() }.value }
+                }
                 Spacer()
             }
             .padding()
