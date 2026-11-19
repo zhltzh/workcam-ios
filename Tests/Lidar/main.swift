@@ -26,3 +26,9 @@ let unchanged = try String(contentsOf: archive, encoding: .utf8)
 precondition(unchanged == "corrupt")
 try row.write(toFile: "/tmp/workcam-csv-fixture.csv", atomically: true, encoding: .utf8)
 print("PASS: archive reload, corruption preservation, CSV escaping fixture (synthetic)")
+let columns = ["batch_id","test_id","device_model","ios_version","depth_received","confidence_end","confidence_start","tracking","mode","condition","device_time","distance_true_m","distance_measured_m","absolute_error_m","relative_error","elapsed_s","failure","distance_m"]
+let success = ["SYNTHETIC","T04-test","TEST","TEST","true","2","2","normal","scene_depth","normal","TEST","1","1.02","0.02","0.02","1","","1"]
+var failure = success
+failure[12] = ""; failure[16] = "depth_missing"
+let fixture = [columns, success, failure].map { $0.map(LabArchive.quoted).joined(separator: ",") }.joined(separator: "\n")
+try fixture.write(toFile: "/tmp/workcam-windows-compatible-synthetic.csv", atomically: true, encoding: .utf8)

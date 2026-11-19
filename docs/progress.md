@@ -105,3 +105,20 @@ Latest signed build command:
 ```sh
 xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamLidarR1Signed -allowProvisioningUpdates build > /tmp/workcam-lidar-r1-delivery.log 2>&1
 ```
+
+## M1-R1 Windows compatibility and PR history
+Merged origin/dev/mac-evidence-m003 into dev/mac-tech-lab with `git merge --no-edit origin/dev/mac-evidence-m003`; clean merge, identical tracked content between c1690eb and f3b9330. No PR merged and no Windows branch modified. PR #9 remains Draft.
+
+Fetched unmodified Windows lidar_error_analysis.py at e1ea45fe28644a0c286a2f06ea9cc98135e77519 via connector to /tmp/workcam-windows-lidar-analysis.py. Swift-generated SYNTHETIC two-row fixture (success and failure) consumed directly by analyzer:
+```sh
+xcrun swiftc -module-cache-path /tmp/workcam-clock-module-cache Features/TechLab/DepthGeometry.swift Features/TechLab/LabArchive.swift Tests/Lidar/main.swift -o /tmp/workcam-lidar-tests && /tmp/workcam-lidar-tests
+python3 /tmp/workcam-windows-lidar-analysis.py /tmp/workcam-windows-compatible-synthetic.csv --json /tmp/workcam-lidar-synthetic-analysis.json
+```
+Passed: analyzer reports 2 attempts / 1 failure, expected synthetic error. This is format compatibility only, not real accuracy. Analyzer emits NaN for insufficient repeatability data; strict JSON interoperability requires Windows follow-up. Original Windows implementation unchanged.
+
+Latest signed Debug artifact installed successfully (second install). Runtime launch success previously observed. Physical measurements, raw hardware CSV and device kill/relaunch data retention have not been observed. Accuracy: no conclusion. Commercial use: not approved.
+
+Changing reference/setup distance now pauses unfinished measurement to prevent mixing endpoints from different experimental settings.
+```sh
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamLidarRelease CODE_SIGNING_ALLOWED=NO build > /tmp/workcam-lidar-r1-release.log 2>&1
+```

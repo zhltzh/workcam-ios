@@ -202,8 +202,8 @@ struct LidarLabView: View {
             Button("New batch") { model.newBatch() }
             Text(model.storageError).foregroundStyle(.red)
             Text(model.status).font(.caption)
-            TextField("Reference distance (m)", text: $model.reference).keyboardType(.decimalPad)
-            TextField("Device-to-target setup distance (m)", text: $model.targetDistance).keyboardType(.decimalPad)
+            TextField("Reference distance (m)", text: $model.reference).keyboardType(.decimalPad).onChange(of: model.reference) { model.stop() }
+            TextField("Device-to-target setup distance (m)", text: $model.targetDistance).keyboardType(.decimalPad).onChange(of: model.targetDistance) { model.stop() }
             Picker("Condition", selection: $model.condition) {
                 ForEach(["normal", "low_light", "glass", "oblique", "textureless", "reflective"], id: \.self) { Text($0) }
             }
