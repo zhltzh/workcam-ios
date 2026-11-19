@@ -1,33 +1,243 @@
 // !$*UTF8*$!
-{ archiveVersion = 1; classes = {}; objectVersion = 56; objects = {
-000000000000000000000200 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Security/Evidence.swift; sourceTree = SOURCE_ROOT; };
-000000000000000000000201 = { isa = PBXBuildFile; fileRef = 000000000000000000000200; };
-000000000000000000000066 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Camera/CameraView.swift"; sourceTree = SOURCE_ROOT; };
-000000000000000000000070 = { isa = PBXBuildFile; fileRef = 000000000000000000000066; };
-000000000000000000000065 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Storage/CaptureStore.swift"; sourceTree = SOURCE_ROOT; };
-00000000000000000000006F = { isa = PBXBuildFile; fileRef = 000000000000000000000065; };
-000000000000000000000064 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Camera/CameraController.swift"; sourceTree = SOURCE_ROOT; };
-00000000000000000000006E = { isa = PBXBuildFile; fileRef = 000000000000000000000064; };
-000000000000000000000001 = { isa = PBXProject; buildConfigurationList = 00000000000000000000000E; compatibilityVersion = "Xcode 14.0"; mainGroup = 000000000000000000000002; productRefGroup = 000000000000000000000004; projectDirPath = ""; targets = (000000000000000000000006,); };
-000000000000000000000002 = { isa = PBXGroup; children = (000000000000000000000200,000000000000000000000064,000000000000000000000065,000000000000000000000066,000000000000000000000003,000000000000000000000016,000000000000000000000004,); sourceTree = "<group>"; };
-000000000000000000000003 = { isa = PBXGroup; path = App; children = (00000000000000000000000A,00000000000000000000000B,); sourceTree = "<group>"; };
-000000000000000000000016 = { isa = PBXGroup; path = Configurations; children = (000000000000000000000014,000000000000000000000015,); sourceTree = "<group>"; };
-000000000000000000000004 = { isa = PBXGroup; name = Products; children = (000000000000000000000005,); sourceTree = "<group>"; };
-00000000000000000000000A = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkCamApp.swift; sourceTree = "<group>"; };
-00000000000000000000000B = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-000000000000000000000014 = { isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
-000000000000000000000015 = { isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
-000000000000000000000005 = { isa = PBXFileReference; explicitFileType = wrapper.application; path = WorkCam.app; sourceTree = BUILT_PRODUCTS_DIR; };
-00000000000000000000000C = { isa = PBXBuildFile; fileRef = 00000000000000000000000A; };
-00000000000000000000000D = { isa = PBXBuildFile; fileRef = 00000000000000000000000B; };
-000000000000000000000007 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (000000000000000000000201,00000000000000000000006E,00000000000000000000006F,000000000000000000000070,00000000000000000000000C,00000000000000000000000D,); runOnlyForDeploymentPostprocessing = 0; };
-000000000000000000000008 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-000000000000000000000009 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-000000000000000000000006 = { isa = PBXNativeTarget; buildConfigurationList = 00000000000000000000000F; buildPhases = (000000000000000000000007,000000000000000000000008,000000000000000000000009,); buildRules = (); dependencies = (); name = WorkCam; productName = WorkCam; productReference = 000000000000000000000005; productType = "com.apple.product-type.application"; };
-00000000000000000000000E = { isa = XCConfigurationList; buildConfigurations = (000000000000000000000010,000000000000000000000011,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-00000000000000000000000F = { isa = XCConfigurationList; buildConfigurations = (000000000000000000000012,000000000000000000000013,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-000000000000000000000010 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 17.0; CLANG_ENABLE_MODULES = YES; }; name = Debug; };
-000000000000000000000011 = { isa = XCBuildConfiguration; buildSettings = { SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 17.0; CLANG_ENABLE_MODULES = YES; }; name = Release; };
-000000000000000000000012 = { isa = XCBuildConfiguration; baseConfigurationReference = 000000000000000000000014; buildSettings = { PRODUCT_NAME = WorkCam; PRODUCT_BUNDLE_IDENTIFIER = com.example.workcam.dev; SWIFT_VERSION = 6.0; TARGETED_DEVICE_FAMILY = 1; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_NSCameraUsageDescription = "WorkCam uses the camera to capture photos locally on this iPhone."; INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; }; name = Debug; };
-000000000000000000000013 = { isa = XCBuildConfiguration; baseConfigurationReference = 000000000000000000000015; buildSettings = { PRODUCT_NAME = WorkCam; PRODUCT_BUNDLE_IDENTIFIER = com.example.workcam.dev; SWIFT_VERSION = 6.0; TARGETED_DEVICE_FAMILY = 1; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_NSCameraUsageDescription = "WorkCam uses the camera to capture photos locally on this iPhone."; INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; MARKETING_VERSION = 0.1.0; }; name = Release; };
-}; rootObject = 000000000000000000000001; }
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00000000000000000000000C /* WorkCamApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000A /* WorkCamApp.swift */; };
+		00000000000000000000000D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000B /* ContentView.swift */; };
+		00000000000000000000006E /* Core/Camera/CameraController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000064 /* Core/Camera/CameraController.swift */; };
+		00000000000000000000006F /* Core/Storage/CaptureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000065 /* Core/Storage/CaptureStore.swift */; };
+		000000000000000000000070 /* Features/Camera/CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000066 /* Features/Camera/CameraView.swift */; };
+		000000000000000000000201 /* Core/Security/Evidence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000200 /* Core/Security/Evidence.swift */; };
+000000000000000000000301 = {isa = PBXBuildFile; fileRef = 000000000000000000000300; };
+000000000000000000000303 = {isa = PBXBuildFile; fileRef = 000000000000000000000302; };
+000000000000000000000305 = {isa = PBXBuildFile; fileRef = 000000000000000000000304; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		000000000000000000000005 /* WorkCam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = WorkCam.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		00000000000000000000000A /* WorkCamApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkCamApp.swift; sourceTree = "<group>"; };
+		00000000000000000000000B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		000000000000000000000014 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		000000000000000000000015 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		000000000000000000000064 /* Core/Camera/CameraController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Camera/CameraController.swift; sourceTree = SOURCE_ROOT; };
+		000000000000000000000065 /* Core/Storage/CaptureStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Storage/CaptureStore.swift; sourceTree = SOURCE_ROOT; };
+		000000000000000000000066 /* Features/Camera/CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Camera/CameraView.swift; sourceTree = SOURCE_ROOT; };
+		000000000000000000000200 /* Core/Security/Evidence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Security/Evidence.swift; sourceTree = SOURCE_ROOT; };
+000000000000000000000300 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/TechLab/LidarLabView.swift; sourceTree = SOURCE_ROOT; };
+000000000000000000000302 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/TechLab/DepthGeometry.swift; sourceTree = SOURCE_ROOT; };
+000000000000000000000304 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/TechLab/LabArchive.swift; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		000000000000000000000008 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		000000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000200 /* Core/Security/Evidence.swift */,
+				000000000000000000000064 /* Core/Camera/CameraController.swift */,
+				000000000000000000000065 /* Core/Storage/CaptureStore.swift */,
+				000000000000000000000066 /* Features/Camera/CameraView.swift */,
+				000000000000000000000003 /* App */,
+				000000000000000000000016 /* Configurations */,
+				000000000000000000000004 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		000000000000000000000003 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				00000000000000000000000A /* WorkCamApp.swift */,
+				00000000000000000000000B /* ContentView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		000000000000000000000004 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000005 /* WorkCam.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		000000000000000000000016 /* Configurations */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000014 /* Debug.xcconfig */,
+				000000000000000000000015 /* Release.xcconfig */,
+			);
+			path = Configurations;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		000000000000000000000006 /* WorkCam */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00000000000000000000000F /* Build configuration list for PBXNativeTarget "WorkCam" */;
+			buildPhases = (
+				000000000000000000000007 /* Sources */,
+				000000000000000000000008 /* Frameworks */,
+				000000000000000000000009 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WorkCam;
+			productName = WorkCam;
+			productReference = 000000000000000000000005 /* WorkCam.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		000000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+			};
+			buildConfigurationList = 00000000000000000000000E /* Build configuration list for PBXProject "WorkCam" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 000000000000000000000002;
+			productRefGroup = 000000000000000000000004 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				000000000000000000000006 /* WorkCam */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		000000000000000000000009 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		000000000000000000000007 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000000301,
+                000000000000000000000303,
+                000000000000000000000305,
+                000000000000000000000201 /* Core/Security/Evidence.swift in Sources */,
+				00000000000000000000006E /* Core/Camera/CameraController.swift in Sources */,
+				00000000000000000000006F /* Core/Storage/CaptureStore.swift in Sources */,
+				000000000000000000000070 /* Features/Camera/CameraView.swift in Sources */,
+				00000000000000000000000C /* WorkCamApp.swift in Sources */,
+				00000000000000000000000D /* ContentView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		000000000000000000000010 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		000000000000000000000011 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+			};
+			name = Release;
+		};
+		000000000000000000000012 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 000000000000000000000014 /* Debug.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = GKJC49C7GZ;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "WorkCam uses the camera to capture photos locally on this iPhone.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.workcam.dev;
+				PRODUCT_NAME = WorkCam;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		000000000000000000000013 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 000000000000000000000015 /* Release.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = GKJC49C7GZ;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "WorkCam uses the camera to capture photos locally on this iPhone.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.workcam.dev;
+				PRODUCT_NAME = WorkCam;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		00000000000000000000000E /* Build configuration list for PBXProject "WorkCam" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000000000010 /* Debug */,
+				000000000000000000000011 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00000000000000000000000F /* Build configuration list for PBXNativeTarget "WorkCam" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000000000012 /* Debug */,
+				000000000000000000000013 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 000000000000000000000001 /* Project object */;
+}
