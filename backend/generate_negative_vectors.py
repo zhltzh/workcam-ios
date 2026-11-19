@@ -56,9 +56,27 @@ def main() -> None:
     tampered_payload[idx + len(needle) - 1] = ord("2")
     tampered_payload = bytes(tampered_payload)
 
-    # 3. wrong_signature: sign the ORIGINAL payload with a DIFFERENT key
-    other_key = ec.generate_private_key(ec.SECP256R1())
-    wrong_sig = other_key.sign(bytes(payload), ec.ECDSA(SHA256()))
+    # 3. wrong_signature: a valid DER signature by a DIFFERENT key over the
+    #    ORIGINAL payload. ECDSA is randomized (per-signature nonce), so the
+    #    value below was generated ONCE with the deterministic TEST key
+    #    derived from sha256(b"workcam-test-wrong-signer-v1") and then FROZEN
+    #    as a constant, keeping the generator byte-reproducible.
+    #    TEST KEY ONLY - never a production key, never a Secure Enclave key.
+    _WRONG_SIGNER_SEED = b"workcam-test-wrong-signer-v1"
+    _P256_ORDER = 0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
+    _FROZEN_WRONG_SIG_HEX = (
+        "3045022100ffdfb720d2ecca0d30127776590fd0d616279864d33f315f0891a815a713b93b"
+        "0220425f4cab4b48f68ec14b21bc7b444f94eb74cbe422238cf8306398a77eb57d7e"
+    )
+    wrong_sig = bytes.fromhex(_FROZEN_WRONG_SIG_HEX)
+
+    # self-check: the frozen signature must verify under the deterministic
+    # TEST key over the fixed payload (guards against transcription errors).
+    _wrong_scalar = int.from_bytes(hashlib.sha256(_WRONG_SIGNER_SEED).digest(), "big")
+    if _wrong_scalar >= _P256_ORDER:
+        raise RuntimeError("wrong-signer seed must be below the curve order")
+    _wrong_key = ec.derive_private_key(_wrong_scalar, ec.SECP256R1())
+    _wrong_key.public_key().verify(wrong_sig, bytes(payload), ec.ECDSA(SHA256()))
 
     # 4. invalid_der_signature: structurally invalid DER
     invalid_der = b"\x31" + bytes(payload[:8])  # wrong tag, garbage body

@@ -7,23 +7,30 @@ authoritative reference. Where it conflicts with `ios-backend-integration.md`
 
 ## 1. Start the backend (Windows)
 
+All commands below run **from the repo root** (they also work from any other
+directory because the script locates itself):
+
 ```powershell
-cd backend
-powershell -ExecutionPolicy Bypass -File ..\tools\start_backend.ps1   # port 8000
-# or manually:
-py -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+# terminal 1 - start the backend (creates/reuses backend\.venv automatically)
+powershell -ExecutionPolicy Bypass -File tools\start_backend.ps1
+# LAN access for a real iPhone: add -ListenHost 0.0.0.0 and use the PC's LAN IP
+# custom port: add -Port 8002
 ```
 
-Then run the full self-check (no iPhone needed):
-
 ```powershell
-.venv\Scripts\python.exe ..\tools\integration_check.py http://127.0.0.1:8000
+# terminal 2 - 13-step live self-check against the running backend
+backend\.venv\Scripts\python.exe tools\integration_check.py http://127.0.0.1:8000
 # expect: "RESULT: 13 passed, 0 failed"
 ```
 
-For the iPhone to reach the PC use `--host 0.0.0.0` and the PC's LAN IP.
+```powershell
+# full test suite (repo root)
+Push-Location backend; .venv\Scripts\python.exe -m pytest tests/ -q; Pop-Location
+# expect: 157 passed
+```
+
+The launcher exits with a non-zero code on any setup/startup failure
+(missing Python, failed dependency install, port already in use).
 
 ## 2. API summary
 

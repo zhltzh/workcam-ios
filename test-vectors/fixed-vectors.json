@@ -68,8 +68,8 @@
     },
     "wrong_signature": {
       "description": "Valid DER ECDSA signature produced by a DIFFERENT P-256 key over the ORIGINAL payload. Must NOT verify with the fixed public_key above.",
-      "der_hex": "304502202fa63492b10ff7d9dfddade611e8d3b82547dd2925ae5899ae1914be72db5670022100df9966bd75ecb35f00a981435ed9a054d930304fda5dd3105787ba858de08f98",
-      "base64": "MEUCIC+mNJKxD/fZ392t5hHo07glR90pJa5Yma4ZFL5y21ZwAiEA35lmvXXss18AqYFDXtmgVNkwME/aXdMQV4e6hY3gj5g=",
+      "der_hex": "3045022100ffdfb720d2ecca0d30127776590fd0d616279864d33f315f0891a815a713b93b0220425f4cab4b48f68ec14b21bc7b444f94eb74cbe422238cf8306398a77eb57d7e",
+      "base64": "MEUCIQD/37cg0uzKDTASd3ZZD9DWFieYZNM/MV8IkagVpxO5OwIgQl9Mq0tI9o7BSyG8e0RPlOt0y+QiI4z4MGOYp361fX4=",
       "length_bytes": 71,
       "expected_verification_with_fixed_public_key": false
     },
