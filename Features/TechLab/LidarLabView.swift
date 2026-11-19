@@ -117,6 +117,12 @@ final class LidarLabModel: ObservableObject {
                 record(nil, elapsed, "pixel_outside_image"); first = nil; return
             }
             let map = depth.depthMap
+            guard CVPixelBufferGetPixelFormatType(map) == kCVPixelFormatType_DepthFloat32,
+                  CVPixelBufferGetPixelFormatType(confidence) == kCVPixelFormatType_OneComponent8,
+                  CVPixelBufferGetBytesPerRow(map) >= CVPixelBufferGetWidth(map) * MemoryLayout<Float>.stride,
+                  CVPixelBufferGetBytesPerRow(confidence) >= CVPixelBufferGetWidth(confidence) else {
+                record(nil, elapsed, "unsupported_buffer_layout"); first = nil; return
+            }
             let x = Int(image.x * Double(CVPixelBufferGetWidth(map)))
             let y = Int(image.y * Double(CVPixelBufferGetHeight(map)))
             CVPixelBufferLockBaseAddress(map, .readOnly)

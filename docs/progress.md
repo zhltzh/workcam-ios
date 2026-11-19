@@ -122,3 +122,17 @@ Changing reference/setup distance now pauses unfinished measurement to prevent m
 ```sh
 xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamLidarRelease CODE_SIGNING_ALLOWED=NO build > /tmp/workcam-lidar-r1-release.log 2>&1
 ```
+
+## WC-M-TECH-M1-R2 — in progress
+Baseline 357331f. Real paired physical iPhone 17 Pro Max available in initial query. Attempted real-device launch first; failed CoreDevice 4000 connection invalidated / NWError 54 Connection reset by peer. No raw depth, measured lengths, environment observation or orientation acceptance obtained. Physical known-length setup is not available to the agent; no inferred reference measurement substituted.
+
+Added schemaVersion=2 envelope with parsed field arrays and retained legacy CSV, unsupported-version rejection, pre-v2 backup before atomic replacement. This is an intermediate migration layer: UI still uses strings; named structured record/context model remains unfinished. Tests passed v1 reload -> v2 write -> reload, parsed quoted field and preserved backup. Added checks for DepthFloat32 / OneComponent8 formats and minimum buffer row strides before pixel reads. No hardware buffer-layout acceptance yet.
+
+Actual commands:
+```sh
+xcrun devicectl list devices
+xcrun devicectl device process launch --device 00008150-001251D23482401C com.example.workcam.dev
+xcrun swiftc -module-cache-path /tmp/workcam-clock-module-cache Features/TechLab/DepthGeometry.swift Features/TechLab/LabArchive.swift Tests/Lidar/main.swift -o /tmp/workcam-lidar-tests && /tmp/workcam-lidar-tests
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamLidarR1Signed -allowProvisioningUpdates build > /tmp/workcam-lidar-r2.log 2>&1
+```
+Tests PASS (synthetic only). Remaining R2: fully named structured records, frozen endpoint contexts, endpoint timestamps/tracking, multi-orientation mapping tests, real three-mode data and environment, real force-quit recovery, original-analyzer output by mode. Not DEVICE_VERIFIED; no precision conclusion.

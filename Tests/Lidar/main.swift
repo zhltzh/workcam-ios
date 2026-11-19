@@ -32,3 +32,13 @@ var failure = success
 failure[12] = ""; failure[16] = "depth_missing"
 let fixture = [columns, success, failure].map { $0.map(LabArchive.quoted).joined(separator: ",") }.joined(separator: "\n")
 try fixture.write(toFile: "/tmp/workcam-windows-compatible-synthetic.csv", atomically: true, encoding: .utf8)
+let migrated = directory.appendingPathComponent("legacy.json")
+try JSONEncoder().encode([row]).write(to: migrated)
+let legacy = try LabArchive.load(migrated)
+try LabArchive.save(legacy, to: migrated)
+let envelope = try JSONDecoder().decode(LabArchive.Envelope.self, from: Data(contentsOf: migrated))
+precondition(envelope.schemaVersion == 2 && envelope.records[0].fields[1] == "test,with comma")
+precondition(FileManager.default.fileExists(atPath: migrated.appendingPathExtension("pre-v2-backup").path))
+let again = try LabArchive.load(migrated)
+precondition(again == legacy)
+print("PASS: v1 to v2 archive migration and backup")
