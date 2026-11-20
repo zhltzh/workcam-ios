@@ -104,12 +104,77 @@ def test_streaming_memory_stays_low_at_1000(tmp_path):
 def test_export_benchmark_numbers(tmp_path):
     """Benchmarks are DESKTOP figures; structure + plausibility pinned."""
     from techlab.export_engine import benchmark_export
-    rows = benchmark_export(tmp_path, sizes=(100, 500))
-    assert [r["photos"] for r in rows] == [100, 500]
+    rows = benchmark_export(tmp_path, sizes=(100, 500, 1000))
+    assert [r["photos"] for r in rows] == [100, 500, 1000]
     for r in rows:
         assert r["seconds"] > 0
         assert r["bytes_out"] > 0
+        assert r["peak_memory_mb"] > 0    # meter must have measured
     print("\n[T09 export benchmark (DESKTOP, not iPhone)]")
     for r in rows:
         print(f"  {r['photos']} photos -> zip: {r['seconds']}s, "
               f"{r['bytes_out']/1024/1024:.1f} MB, peak mem {r['peak_memory_mb']} MB")
+
+
+# ---------------------------------------------------------------------------
+# W-06: DOCX/XLSX, interruption handling
+# ---------------------------------------------------------------------------
+
+
+def test_docx_minimal_ooxml_structure(tmp_path):
+    from techlab.export_engine import export_docx
+    items = [_item(i) for i in range(3)]
+    stats = export_docx(items, tmp_path / "m.docx")
+    assert stats.files == 3
+
+    with zipfile.ZipFile(tmp_path / "m.docx") as zf:
+        assert zf.testzip() is None          # archive integrity
+        names = set(zf.namelist())
+        assert {"[Content_Types].xml", "_rels/.rels", "word/document.xml"} <= names
+        doc = zf.read("word/document.xml").decode("utf-8")
+        assert doc.startswith('<?xml version="1.0"')     # parseable head
+        assert "备注 2" in doc                          # CJK preserved
+        assert "<w:body>" in doc and "</w:document>" in doc
+        # XML well-formedness check (not just string contains)
+        import xml.etree.ElementTree as ET
+        ET.fromstring(doc)
+
+
+def test_xlsx_minimal_ooxml_structure(tmp_path):
+    from techlab.export_engine import export_xlsx
+    items = [_item(i) for i in range(3)]
+    stats = export_xlsx(items, tmp_path / "m.xlsx")
+    assert stats.files == 3
+
+    with zipfile.ZipFile(tmp_path / "m.xlsx") as zf:
+        assert zf.testzip() is None
+        names = set(zf.namelist())
+        assert {"[Content_Types].xml", "_rels/.rels", "xl/workbook.xml",
+                "xl/_rels/workbook.xml.rels", "xl/worksheets/sheet1.xml"} <= names
+        sheet = zf.read("xl/worksheets/sheet1.xml").decode("utf-8")
+        import xml.etree.ElementTree as ET
+        ET.fromstring(sheet)
+        assert 'r="1"' in sheet                     # header row exists
+        assert "备注 2" in sheet                    # CJK cell content
+
+
+def test_interrupted_export_leaves_no_torn_target(tmp_path):
+    """Interruption handling: a leftover .part from a killed export must
+    never surface as a valid target file; the next export overwrites it
+    and produces a complete, verifiable output."""
+    from techlab.export_engine import export_zip_bundle
+    items = [_item(i) for i in range(20)]
+    target = tmp_path / "b.zip"
+    part = target.with_suffix(target.suffix + ".part")
+
+    # simulate a previous interrupted run: junk .part, no target
+    part.write_bytes(b"INTERRUPTED GARBAGE")
+    assert not target.exists()          # target was never created
+
+    # re-export overwrites the stale .part and completes
+    stats = export_zip_bundle(items, target)
+    assert stats.files == 20
+    assert target.exists() and not part.exists()   # .part consumed by rename
+    with zipfile.ZipFile(target) as zf:
+        assert zf.testzip() is None
+        assert len(zf.namelist()) == 20 + 3        # photos + csv/json/pdf

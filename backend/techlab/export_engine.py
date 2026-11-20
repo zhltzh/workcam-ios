@@ -126,6 +126,131 @@ def minimal_pdf_report(title: str, lines: list[str]) -> bytes:
     return out.getvalue()
 
 
+# ------------------------------------------------------------------- OOXML
+def _xml_escape(s: str) -> str:
+    return (s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+             .replace('"', "&quot;"))
+
+
+def export_docx(items: list[ExportItem], target: Path, title: str = "WorkCam export") -> ExportStats:
+    """Minimal valid DOCX (hand-built OOXML: content types + rels +
+    one document part). Word/WPS-openable by spec; CJK-safe (UTF-8 XML).
+    NOT a layout engine - photo layout remains the iOS Core Text job."""
+    tmp = target.with_suffix(target.suffix + ".part")
+    peak = 0
+    t0 = time.perf_counter()
+    body: list[str] = [f"<w:p><w:r><w:t>{_xml_escape(title)}</w:t></w:r></w:p>"]
+    for it in items:
+        for line in (it.photo_id, it.filename,
+                     str(it.meta.get("captured_at", "")),
+                     str(it.meta.get("note", ""))):
+            body.append(f"<w:p><w:r><w:t xml:space=\"preserve\">"
+                        f"{_xml_escape(line)}</w:t></w:r></w:p>")
+    document = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+        f"<w:body>{''.join(body)}"
+        '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/></w:sectPr></w:body></w:document>'
+    )
+    content_types = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        '<Default Extension="xml" ContentType="application/xml"/>'
+        '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+        '</Types>'
+    )
+    rels = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>'
+        '</Relationships>'
+    )
+    with MemoryMeter() as mm, zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("[Content_Types].xml", content_types)
+        zf.writestr("_rels/.rels", rels)
+        zf.writestr("word/document.xml", document.encode("utf-8"))
+    peak = mm.peak
+    os.replace(tmp, target)
+    t1 = time.perf_counter()
+    return ExportStats("docx", len(items), t1 - t0, target.stat().st_size,
+                       peak / (1024 * 1024), streaming=True)
+
+
+def export_xlsx(items: list[ExportItem], target: Path) -> ExportStats:
+    """Minimal valid XLSX (inline strings, no sharedStrings): header row +
+    one data row per photo. Excel/WPS-openable by spec."""
+    tmp = target.with_suffix(target.suffix + ".part")
+    peak = 0
+    t0 = time.perf_counter()
+    fieldnames = list(items[0].meta.keys()) if items else []
+
+    def _cell(col: int, row: int, value: str) -> str:
+        letters = ""
+        c = col
+        while c > 0:
+            c, rem = divmod(c - 1, 26)
+            letters = chr(65 + rem) + letters
+        return (f'<c r="{letters}{row}" t="inlineStr">'
+                f"<is><t>{_xml_escape(value)}</t></is></c>")
+
+    rows_xml: list[str] = []
+    if fieldnames:
+        header = "".join(_cell(i, 1, k) for i, k in enumerate(fieldnames, 1))
+        rows_xml.append(f'<row r="1">{header}</row>')
+        for r, it in enumerate(items, 2):
+            cells = "".join(
+                _cell(i, r, json.dumps(v, ensure_ascii=False)
+                      if isinstance(v, (dict, list)) else str(v))
+                for i, v in enumerate(
+                    (it.meta.get(k, "") for k in fieldnames), 1)
+            )
+            rows_xml.append(f'<row r="{r}">{cells}</row>')
+    sheet = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        f"<sheetData>{''.join(rows_xml)}</sheetData></worksheet>"
+    )
+    content_types = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        '<Default Extension="xml" ContentType="application/xml"/>'
+        '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+        '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+        '</Types>'
+    )
+    rels = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+        '</Relationships>'
+    )
+    workbook = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+        'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+        '<sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets></workbook>'
+    )
+    workbook_rels = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+        '</Relationships>'
+    )
+    with MemoryMeter() as mm, zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("[Content_Types].xml", content_types)
+        zf.writestr("_rels/.rels", rels)
+        zf.writestr("xl/workbook.xml", workbook)
+        zf.writestr("xl/_rels/workbook.xml.rels", workbook_rels)
+        zf.writestr("xl/worksheets/sheet1.xml", sheet.encode("utf-8"))
+    peak = mm.peak
+    os.replace(tmp, target)
+    t1 = time.perf_counter()
+    return ExportStats("xlsx", len(items), t1 - t0, target.stat().st_size,
+                       peak / (1024 * 1024), streaming=True)
+
+
 # ------------------------------------------------------------------- engine
 @dataclass
 class ExportStats:
@@ -240,7 +365,8 @@ def make_benchmark_items(n: int, photo_size: int = 200 * 1024) -> list[ExportIte
 
 
 def benchmark_export(target_dir: Path, sizes: tuple[int, ...] = (100, 500, 1000)) -> list[dict]:
-    """100/500/1000-photo export benchmark. DESKTOP figures, not iPhone."""
+    """100/500/1000-photo export benchmark (W-06 requirement).
+    DESKTOP figures, not iPhone."""
     target_dir.mkdir(parents=True, exist_ok=True)
     out: list[dict] = []
     for n in sizes:
