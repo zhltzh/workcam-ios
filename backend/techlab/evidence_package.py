@@ -42,6 +42,20 @@ from app.services.signature import (
 PACKAGE_VERSION = "1"
 
 
+class DerivativeRef(BaseModel):
+    """A derivative artifact bundled alongside its original (W-08).
+
+    `original_hash` binds the derivative back to the SIGNED original
+    (must equal that record's manifest.photo_hash at verification)."""
+    derivative_id: str
+    file: str                 # relative path inside the package
+    content_hash: str          # SHA-256 of the derivative file bytes
+    original_hash: str         # the original it derives from
+    recipe_engine: str
+    recipe_template_version: str
+    operation_seq: int
+
+
 class PackageRecord(BaseModel):
     record_id: str
     photo_file: str                 # relative path inside the package
@@ -49,6 +63,7 @@ class PackageRecord(BaseModel):
     capture_timestamp: str
     location_meta: dict | None = None      # T02 LocationMetadata
     anchor_receipt_file: str | None = None  # optional
+    derivatives: list[DerivativeRef] = []   # W-08
 
 
 class PackageManifest(BaseModel):
@@ -67,6 +82,7 @@ class RecordVerification(BaseModel):
     manifest_struct_valid: bool | None  # None = cannot check
     signature_valid: bool | None        # None = cannot check
     key_registered: bool | None         # None = no registry provided
+    derivative_problems: list[str] = []  # W-08: broken derivative links
     problems: list[str] = []
 
     @property
@@ -98,10 +114,15 @@ class PackageVerification(BaseModel):
     record_results: list[RecordVerification]
     anchor_receipts_valid: bool | None = None
     package_problems: list[str] = []
+    derivative_problems: list[dict] = []   # W-08
 
     @property
     def all_passed(self) -> bool:
-        return all(r.passed for r in self.record_results) and not self.package_problems
+        return (
+            all(r.passed for r in self.record_results)
+            and not self.package_problems
+            and not self.derivative_problems
+        )
 
 
 # --------------------------------------------------------------------- build
@@ -111,12 +132,26 @@ def build_package(
     device_id: str,
     created_at: str,
     anchor_receipts: dict[str, Any] | None = None,
+    force: bool = False,
 ) -> PackageManifest:
     """Assemble a package on disk. `records` = list of dicts with keys:
     manifest (SignatureManifest dict), photo_bytes (bytes),
-    location_meta (dict | None)."""
+    location_meta (dict | None) and optionally derivatives
+    (list of {derivative_id, content_hash, original_hash, recipe_engine,
+    recipe_template_version, operation_seq, bytes}).
+
+    Duplicate packing: an existing package.json is NEVER silently
+    overwritten - pass force=True to rebuild explicitly."""
+    target_dir = Path(target_dir)
+    if (target_dir / "package.json").exists() and not force:
+        raise ValueError(
+            f"package already exists at {target_dir / 'package.json'}; "
+            "pass force=True to rebuild (an evidence package is never "
+            "silently overwritten)"
+        )
     (target_dir / "photos").mkdir(parents=True, exist_ok=True)
     (target_dir / "manifests").mkdir(parents=True, exist_ok=True)
+    (target_dir / "derivatives").mkdir(parents=True, exist_ok=True)
     if anchor_receipts:
         (target_dir / "receipts").mkdir(parents=True, exist_ok=True)
 
@@ -137,6 +172,29 @@ def build_package(
         (target_dir / manifest_file).write_text(
             json.dumps(manifest.model_dump(), indent=2), encoding="utf-8"
         )
+
+        derivative_refs: list[DerivativeRef] = []
+        for d in r.get("derivatives", []):
+            d_file = f"derivatives/{d['derivative_id']}.jpg"
+            (target_dir / d_file).write_bytes(d["bytes"])
+            # the packaged derivative is bound to the SIGNED original of
+            # THIS record - anything else is a broken back-link
+            if d["original_hash"] != manifest.photo_hash:
+                raise ValueError(
+                    f"derivative {d['derivative_id']} claims original "
+                    f"{d['original_hash'][:12]}... but record "
+                    f"{manifest.record_id} signs {manifest.photo_hash[:12]}..."
+                )
+            derivative_refs.append(DerivativeRef(
+                derivative_id=d["derivative_id"],
+                file=d_file,
+                content_hash=d["content_hash"],
+                original_hash=d["original_hash"],
+                recipe_engine=d["recipe_engine"],
+                recipe_template_version=d["recipe_template_version"],
+                operation_seq=d["operation_seq"],
+            ))
+
         pkg_records.append(PackageRecord(
             record_id=manifest.record_id,
             photo_file=photo_file,
@@ -144,17 +202,18 @@ def build_package(
             capture_timestamp=manifest.capture_timestamp,
             location_meta=r.get("location_meta"),
             anchor_receipt_file=anchor_file,
+            derivatives=derivative_refs,
         ))
 
-    manifest = PackageManifest(
+    manifest_out = PackageManifest(
         created_at=created_at, device_id=device_id, records=pkg_records,
         notes=["experimental tech-lab package v1"],
     )
     (target_dir / "package.json").write_text(
-        json.dumps(manifest.model_dump(), indent=2, ensure_ascii=False),
+        json.dumps(manifest_out.model_dump(), indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
-    return manifest
+    return manifest_out
 
 
 # ------------------------------------------------------------------- verify
@@ -245,6 +304,27 @@ def verify_package(
                 lookup = key_registry.lookup(manifest.public_key)
                 rv.key_registered = lookup.registration_status == KeyRegistrationStatus.REGISTERED
 
+        # 7. W-08: derivative back-links. A derivative with wrong bytes
+        # or a broken link to the signed original is a derivative problem
+        # (reported separately - it never invalidates the ORIGINAL's
+        # signature math, and the original's pass never blesses a broken
+        # derivative).
+        for dref in rec.derivatives:
+            dpath = package_dir / dref.file
+            if not dpath.exists():
+                rv.derivative_problems.append(
+                    f"derivative file missing: {dref.file}")
+                continue
+            actual = hashlib.sha256(dpath.read_bytes()).hexdigest()
+            if actual != dref.content_hash:
+                rv.derivative_problems.append(
+                    f"derivative bytes tampered: {dref.file} "
+                    f"(listed {dref.content_hash[:12]}..., actual {actual[:12]}...)")
+            if manifest is not None and dref.original_hash != manifest.photo_hash:
+                rv.derivative_problems.append(
+                    f"derivative {dref.derivative_id} back-link does not "
+                    f"match this record's signed photo_hash")
+
         results.append(rv)
 
     # 7. anchor receipts (optional; verified only if a key loader is given)
@@ -266,4 +346,8 @@ def verify_package(
         record_results=results,
         anchor_receipts_valid=anchor_ok,
         package_problems=problems,
+        derivative_problems=[
+            {"record_id": rv.record_id, "problems": rv.derivative_problems}
+            for rv in results if rv.derivative_problems
+        ],
     )

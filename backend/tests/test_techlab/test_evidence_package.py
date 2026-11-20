@@ -160,3 +160,122 @@ def test_anchor_receipt_roundtrip(tmp_path):
     # here the receipt file lands in the package and is listed per record)
     rec = pkg.records[0]
     assert rec.anchor_receipt_file is None
+
+
+# ---------------------------------------------------------------------------
+# W-08: derivatives in the package, duplicate packing, historical keys
+# ---------------------------------------------------------------------------
+
+
+def _derivative_for(manifest, data: bytes) -> dict:
+    return {
+        "derivative_id": hashlib.sha256(data).hexdigest()[:16],
+        "content_hash": hashlib.sha256(data).hexdigest(),
+        "original_hash": manifest.photo_hash,
+        "recipe_engine": "watermark-v1",
+        "recipe_template_version": "1",
+        "operation_seq": 0,
+        "bytes": data,
+    }
+
+
+def test_derivatives_packaged_and_verified(tmp_path):
+    key, pub, photo, manifest = _make_evidence(seed=0x42)
+    d = _derivative_for(manifest, b"watermarked-output-bytes")
+    pkg_dir = tmp_path / "pkg"
+    build_package(
+        pkg_dir,
+        [{"manifest": manifest.model_dump(), "photo_bytes": photo,
+          "location_meta": None, "derivatives": [d]}],
+        device_id="lab-device", created_at="2026-11-20T10:00:00+00:00",
+    )
+    result = verify_package(pkg_dir)
+    assert result.all_passed
+    rv = result.record_results[0]
+    assert rv.passed
+    assert rv.derivative_problems == []
+    # both files physically present
+    assert (pkg_dir / "derivatives" / f"{d['derivative_id']}.jpg").exists()
+
+
+def test_derivative_bytes_tampered_detected(tmp_path):
+    key, pub, photo, manifest = _make_evidence(seed=0x42)
+    d = _derivative_for(manifest, b"watermarked-output-bytes")
+    pkg_dir = tmp_path / "pkg"
+    build_package(
+        pkg_dir,
+        [{"manifest": manifest.model_dump(), "photo_bytes": photo,
+          "location_meta": None, "derivatives": [d]}],
+        device_id="lab-device", created_at="2026-11-20T10:00:00+00:00",
+    )
+    # tamper the derivative file on disk
+    target = pkg_dir / "derivatives" / f"{d['derivative_id']}.jpg"
+    target.write_bytes(b"swapped-derivative-content")
+
+    result = verify_package(pkg_dir)
+    rv = result.record_results[0]
+    # original math STILL passes (derivative damage is not original damage)
+    assert rv.passed
+    # but the package as a whole must not report clean
+    assert not result.all_passed
+    assert any("derivative bytes tampered" in p for p in rv.derivative_problems)
+    assert result.derivative_problems[0]["record_id"] == manifest.record_id
+
+
+def test_derivative_backlink_mismatch_rejected_at_build(tmp_path):
+    """A derivative claiming SOMEONE ELSE's original must never even
+    enter the package (build-time rejection)."""
+    key, pub, photo, manifest = _make_evidence(seed=0x42)
+    other_key, other_pub, other_photo, other_manifest = _make_evidence(seed=0x43)
+    forged = _derivative_for(other_manifest, b"derivative-of-other-original")
+    pkg_dir = tmp_path / "pkg"
+    with pytest.raises(ValueError, match="broken back-link|claims original|record_id|signs"):
+        build_package(
+            pkg_dir,
+            [{"manifest": manifest.model_dump(), "photo_bytes": photo,
+              "location_meta": None, "derivatives": [forged]}],
+            device_id="lab-device", created_at="2026-11-20T10:00:00+00:00",
+        )
+
+
+def test_duplicate_packing_rejected_without_force(tmp_path):
+    key, pub, photo, manifest = _make_evidence(seed=0x42)
+    pkg_dir = tmp_path / "pkg"
+    rec = [{"manifest": manifest.model_dump(), "photo_bytes": photo, "location_meta": None}]
+    build_package(pkg_dir, rec, device_id="d", created_at="2026-11-20T10:00:00+00:00")
+    with pytest.raises(ValueError, match="never silently overwritten"):
+        build_package(pkg_dir, rec, device_id="d", created_at="2026-11-20T10:00:00+00:00")
+    # force=True rebuilds fine
+    rebuilt = build_package(pkg_dir, rec, device_id="d",
+                            created_at="2026-11-20T11:00:00+00:00", force=True)
+    assert len(rebuilt.records) == 1
+    assert verify_package(pkg_dir).all_passed
+
+
+def test_historical_key_offline_verification(tmp_path):
+    """Historical keys: a package whose signing key was NEVER in any
+    registry stays offline-verifiable forever - the math runs on the
+    public key inside the manifest; the trust boundary is reported
+    honestly (identity unknown), exactly as for an archived old device."""
+    key, pub, photo, manifest = _make_evidence(seed=0x55)
+    pkg_dir = tmp_path / "pkg"
+    build_package(
+        pkg_dir,
+        [{"manifest": manifest.model_dump(), "photo_bytes": photo, "location_meta": None}],
+        device_id="retired-device-2019", created_at="2026-11-20T10:00:00+00:00",
+    )
+
+    # verifier with NO registry at all (the pure offline third-party case)
+    result = verify_package(pkg_dir)
+    rv = result.record_results[0]
+    assert rv.passed                       # math complete
+    assert rv.signature_valid is True
+    assert rv.key_registered is None        # identity not checked - stated
+
+    # verifier whose registry no longer knows this key (archived device)
+    registry = InMemoryKeyRegistry()       # empty = key forgotten
+    result2 = verify_package(pkg_dir, key_registry=registry)
+    rv2 = result2.record_results[0]
+    assert rv2.passed
+    assert rv2.key_registered is False
+    assert rv2.status == "pass_unregistered_key"   # math vs identity kept apart
