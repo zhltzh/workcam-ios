@@ -1,4 +1,9 @@
-"""T01 - key lifecycle protocol guarantees (ADR-0001) against real services."""
+"""T01 - key lifecycle protocol guarantees (ADR-0001) against real services.
+
+PROTOCOL-ONLY: software test keys verify the PROTOCOL (archive, conflict,
+rotation). These tests do NOT verify Secure Enclave hardware behaviour;
+T01 remains DEVICE_PENDING until the Mac device acceptance script runs.
+"""
 
 from __future__ import annotations
 
