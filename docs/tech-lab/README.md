@@ -40,7 +40,7 @@ Windows 侧共性技术预研、实验实现、自动化测试与跨平台验证
 | T03 | 可信时间与防篡改 | 1 | POC_READY | 时间锚点 v2（W003）；device_reported 分级（W002） | 时钟回拨/跳变/时区异常检测工具 + 测试 |
 | T04 | LiDAR 工程测量精度 | 1 | RESEARCHED | 无 | 真机实验方案（`experiments/t04-lidar-experiment.md`）+ CSV 分析工具 |
 | T05 | 原图/标注/水印分离 | 1 | POC_READY | 无（M003 仅签名原图） | 衍生图数据模型 + 防覆盖测试 |
-| T06 | 数据完整性与故障恢复 | 2 | PARTIAL→见验收矩阵 | 后端原子写+回滚（W003-R3）；iOS `.pending-` 隔离（PR#6） | Wave 2 系统化故障注入 |
+| T06 | 数据完整性与故障恢复 | 2 | LIMITED | 后端原子写+回滚（W003-R3）；iOS `.pending-` 隔离（PR#6） | Wave 2 系统化故障注入 |
 | T07 | 工程图纸与照片关联 | 3 | NOT_STARTED | 无 | — |
 | T08 | AR 测量与照片坐标同步 | 3 | NOT_STARTED | 无 | — |
 | T09 | 完全离线多格式导出 | 2 | NOT_STARTED | 无 | — |
@@ -52,7 +52,7 @@ Windows 侧共性技术预研、实验实现、自动化测试与跨平台验证
 | T15 | AI 工程缺陷辅助识别 | 4 | NOT_STARTED | 无 | — |
 | T16 | AI 语音记录与自动报告 | 4 | NOT_STARTED | 无 | — |
 | T17 | 照片对比与变化检测 | 4 | NOT_STARTED | 无 | — |
-| T18 | 跨平台独立验证工具 | 2 | PARTIAL | `tools/integration_check.py`（需联网+后端进程） | Wave 2 离线独立验签工具 |
+| T18 | 跨平台独立验证工具 | 2 | LIMITED | `tools/integration_check.py`（需联网+后端进程） | Wave 2 离线独立验签工具 |
 
 状态更新时必须同步更新 `acceptance-matrix.md` 并附测试证据。
 

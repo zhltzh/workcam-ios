@@ -9,6 +9,19 @@ has a protocol-level oracle:
   G3: old-key receipts stay verifiable after rotation (key_id registry)
   G4: verification never depends on the device holding the private key
 
+PROTOCOL-ONLY SCOPE (review fix WC-TECH-ALL-001-R1 / A3):
+  Everything in this module runs with SOFTWARE test keys. What is verified
+  here is the PROTOCOL behaviour that ANY P-256 implementation must keep
+  (registry archive, conflict rules, rotation). What is NOT and CANNOT be
+  verified here:
+    - Secure Enclave hardware key generation / signature
+    - Keychain persistence semantics
+      (kSecAttrAccessibleWhenUnlockedThisDeviceOnly)
+    - App uninstall actually wiping the key on a real device
+  T01 therefore stays DEVICE_PENDING until experiments/t01-se-acceptance.md
+  runs on a physical iPhone. These tests must never be reported as
+  "Secure Enclave verified on device".
+
 EXPERIMENTAL - uses real services read-only; no production path changes.
 """
 
