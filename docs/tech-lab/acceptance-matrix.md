@@ -6,7 +6,7 @@
 
 ```powershell
 Push-Location backend; .venv\Scripts\python.exe -m pytest tests -q; Pop-Location
-# Wave 2 基线（本分支）: 139（main 既有）+ 102（techlab）= 241 passed
+# Wave 2 基线（本分支）: 139（main 既有）+ 123（techlab）= 262 passed
 # PR #7 合并后再加 18（W005 回归）
 ```
 
