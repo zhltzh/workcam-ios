@@ -121,3 +121,27 @@ def test_manifest_stays_json_loadable_after_every_save(tmp_path):
         store.save_photo(_photo(100 + i), captured_at="2026-11-19T10:00:00+00:00")
     data = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
     assert len(data) == 10
+
+
+def test_duplicate_write_same_bytes_is_idempotent(tmp_path):
+    """F7: re-saving the same photo (same bytes) must not create an
+    orphan, a second manifest entry, or any fsck complaint."""
+    store = PhotoStore(tmp_path)
+    e1 = store.save_photo(_photo(7), captured_at="2026-11-19T10:00:00+00:00")
+    e2 = store.save_photo(_photo(7), captured_at="2026-11-19T10:00:00+00:00")
+    assert e1.photo_id == e2.photo_id           # content-addressed identity
+    assert store.read_manifest()[e1.photo_id]["content_hash"] == e1.content_hash
+    assert len(list((tmp_path / "photos").iterdir())) == 1
+    report = store.fsck()
+    assert report.consistent
+    assert report.orphan_files == []
+
+
+def test_duplicate_write_different_bytes_is_new_entry(tmp_path):
+    """F8: different bytes = different photo; both coexist, both valid."""
+    store = PhotoStore(tmp_path)
+    a = store.save_photo(_photo(7), captured_at="2026-11-19T10:00:00+00:00")
+    b = store.save_photo(_photo(8), captured_at="2026-11-19T10:00:00+00:00")
+    assert a.photo_id != b.photo_id
+    assert len(store.read_manifest()) == 2
+    assert store.fsck().consistent
