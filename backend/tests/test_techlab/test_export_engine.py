@@ -102,18 +102,21 @@ def test_streaming_memory_stays_low_at_1000(tmp_path):
 
 
 def test_export_benchmark_numbers(tmp_path):
-    """Benchmarks are DESKTOP figures; structure + plausibility pinned."""
+    """Benchmarks are DESKTOP figures; structure + plausibility pinned.
+    (legacy in-memory benchmark - kept to document the OLD failure mode;
+    the honest RSS benchmark lives in test_export_rss.py)"""
     from techlab.export_engine import benchmark_export
-    rows = benchmark_export(tmp_path, sizes=(100, 500, 1000))
-    assert [r["photos"] for r in rows] == [100, 500, 1000]
+    rows = benchmark_export(tmp_path, sizes=(100, 500))
+    assert [r["photos"] for r in rows] == [100, 500]
     for r in rows:
         assert r["seconds"] > 0
         assert r["bytes_out"] > 0
-        assert r["peak_memory_mb"] > 0    # meter must have measured
-    print("\n[T09 export benchmark (DESKTOP, not iPhone)]")
+        assert r["engine_alloc_mb"] > 0    # meter must have measured
+    print("\n[T09 legacy in-memory benchmark (DESKTOP; see test_export_rss for RSS)]")
     for r in rows:
         print(f"  {r['photos']} photos -> zip: {r['seconds']}s, "
-              f"{r['bytes_out']/1024/1024:.1f} MB, peak mem {r['peak_memory_mb']} MB")
+              f"{r['bytes_out']/1024/1024:.1f} MB, engine alloc {r['engine_alloc_mb']} MB, "
+              f"rss peak {r['rss_peak_mb']} MB (payload resident in input list)")
 
 
 # ---------------------------------------------------------------------------
