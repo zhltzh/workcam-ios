@@ -13,6 +13,7 @@ from techlab.ar_persistence import (
     ARFrameRecord,
     CameraIntrinsics,
     CameraPose,
+    FocalUnits,
     Measurement3D,
     TrackingState,
     degrade_report,
@@ -145,7 +146,8 @@ def test_sheet_json_roundtrip():
 
 def _intrinsics() -> CameraIntrinsics:
     return CameraIntrinsics(fx=2000.0, fy=2000.0, cx=1920, cy=1080,
-                            image_width=3840, image_height=2160)
+                            image_width=3840, image_height=2160,
+                            units=FocalUnits.PIXELS)
 
 
 def _pose() -> CameraPose:
@@ -189,12 +191,30 @@ def test_tampered_persisted_projection_detected():
     assert any("differs from recomputed" in p for p in problems)
 
 
-def test_mm_units_rejected_by_plausibility_check():
-    # pydantic wraps the validator's ARExperimentError as ValidationError;
-    # assert on the message (the honest part) regardless of wrapper type
-    with pytest.raises(Exception, match="raw mm units"):
+def test_unverified_units_rejected_by_range_check():
+    """W003 review fix: no more 'fx<300 => mm' heuristic. The unit is
+    DECLARED; each unit has its own plausible range. An UNSET unit with
+    fx=2.0 (out of every plausible range) is rejected with the demand to
+    declare; a DECLARED mm value of the same magnitude is fine."""
+    # UNSET + out-of-range => rejected, demands declaration
+    with pytest.raises(Exception, match="declare units"):
         CameraIntrinsics(fx=2.0, fy=2.0, cx=1920, cy=1080,
-                         image_width=3840, image_height=2160)
+                        image_width=3840, image_height=2160)
+    # same magnitude, correctly DECLARED as mm_35mm_eq => accepted
+    mm = CameraIntrinsics(fx=26.0, fy=26.0, cx=1920, cy=1080,
+                          image_width=3840, image_height=2160,
+                          units=FocalUnits.MM_35MM_EQ)
+    assert mm.units == FocalUnits.MM_35MM_EQ
+    # declared pixels but out of pixel range => rejected
+    with pytest.raises(Exception, match="outside the plausible range"):
+        CameraIntrinsics(fx=2.0, fy=2.0, cx=1920, cy=1080,
+                         image_width=3840, image_height=2160,
+                         units=FocalUnits.PIXELS)
+    # pixels declared + principal point outside image => rejected
+    with pytest.raises(Exception, match="principal point"):
+        CameraIntrinsics(fx=2000.0, fy=2000.0, cx=99999, cy=1080,
+                         image_width=3840, image_height=2160,
+                         units=FocalUnits.PIXELS)
 
 
 def test_point_behind_camera_rejected():

@@ -52,7 +52,7 @@ BLOCKED / REJECTED。**"Windows 测试通过"与"真机验证"严格分开：**
 | T09 | 完全离线多格式导出 | 2 | DESKTOP_VERIFIED | R2：**真实磁盘流式基准**（1000 张 195MB，进程 RSS 峰值 27.3MB、增量 3MB，照片零驻留）；DOCX/XLSX 图片嵌入 + **真实 Office 2007 实开验证 3/3**（Word/Excel COM：图片数、中文、元数据全过） | iOS 像素级渲染与 HEIC 编码 |
 | T10 | 自定义水印与模板引擎 | 2 | DESKTOP_VERIFIED | W-07：声明式 Schema + 自定义字段 + 条件显示 + 防伪语义（14 测试） | iOS CoreGraphics 按布局契约渲染 |
 | T11 | 离线项目数据库与搜索 | 2 | DESKTOP_VERIFIED | W-05：SQLite WAL + FTS5；1 万与 10 万条基准、分页/迁移/索引对比（11 测试，桌面数字） | iPhone 实机 SQLite 数字不得照抄桌面值 |
-| T12 | 弱网同步与断点续传 | 3 | POC_READY | R2/Wave3：内容寻址分块 + 乱序/幂等/NACK 不占位 + whole-batch 独立校验协议模型（6 测试）；FastAPI 端点待落地 | —（协议层完备；端点+客户端节奏后续） |
+| T12 | 弱网同步与断点续传 | 3 | DESKTOP_VERIFIED | W003：**真实 FastAPI 端点**（`/upload/experimental`，磁盘持久化、重启恢复、乱序/幂等/整包校验、批量数/块数/字节限额、过期清扫、traversal 防护、生产禁用开关）12 端点测试 + 联调客户端 CLI + 全链路集成 | iPhone 客户端重试节奏实测 |
 | T13 | 照片防替换与独立验证包 | 2 | DESKTOP_VERIFIED | W-08：证据包 v1 + 四类篡改检出 + 衍生图入包 + 重复打包防护 + 历史密钥（14 测试） | —（Windows 侧完备） |
 | T14 | C2PA 兼容 | 3 | RESEARCHED→POC_READY（桥接层） | R2/Wave3：字段→C2PA 标准断言映射固化 + 跨系统哈希不变量（4 测试）；真签名需外部证书账户，如实未做 | Mac 侧 c2pa-swift SDK 集成 |
 | T15 | AI 工程缺陷辅助识别 | 4 | NOT_STARTED | — | — |

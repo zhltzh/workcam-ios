@@ -1,0 +1,185 @@
+{
+  "_description": "T08 AR projection cross-platform vectors",
+  "_usage": "p_camera = R(q) @ p_world + t; u = fx*xc/zc + cx, v = fy*yc/zc + cy (pixels); expected_uv to 1e-9; behind-camera cases must raise",
+  "_convention": "THIS PROTOCOL uses +z as camera-forward (ARKit's native camera looks down -z: Mac must either negate z consistently or sign-flip the pose; the vectors pin whichever convention the record declares). Behind-camera = zc <= 0.",
+  "cases": [
+    {
+      "case": "identity_center",
+      "intrinsics": {
+        "fx": 2000.0,
+        "fy": 2000.0,
+        "cx": 1920.0,
+        "cy": 1080.0,
+        "image_width": 3840,
+        "image_height": 2160,
+        "units": "pixels"
+      },
+      "pose": {
+        "tx": 0.0,
+        "ty": 0.0,
+        "tz": 0.0,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0
+      },
+      "world_point": [
+        0.0,
+        0.0,
+        4.0
+      ],
+      "expected_uv": [
+        1920.0,
+        1080.0
+      ]
+    },
+    {
+      "case": "identity_offset",
+      "intrinsics": {
+        "fx": 2000.0,
+        "fy": 2000.0,
+        "cx": 1920.0,
+        "cy": 1080.0,
+        "image_width": 3840,
+        "image_height": 2160,
+        "units": "pixels"
+      },
+      "pose": {
+        "tx": 0.0,
+        "ty": 0.0,
+        "tz": 0.0,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0
+      },
+      "world_point": [
+        1.0,
+        -0.5,
+        4.0
+      ],
+      "expected_uv": [
+        2420.0,
+        830.0
+      ]
+    },
+    {
+      "case": "translated_camera",
+      "intrinsics": {
+        "fx": 2000.0,
+        "fy": 2000.0,
+        "cx": 1920.0,
+        "cy": 1080.0,
+        "image_width": 3840,
+        "image_height": 2160,
+        "units": "pixels"
+      },
+      "pose": {
+        "tx": 0.2,
+        "ty": -0.1,
+        "tz": 0.5,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0
+      },
+      "world_point": [
+        1.0,
+        0.5,
+        4.0
+      ],
+      "expected_uv": [
+        2453.333333333,
+        1257.777777778
+      ]
+    },
+    {
+      "case": "yaw90_camera",
+      "intrinsics": {
+        "fx": 2000.0,
+        "fy": 2000.0,
+        "cx": 1920.0,
+        "cy": 1080.0,
+        "image_width": 3840,
+        "image_height": 2160,
+        "units": "pixels"
+      },
+      "pose": {
+        "tx": 0.0,
+        "ty": 0.0,
+        "tz": 0.0,
+        "qx": 0.0,
+        "qy": 0.7071067811865476,
+        "qz": 0.0,
+        "qw": 0.7071067811865476
+      },
+      "world_point": [
+        -4.0,
+        0.0,
+        0.0
+      ],
+      "expected_uv": [
+        1920.0,
+        1080.0
+      ]
+    },
+    {
+      "case": "rot_x45_translated",
+      "intrinsics": {
+        "fx": 2000.0,
+        "fy": 2000.0,
+        "cx": 1920.0,
+        "cy": 1080.0,
+        "image_width": 3840,
+        "image_height": 2160,
+        "units": "pixels"
+      },
+      "pose": {
+        "tx": 0.5,
+        "ty": 0.1,
+        "tz": -0.2,
+        "qx": 0.3826834323650898,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 0.9238795325112867
+      },
+      "world_point": [
+        0.3,
+        1.2,
+        5.0
+      ],
+      "expected_uv": [
+        2302.403507266,
+        -156.600098995
+      ]
+    },
+    {
+      "case": "behind_camera_rejected",
+      "intrinsics": {
+        "fx": 2000.0,
+        "fy": 2000.0,
+        "cx": 1920.0,
+        "cy": 1080.0,
+        "image_width": 3840,
+        "image_height": 2160,
+        "units": "pixels"
+      },
+      "pose": {
+        "tx": 0.0,
+        "ty": 0.0,
+        "tz": 0.0,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0
+      },
+      "world_point": [
+        0.0,
+        0.0,
+        -4.0
+      ],
+      "expected": "raise",
+      "reason": "point is BEHIND the camera - invalid measurement"
+    }
+  ]
+}

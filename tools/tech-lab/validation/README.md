@@ -2,7 +2,7 @@
 
 独立离线验证工具集。**不依赖 WorkCam App、不依赖任何在线服务器。**
 
-## evidence_verifier.py — 证据包独立验签 CLI (T18/W-09)
+## evidence_verifier.py — 证据包独立验签 CLI (T13/T18)
 
 验证一个 T13 证据包：文件完整性、P-256 签名、跨记录绑定、衍生图
 回链、锚点回执（可选）。输出人类可读报告 + 机器 JSON。
@@ -20,74 +20,57 @@ python -m pip install -r backend/requirements.txt
 
 ```powershell
 python tools\tech-lab\validation\evidence_verifier.py <package_dir> --json report.json
-# 可选锚点回执验证（需要可信服务器公钥 PEM + key_id）:
-python tools\tech-lab\validation\evidence_verifier.py <package_dir> `
-    --anchor-pubkey server_key.pem --anchor-key-id test-key-001
 ```
 
 ### macOS / Linux
 
 ```bash
 python3 tools/tech-lab/validation/evidence_verifier.py <package_dir> --json report.json
-python3 tools/tech-lab/validation/evidence_verifier.py <package_dir> \
-    --anchor-pubkey server_key.pem --anchor-key-id test-key-001
 ```
 
-### 状态与退出码
+状态与退出码：`0` = 全部记录通过；`1` = 有失败/无法验证。
+`PASS / PASS_UNREGISTERED_KEY / CANNOT_VERIFY / FAIL` 四态语义见
+`--help` 与代码 docstring；**签名有效 ≠ 拍摄现场真实**（报告逐条注明）。
 
-| 状态 | 含义 |
-|---|---|
-| `PASS` | 签名数学 + 哈希全部通过（且提供了注册表且公钥已注册） |
-| `PASS (identity not checked: no trust registry provided)` | 数学通过；未提供注册表，**设备身份未核查**（如实说明） |
-| `PASS_UNREGISTERED_KEY` | 数学通过；注册表明确不含该公钥 |
-| `CANNOT_VERIFY` | 文件缺失等，**绝不显示为通过** |
-| `FAIL` | 篡改/损坏，带具体记录与原因 |
+## t12_upload_client.py — 上传协议联调客户端 (W003)
 
-退出码：`0` = 全部记录通过；`1` = 有失败或无法验证。
-
-**边界声明**：本工具证明的是**字节完整性与签名数学**。签名有效
-不等于拍摄现场真实；设备是否可信（App Attest）不在离线工具的
-职责内——报告中逐条注明。
-
-跨平台注意：CLI 内部以 UTF-8 读写输出（Windows 管道默认 GBK 会在
-Python < 3.15 下崩溃读取线程；测试环境强制 `PYTHONIOENCODING=utf-8`
-已固化在 `tests/test_techlab/test_evidence_verifier.py` 的 subprocess
-用法里，供任何自动化调用参考）。
-
-## t04_batch_review.py — Mac LiDAR CSV 自动验收 (W-03)
-
-对 Mac LiDAR Lab（PR #9）导出的实验 CSV 做验收：格式、缺字段、
-重复 test_id、未知模式、异常值、完成度（对照 132 条清单）、误差
-统计、失败原因汇总。支持部分完成的数据。输出 JSON + Markdown。
-
-### 用法
+对**运行中的 FastAPI 后端**执行完整协议流程（乱序上传→故意丢块→
+status 续传→重复块幂等→complete 哈希核对），逐步打印日志：
 
 ```powershell
-# Windows
-python tools\tech-lab\validation\t04_batch_review.py <experiment.csv> --json r.json --md r.md
+# Windows (后端先启动: tools\start_backend.ps1)
+python tools\tech-lab\validation\t12_upload_client.py <file> http://127.0.0.1:8000
 ```
 
 ```bash
 # macOS / Linux
+python3 tools/tech-lab/validation/t12_upload_client.py <file> http://127.0.0.1:8000
+```
+
+退出码 `0` = 服务器回执哈希与本地文件哈希一致。纯标准库，双平台。
+
+端点前缀 `/upload/experimental`（生产环境 `WORKCAM_ENV=production` 禁用）。
+
+## 跨平台测试向量与 JSON Schema (T07/T08)
+
+`test-vectors/tech-lab/` 下的三份文件是 Mac 对拍的唯一依据：
+
+| 文件 | 内容 | Mac 用法 |
+|---|---|---|
+| `t07-calibration-vectors.json` | 仿射拟合 4 例（含共线/残差拒绝） | 用 SIMD/自写解出 M/t，与 `expected_M/expected_t` 1e-9 对拍 |
+| `t08-projection-vectors.json` | 投影 6 例（含后方点拒绝） | `p_cam = R(q)@p_world+t; u=fx*xc/zc+cx`，与 `expected_uv` 1e-9 对拍 |
+| `record-schemas.json` | ARFrameRecord / DrawingSheet 的 JSON Schema | 生成 Codable 结构体；**units 字段必填**（pixels/mm_35mm_eq） |
+
+注意：T08 协议约定 **+z 为相机前方**；ARKit 原生相机看向 -z，Mac
+序列化时必须一致转换（向量文件的 `_convention` 字段已声明）。
+
+重新生成：`python tools/tech-lab/validation/gen_cross_vectors.py`
+
+## t04_batch_review.py — Mac LiDAR CSV 自动验收 (W-03)
+
+```bash
 python3 tools/tech-lab/validation/t04_batch_review.py <experiment.csv> --json r.json --md r.md
 ```
 
-默认对照 `docs/tech-lab/experiments/t04-checklist.csv`；可用
-`--checklist <path>` 指定其他清单。
+支持部分完成数据；默认对照 `docs/tech-lab/experiments/t04-checklist.csv`。
 
-### 实验清单（唯一 test_id 的权威来源）
-
-```bash
-python3 tools/tech-lab/benchmarks/t04_checklist.py [out.csv]
-# 生成 132 条：raycast 68 (primary) + scene_depth 32 + smoothed_depth 32 (secondary)
-```
-
-## 统计分析（W-02）
-
-```bash
-python3 tools/tech-lab/benchmarks/lidar_error_analysis.py <experiment.csv> --json stats.json
-```
-
-分组（模式/条件/距离/单元格）统计：成功率、失败原因分布、MAE、
-RMSE、中位数、P95、有符号偏差、重复性离散度。样本 <3 → 全部
-`null`（不输出 NaN/Infinity）。

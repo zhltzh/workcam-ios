@@ -31,11 +31,34 @@ import math
 import uuid
 from enum import Enum
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class ARExperimentError(ValueError):
     pass
+
+
+class FocalUnits(str, Enum):
+    """Explicit unit declaration for camera intrinsics (W003 review fix:
+    the Wave-3 PoC used a heuristic 'fx < 300 => mm' guess. Heuristics
+    have no place in a cross-platform protocol: a small-fisheye or a
+    4K long-focus lens both fall outside naive bounds. The unit is now
+    DECLARED by the producer and VALIDATED by range checks per unit.)"""
+
+    PIXELS = "pixels"        # ARKit intrinsics after fx/fy * imageWidth
+    MM_35MM_EQ = "mm_35mm_eq"  # 35mm-equivalent focal length (rare, ~14-600)
+    UNSET = "unset"          # legacy/default: range-validated but unit unknown
+
+
+# plausible focal ranges per declared unit (length-inclusive)
+_FOCAL_RANGES = {
+    FocalUnits.PIXELS: (300.0, 30000.0),      # phone main cam ~1500-8000 px
+    FocalUnits.MM_35MM_EQ: (10.0, 1200.0),    # fisheye to super-tele
+    # UNSET: legacy records only. Range kept identical to the pixel range
+    # so old data still validates, with the error message DEMANDING the
+    # unit be declared going forward (the W003 fix: units are explicit).
+    FocalUnits.UNSET: (300.0, 30000.0),
+}
 
 
 class CameraIntrinsics(BaseModel):
@@ -45,19 +68,35 @@ class CameraIntrinsics(BaseModel):
     cy: float = Field(ge=0)
     image_width: int = Field(gt=0)
     image_height: int = Field(gt=0)
+    units: FocalUnits = FocalUnits.UNSET
 
     @field_validator("fx", "fy")
     @classmethod
-    def _plausible_focal(cls, v: float) -> float:
-        # iPhone main camera: ~1500-6000 px focal length. Values below
-        # ~300 are almost certainly unconverted ARKit 'mm' units.
-        if v < 300:
-            raise ARExperimentError(
-                f"fx/fy={v} looks like ARKit's raw mm units, not pixels - "
-                f"convert before serializing (plausible range >= 300 px)")
-        if v > 20000:
-            raise ARExperimentError(f"fx/fy={v} exceeds plausible pixel range")
+    def _validate_focal(cls, v: float, info) -> float:
+        # cross-field validation happens in model_validator (needs units)
         return v
+
+    @model_validator(mode="after")
+    def _check_units(self) -> "CameraIntrinsics":
+        lo, hi = _FOCAL_RANGES[self.units]
+        for name in ("fx", "fy"):
+            v = getattr(self, name)
+            if not (lo <= v <= hi):
+                hint = {
+                    FocalUnits.PIXELS: "pixels (ARKit fx * imageWidth)",
+                    FocalUnits.MM_35MM_EQ: "35mm-equivalent mm",
+                    FocalUnits.UNSET: "UNSET - declare units (pixels or mm_35mm_eq)",
+                }[self.units]
+                raise ARExperimentError(
+                    f"fx/fy={v} outside the plausible range for declared "
+                    f"units '{self.units.value}' [{lo}, {hi}] - expected {hint}")
+        # principal point must sit inside the image (pixel units only)
+        if self.units == FocalUnits.PIXELS:
+            if self.cx > self.image_width or self.cy > self.image_height:
+                raise ARExperimentError(
+                    "principal point (cx, cy) outside image bounds - "
+                    "intrinsics are not in pixel units")
+        return self
 
 
 class CameraPose(BaseModel):
