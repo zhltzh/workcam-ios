@@ -136,3 +136,20 @@ xcrun swiftc -module-cache-path /tmp/workcam-clock-module-cache Features/TechLab
 xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamLidarR1Signed -allowProvisioningUpdates build > /tmp/workcam-lidar-r2.log 2>&1
 ```
 Tests PASS (synthetic only). Remaining R2: fully named structured records, frozen endpoint contexts, endpoint timestamps/tracking, multi-orientation mapping tests, real three-mode data and environment, real force-quit recovery, original-analyzer output by mode. Not DEVICE_VERIFIED; no precision conclusion.
+
+## WC-M-TECH-M1-R2A — connection diagnosis and context increment
+Actual device query/details succeeded. Physical iPhone18,2 (iPhone 17 Pro Max), OS 27.2, Developer Mode Enabled, pairing paired, transport localNetwork/TCP. USB physical cable state cannot be established from this output. No physical reconnection/reboot performed. Current launch fails with explicit Locked / RequestDenied (CoreDevice 10002), not connection reset or established app crash. No rationale to restart Mac while device service/detail query works. User must unlock physical phone before runtime acceptance; do not repeat launch unchanged.
+
+Full local diagnostics (contain device identifiers; not committed): /tmp/workcam-r2a-devices.json, /tmp/workcam-r2a-details.json, /tmp/workcam-r2a-details.log, /tmp/workcam-r2a-launch.log.
+```sh
+xcrun devicectl list devices --json-output /tmp/workcam-r2a-devices.json
+xcrun devicectl device info details --device 00008150-001251D23482401C --json-output /tmp/workcam-r2a-details.json > /tmp/workcam-r2a-details.log 2>&1
+xcrun devicectl device process launch --device 00008150-001251D23482401C com.example.workcam.dev > /tmp/workcam-r2a-launch.log 2>&1
+```
+
+Added frozen in-memory context snapshot for mode, batch, ID, condition, reference and setup distance; second endpoint uses snapshot. Added first endpoint time/tracking columns (existing device_time/tracking are second/failure endpoint); both confidence columns retained. Tracking loss between points records failure instead of silently discarding unfinished pair. Named persistent model, context-specific automatic tests and multi-orientation mapping acceptance remain unfinished. No claim these gaps are completed.
+```sh
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamLidarR1Signed -allowProvisioningUpdates build > /tmp/workcam-r2a-build.log 2>&1
+xcrun swiftc -module-cache-path /tmp/workcam-clock-module-cache Features/TechLab/DepthGeometry.swift Features/TechLab/LabArchive.swift Tests/Lidar/main.swift -o /tmp/workcam-lidar-tests && /tmp/workcam-lidar-tests
+```
+Existing geometry/archive/migration tests PASS. No real Scene Depth, Smoothed Depth, known 1m sample, raw CSV, environment or force-quit recovery evidence this run. T04 remains open, not DEVICE_VERIFIED. Existing PR #9 only; no merge authorized/performed.

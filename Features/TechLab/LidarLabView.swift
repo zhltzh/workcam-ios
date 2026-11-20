@@ -14,6 +14,13 @@ final class LidarLabModel: ObservableObject {
     @Published var storageError = ""
     @Published var batch = UUID().uuidString
     @Published var testID = "T04-001"
+    private struct Context {
+        let batch: String, testID: String, mode: String, condition: String
+        let reference: String, targetDistance: String
+    }
+    private var context: Context?
+    private var firstTime: String?
+    private var firstTracking: String?
     private var observedConfidence: Int?
     private var depthReceived = false
     private var tracking = "unavailable"
@@ -75,9 +82,15 @@ final class LidarLabModel: ObservableObject {
     func refresh() {
         guard let frame = view.session.currentFrame else { status = "Waiting for frame"; return }
         status = "Tracking: \(frame.camera.trackingState); depth: \(frame.sceneDepth == nil ? "unavailable" : "available")"
-        if case .normal = frame.camera.trackingState { } else { first = nil }
+        if case .normal = frame.camera.trackingState { } else {
+            if first != nil {
+                tracking = String(describing: frame.camera.trackingState)
+                record(nil, max(0, ProcessInfo.processInfo.systemUptime - elapsedStart), "tracking_lost_between_points")
+                first = nil
+            }
+        }
     }
-    func stop() { running = false; timer?.invalidate(); timer = nil; view.session.pause(); first = nil }
+    func stop() { running = false; timer?.invalidate(); timer = nil; view.session.pause(); first = nil; context = nil; firstTime = nil; firstTracking = nil; originConfidence = nil }
     func sample() {
         let elapsed = max(0, ProcessInfo.processInfo.systemUptime - elapsedStart)
         observedConfidence = nil; depthReceived = false
@@ -91,8 +104,12 @@ final class LidarLabModel: ObservableObject {
               case .normal = frame.camera.trackingState else {
             record(nil, elapsed, "tracking_unavailable"); first = nil; return
         }
+        if context == nil {
+            context = Context(batch: batch, testID: testID, mode: mode, condition: condition,
+                              reference: reference, targetDistance: targetDistance)
+        }
         let point: SIMD3<Float>
-        if mode == "raycast" {
+        if (context?.mode ?? mode) == "raycast" {
             guard let query = view.raycastQuery(from: CGPoint(x: view.bounds.midX, y: view.bounds.midY),
                                                allowing: .estimatedPlane, alignment: .any),
                   let hit = view.session.raycast(query).first else {
@@ -101,7 +118,7 @@ final class LidarLabModel: ObservableObject {
             let t = hit.worldTransform.columns.3
             point = SIMD3<Float>(t.x, t.y, t.z)
         } else {
-            guard let depth = mode == "scene_depth" ? frame.sceneDepth : frame.smoothedSceneDepth else {
+            guard let depth = (context?.mode ?? mode) == "scene_depth" ? frame.sceneDepth : frame.smoothedSceneDepth else {
                 record(nil, elapsed, "depth_missing"); first = nil; return
             }
             depthReceived = true
@@ -164,21 +181,22 @@ final class LidarLabModel: ObservableObject {
             record(distance.isFinite && distance > 0 && distance <= 10 ? distance : nil,
                    elapsed, distance.isFinite && distance > 0 && distance <= 10 ? "" : "distance_outlier")
             first = nil
-        } else { first = point; originConfidence = observedConfidence; elapsedStart = ProcessInfo.processInfo.systemUptime; status = "First point set; aim at second point" }
+        } else { first = point; firstTime = ISO8601DateFormatter().string(from: Date()); firstTracking = tracking; originConfidence = observedConfidence; elapsedStart = ProcessInfo.processInfo.systemUptime; status = "First point set; aim at second point" }
     }
     private func record(_ distance: Double?, _ elapsed: Double, _ failure: String) {
-        let standard = Double(reference).flatMap { $0.isFinite && $0 > 0 ? $0 : nil }
+        let standard = Double(context?.reference ?? reference).flatMap { $0.isFinite && $0 > 0 ? $0 : nil }
         let error = distance.flatMap { d in standard.map { abs(d - $0) } }
         let relative = error.flatMap { e in standard.map { e / $0 } }
         func value(_ n: Double?) -> String { n.map { String($0) } ?? "" }
-        rows.append([batch, testID, hardware, UIDevice.current.systemVersion, String(depthReceived),
-                     observedConfidence.map(String.init) ?? "", originConfidence.map(String.init) ?? "", tracking, mode, condition, ISO8601DateFormatter().string(from: Date()), value(standard), value(distance),
-                     value(error), value(relative), String(elapsed), failure, value(Double(targetDistance))].map(quoted).joined(separator: ","))
+        rows.append([context?.batch ?? batch, context?.testID ?? testID, hardware, UIDevice.current.systemVersion, String(depthReceived),
+                     observedConfidence.map(String.init) ?? "", originConfidence.map(String.init) ?? "", tracking, context?.mode ?? mode, context?.condition ?? condition, ISO8601DateFormatter().string(from: Date()), value(standard), value(distance),
+                     value(error), value(relative), String(elapsed), failure, value(Double(context?.targetDistance ?? targetDistance)), firstTime ?? "", firstTracking ?? ""].map(quoted).joined(separator: ","))
         persist()
+        context = nil; firstTime = nil; firstTracking = nil; originConfidence = nil
         status = distance.map { "Measurement estimate: \($0) m; accuracy unverified" } ?? failure
     }
     var csv: String {
-        "batch_id,test_id,device_model,ios_version,depth_received,confidence_end,confidence_start,tracking,mode,condition,device_time,distance_true_m,distance_measured_m,absolute_error_m,relative_error,elapsed_s,failure,distance_m\n" + rows.filter { $0.hasPrefix(quoted(batch) + ",") }.joined(separator: "\n")
+        "batch_id,test_id,device_model,ios_version,depth_received,confidence_end,confidence_start,tracking,mode,condition,device_time,distance_true_m,distance_measured_m,absolute_error_m,relative_error,elapsed_s,failure,distance_m,first_device_time,first_tracking\n" + rows.filter { $0.hasPrefix(quoted(batch) + ",") }.joined(separator: "\n")
     }
 }
 
