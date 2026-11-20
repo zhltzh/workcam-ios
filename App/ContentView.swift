@@ -12,6 +12,9 @@ struct ContentView: View {
                 }
                 status("Signing Status")
                 status("Network Status")
+                #if DEBUG
+                NavigationLink("LiDAR Lab") { LidarLabView() }
+                #endif
                 NavigationLink("Open Camera") { CameraView() }
                 NavigationLink("Evidence Debug") {
                     ScrollView {
