@@ -33,6 +33,7 @@ class ElementType(str, Enum):
     GPS = "gps"            # bound: T02 LocationMetadata
     PROJECT = "project"    # bound: project name/number
     CHECK_NO = "check_no"  # bound: inspection number
+    CUSTOM = "custom"      # bound: W-07 user-defined field (source names it)
     LOGO = "logo"          # image asset reference
     QRCODE = "qrcode"      # bound: encodes verified bundle URL/payload
 
@@ -56,9 +57,14 @@ class Element(BaseModel):
     color: str = "#FFFFFF"
     opacity: float = Field(default=1.0, ge=0.0, le=1.0)
     text: str | None = None          # only for ElementType.TEXT
-    source: str | None = None        # bound field name for PROJECT/CHECK_NO
+    source: str | None = None        # bound field name for PROJECT/CUSTOM
     asset: str | None = None         # asset ref for LOGO
     payload: str | None = None       # static payload for QRCODE
+    # W-07 conditional visibility: "<bound>==<value>" or "<bound>!=<value>".
+    # Bound names: custom:<name>, project:name, check_no, gps_source,
+    # gps_grade, has_location. Unknown bounds raise (typos must never
+    # silently drop an element).
+    visible_if: str | None = None
 
     @field_validator("color")
     @classmethod
@@ -106,6 +112,10 @@ class RenderingContext(BaseModel):
     project_name: str | None = None
     check_no: str | None = None
     qr_payload: str | None = None
+    # W-07: user-defined fields (project-specific inspection forms).
+    # Values are free text rendered verbatim - they are NEVER presented
+    # as verified data, same honesty rule as Element.text.
+    custom_fields: dict[str, str] = Field(default_factory=dict)
 
     def bound_value(self, element: Element) -> str | None:
         if element.type == ElementType.DATETIME:
@@ -118,6 +128,10 @@ class RenderingContext(BaseModel):
             return {"name": self.project_name}.get(element.source)
         if element.type == ElementType.CHECK_NO:
             return self.check_no
+        if element.type == ElementType.CUSTOM:
+            if not element.source:
+                raise ValueError("CUSTOM element requires 'source' (field name)")
+            return self.custom_fields.get(element.source)
         if element.type == ElementType.QRCODE:
             return self.qr_payload
         return None
@@ -130,6 +144,50 @@ class RenderingContext(BaseModel):
             return "no location"
         loc = LocationMetadata.model_validate(self.location_meta)
         return loc.trust_label()
+
+    # -------------------------------------------------- W-07 condition bounds
+    def condition_bound(self, name: str) -> str | None:
+        """Resolve a visible_if bound name to its string value.
+        Unknown names raise (typos must fail loudly, never silently hide
+        an element)."""
+        if name.startswith("custom:"):
+            key = name[len("custom:"):]
+            if key not in self.custom_fields:
+                raise ValueError(f"visible_if references unknown custom field '{key}'")
+            return self.custom_fields[key]
+        if name.startswith("project:"):
+            key = name[len("project:"):]
+            if key != "name":
+                raise ValueError(f"visible_if references unknown project field '{key}'")
+            return self.project_name
+        if name == "check_no":
+            return self.check_no
+        if name == "gps_source":
+            if self.location_meta is None:
+                return None
+            return str(self.location_meta.get("source"))
+        if name == "gps_grade":
+            if self.location_meta is None:
+                return None
+            from techlab.location_meta import LocationMetadata
+            return LocationMetadata.model_validate(self.location_meta).grade().value
+        if name == "has_location":
+            return "true" if self.location_meta is not None else "false"
+        raise ValueError(f"visible_if references unknown bound '{name}'")
+
+
+def _evaluate_visible_if(expr: str, ctx: RenderingContext) -> bool:
+    """Evaluate 'bound==value' / 'bound!=value'. Both sides compared as
+    strings; a None bound only matches != (absence)."""
+    for op in ("!=", "=="):
+        if op in expr:
+            left, right = expr.split(op, 1)
+            left, right = left.strip(), right.strip()
+            actual = ctx.condition_bound(left)
+            if op == "==":
+                return (actual or "") == right
+            return (actual or "") != right
+    raise ValueError(f"visible_if must be 'bound==value' or 'bound!=value', got: {expr!r}")
 
 
 class RenderedLayout(BaseModel):
@@ -145,9 +203,14 @@ class RenderedLayout(BaseModel):
 def render_layout(template: WatermarkTemplate, ctx: RenderingContext) -> RenderedLayout:
     """Resolve every element to concrete text + geometry. Free TEXT is
     rendered verbatim; bound elements resolve from the context or fail
-    loudly (missing binding = render error, not blank output)."""
+    loudly (missing binding = render error, not blank output).
+    W-07: elements whose visible_if evaluates false are SKIPPED (they
+    are not placed); unknown condition bounds raise (never silently
+    hide anything)."""
     placements: list[dict[str, Any]] = []
     for el in template.elements:
+        if el.visible_if is not None and not _evaluate_visible_if(el.visible_if, ctx):
+            continue
         if el.type == ElementType.TEXT:
             if el.text is None:
                 raise ValueError(f"TEXT element missing text")

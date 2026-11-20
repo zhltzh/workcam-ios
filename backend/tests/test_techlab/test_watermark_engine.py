@@ -110,3 +110,82 @@ def test_apply_template_never_touches_original():
     assert derivative.recipe.engine == "watermark-v1"
     assert derivative.recipe.template_version == "1"
     assert layout.placements[0]["text"] == "Site A"
+
+
+# ---------------------------------------------------------------------------
+# W-07: custom fields + conditional visibility
+# ---------------------------------------------------------------------------
+
+
+def test_custom_field_renders_verbatim():
+    ctx = RenderingContext(custom_fields={"bridge_deck": "K12+300 上下游"})
+    tpl = _tpl([Element(type=ElementType.CUSTOM, anchor=Anchor.BOTTOM_LEFT,
+                        x=0, y=0, font_size=14, source="bridge_deck")])
+    layout = render_layout(tpl, ctx)
+    assert layout.placements[0]["text"] == "K12+300 上下游"
+    # honesty: custom fields are user data, engine adds no claim
+    assert "verified" not in layout.model_dump_json().lower()
+
+
+def test_custom_field_missing_binding_fails_loudly():
+    ctx = RenderingContext(custom_fields={})
+    tpl = _tpl([Element(type=ElementType.CUSTOM, anchor=Anchor.TOP_LEFT,
+                        x=0, y=0, font_size=12, source="not_there")])
+    with pytest.raises(ValueError, match="no binding"):
+        render_layout(tpl, ctx)
+
+
+def test_visible_if_skips_element_when_condition_false():
+    ctx = RenderingContext(custom_fields={"zone": "A"},
+                           project_name="Site A")
+    tpl = _tpl([
+        Element(type=ElementType.TEXT, anchor=Anchor.TOP_LEFT, x=0, y=0,
+                font_size=12, text="always on"),
+        Element(type=ElementType.TEXT, anchor=Anchor.BOTTOM_LEFT, x=0, y=0,
+                font_size=12, text="zone B only",
+                visible_if="custom:zone==B"),
+        Element(type=ElementType.TEXT, anchor=Anchor.BOTTOM_RIGHT, x=0, y=0,
+                font_size=12, text="zone A only",
+                visible_if="custom:zone==A"),
+    ])
+    layout = render_layout(tpl, ctx)
+    texts = [p["text"] for p in layout.placements]
+    assert "always on" in texts
+    assert "zone A only" in texts
+    assert "zone B only" not in texts      # skipped, not blank, not error
+
+
+def test_visible_if_gps_conditions():
+    manual_ctx = RenderingContext(location_meta=GPS_MANUAL)
+    gps_ctx = RenderingContext(location_meta=GPS_VERIFIED)
+
+    tpl = lambda cond: _tpl([
+        Element(type=ElementType.TEXT, anchor=Anchor.TOP_LEFT, x=0, y=0,
+                font_size=12, text="verified fix", visible_if=cond)
+    ])
+    # manual source -> 'verified fix' label must NOT render
+    assert render_layout(tpl("gps_source==gps"), manual_ctx).placements == []
+    # verified gps -> renders
+    assert render_layout(tpl("gps_source==gps"), gps_ctx).placements[0]["text"] == "verified fix"
+    # grade-based condition
+    assert render_layout(tpl("gps_grade==A"), gps_ctx).placements[0]["text"] == "verified fix"
+    assert render_layout(tpl("gps_grade==A"), manual_ctx).placements == []
+    # has_location
+    assert render_layout(tpl("has_location==true"), gps_ctx).placements != []
+    assert render_layout(tpl("has_location==true"), RenderingContext()).placements == []
+
+
+def test_visible_if_unknown_bound_raises():
+    ctx = RenderingContext()
+    tpl = _tpl([Element(type=ElementType.TEXT, anchor=Anchor.TOP_LEFT, x=0, y=0,
+                        font_size=12, text="x", visible_if="typo_bound==1")])
+    with pytest.raises(ValueError, match="unknown bound"):
+        render_layout(tpl, ctx)
+
+
+def test_visible_if_malformed_expression_raises():
+    ctx = RenderingContext()
+    tpl = _tpl([Element(type=ElementType.TEXT, anchor=Anchor.TOP_LEFT, x=0, y=0,
+                        font_size=12, text="x", visible_if="just-a-word")])
+    with pytest.raises(ValueError, match="bound==value"):
+        render_layout(tpl, ctx)
