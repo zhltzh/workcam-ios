@@ -2,32 +2,30 @@
 
 每项技术对应的交付物与**可执行证据**。更新状态时必须附测试命令与结果。
 
-图例：✅ 本轮已交付并测试；◐ 部分交付（真机在 Mac）；— 未开始；⏳ Wave 2+。
-
-| # | 状态 | 研究+资料 | PoC/不可行证明 | 自动化测试 | 性能/精度指标 | 真机验收 |
-|---|---|---|---|---|---|---|
-| T01 | RESEARCHED→POC_READY | ✅ ADR-0001 + W005-2 对照 | ✅ 密钥生命周期协议模型 | ✅ `test_techlab/test_key_lifecycle.py` | 协议行为级（真机指标待 Mac） | ⏳ 脚本待真机 |
-| T02 | POC_READY | ✅ risk-register T02 | ✅ `techlab/location_meta.py` | ✅ `test_techlab/test_location_meta.py` | ✅ 质量分级阈值表 | ⏳ Core Location 实测 |
-| T03 | POC_READY | ✅ W003 边界 + 本轮异常分类 | ✅ `techlab/time_integrity.py` | ✅ `test_techlab/test_time_integrity.py` | ✅ 8 类异常检出率表 | —（纯算法） |
-| T04 | RESEARCHED | ✅ ARKit 能力研究 | ◐ 实验方案（`experiments/t04-*.md`） | ◐ CSV 分析工具 `benchmarks/lidar_error_analysis.py`（带自测数据） | ⏳ 待真机原始数据 | ⏳ 全部 |
-| T05 | POC_READY | ✅ ADR-0002 | ✅ `techlab/derivative_model.py` | ✅ `test_techlab/test_derivative_model.py` | 防覆盖 100% 用例 | ⏳ 渲染待 Mac |
-| T06 | LIMITED | ✅ 现有原子写盘点 | — | ⏳ Wave 2 故障注入 | — | ⏳ |
-| T07–T12, T14 | NOT_STARTED | — | — | — | — | — |
-| T13 | RESEARCHED | ✅ 绑定方式盘点（W002-R3/W005） | ⏳ Wave 2 证据包格式 | — | — | — |
-| T15–T17 | NOT_STARTED | — | — | — | — | — |
-| T18 | LIMITED | ✅ 现有工具差距分析 | ⏳ Wave 2 离线 CLI | — | — | — |
-
-## 本轮新增测试的证据索引
-
 全部命令在仓库根执行（依赖 `backend/.venv`）：
 
 ```powershell
-Push-Location backend; .venv\Scripts\python.exe -m pytest tests\test_techlab -v; Pop-Location
-# 预期：test_techlab 全部通过（数量见当轮 Wave 报告）
-
 Push-Location backend; .venv\Scripts\python.exe -m pytest tests -q; Pop-Location
-# 预期：157（既有）+ techlab 新增全部通过，无回归
+# Wave 2 基线（本分支）: 139（main 既有）+ 102（techlab）= 241 passed
+# PR #7 合并后再加 18（W005 回归）
 ```
+
+图例：✅ 已交付并测试；◐ 部分交付（真机在 Mac）；— 未开始；⏳ 后续 Wave。
+
+| # | 状态 | 研究+资料 | PoC/不可行证明 | 自动化测试 | 性能/精度指标 | 真机验收 |
+|---|---|---|---|---|---|---|
+| T01 | POC_READY（协议层） | ✅ ADR-0001 | ✅ key_lifecycle | ✅ 4 测试 | 协议行为级 | ⏳ t01 脚本待 Mac |
+| T02 | POC_READY | ✅ risk T02 | ✅ location_meta | ✅ 8 | 质量分级阈值表 | ⏳ Core Location |
+| T03 | POC_READY | ✅ W003 边界 | ✅ time_integrity | ✅ 9 | 8 类异常检出表 | —（纯算法） |
+| T04 | POC_READY（工具链） | ✅ 实验方案修订 | ✅ 清单生成器+统计+验收 CLI | ✅ 21（W-02 13 + W-03 8） | 合成集结构断言（**零真机数据**） | ⏳ 132 条唯一 ID 待 Mac 实测 |
+| T05 | DESKTOP_VERIFIED | ✅ ADR-0002 | ✅ derivative_model（W-10 强化） | ✅ 13 | 伪造/篡改/断链 100% 拒绝 | ⏳ iOS 渲染 |
+| T06 | DESKTOP_VERIFIED | ✅ t06-fault-matrix.md | ✅ storage_integrity | ✅ 10 | F1-F8 全过；恢复零删除 | ⏳ iOS 断电对照 |
+| T09 | DESKTOP_VERIFIED | ✅ docstring 边界声明 | ✅ export_engine（含 DOCX/XLSX） | ✅ 9 | 100/500/1000 张：0.04/0.21/0.42s，峰值内存 ≤2.31MB | ⏳ iOS 编码 |
+| T10 | DESKTOP_VERIFIED | ✅ 诚实性规则 | ✅ watermark_engine | ✅ 14 | 防伪语义测试全过 | ⏳ CoreGraphics |
+| T11 | DESKTOP_VERIFIED | ✅ 桌面/iPhone 分离声明 | ✅ project_db | ✅ 11 | 10 万条基准（DESKTOP） | ⏳ iPhone 重测 |
+| T13 | DESKTOP_VERIFIED | ✅ W-08 设计 | ✅ evidence_package | ✅ 14 | 四类篡改+衍生图+历史密钥全检出 | —（完备） |
+| T18 | DESKTOP_VERIFIED（Win）/ macOS 待冒烟 | ✅ CLI README | ✅ evidence_verifier + anchor_verifier | ✅ 10（子进程端到端） | 字节级锚点对拍真实服务 | ⏳ macOS 冒烟 |
+| T07/T08/T12/T14/T15/T16/T17 | NOT_STARTED | — | — | — | — | — |
 
 ## 真机验收模板（iPhone 专属，随实验方案交付）
 
