@@ -5,6 +5,7 @@ import logging
 from fastapi import FastAPI
 
 from app.api.time_anchor import router as time_anchor_router
+from app.api.upload import router as upload_router
 from app.api.verify import router as verify_router
 
 logging.basicConfig(level=logging.INFO)
@@ -37,3 +38,4 @@ app = FastAPI(
 
 app.include_router(verify_router)
 app.include_router(time_anchor_router)
+app.include_router(upload_router)   # experimental prefix /upload/experimental
