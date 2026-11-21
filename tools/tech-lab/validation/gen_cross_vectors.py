@@ -30,6 +30,7 @@ from techlab.ar_persistence import (  # noqa: E402
     CameraPose,
     FocalUnits,
     Measurement3D,
+    convert_arkit_pose,
     project_world_to_pixel,
 )
 from techlab.drawing_pins import (  # noqa: E402
@@ -168,6 +169,49 @@ def _t08_vectors() -> list[dict]:
     return vectors
 
 
+def _arkit_conversion_vectors() -> list[dict]:
+    """P1 review: pin the ARKit(-z front) -> protocol(+z front)
+    conversion so Swift can reproduce it WITHOUT ambiguity:
+
+      R_protocol = M180x @ R_arkit^T
+      t_protocol = -R_protocol @ t_arkit
+      quaternion closed form: q_p = (x=w_a, y=z_a, z=-y_a, w=x_a)
+
+    Each case gives the RAW ARKit inputs and the expected protocol
+    pose, plus a world point + expected_uv so the Mac client can run
+    the WHOLE chain (convert -> project) and compare."""
+    pixels = CameraIntrinsics(fx=2000.0, fy=2000.0, cx=1920.0, cy=1080.0,
+                              image_width=3840, image_height=2160,
+                              units=FocalUnits.PIXELS)
+    cases: list[dict] = []
+    for name, pos, quat, world_pt in (
+        ("arkit_identity_looks_minus_z", (0.0, 0.0, 0.0),
+         (0.0, 0.0, 0.0, 1.0), (0.0, 0.0, -4.0)),
+        ("arkit_yaw45_translated", (0.4, -0.2, 1.0),
+         (0.0, math.sin(math.pi / 8), 0.0, math.cos(math.pi / 8)),
+         (2.0, 0.5, -3.0)),
+        ("arkit_pitch30", (0.0, 0.1, 0.5),
+         (math.sin(math.pi / 12), 0.0, 0.0, math.cos(math.pi / 12)),
+         (1.0, 2.0, -5.0)),
+    ):
+        pose = convert_arkit_pose(pos, quat)
+        record = ARFrameRecord(photo_id="vec", session_id="vec-session",
+                               intrinsics=pixels, pose=pose)
+        m = Measurement3D(x=world_pt[0], y=world_pt[1], z=world_pt[2])
+        u, v = project_world_to_pixel(record, m)
+        cases.append({
+            "case": name,
+            "arkit_position": list(pos),
+            "arkit_quaternion_xyzw": list(quat),
+            "expected_pose": {"tx": pose.tx, "ty": pose.ty, "tz": pose.tz,
+                              "qx": pose.qx, "qy": pose.qy,
+                              "qz": pose.qz, "qw": pose.qw},
+            "probe_world_point": list(world_pt),
+            "expected_uv": [round(u, 9), round(v, 9)],
+        })
+    return cases
+
+
 def _schemas() -> dict:
     """JSON Schemas of the cross-platform record formats (Mac consumes
     these to generate matching Swift Codable structs)."""
@@ -205,6 +249,13 @@ def main() -> int:
                        "either negate z consistently or sign-flip the "
                        "pose; the vectors pin whichever convention the "
                        "record declares). Behind-camera = zc <= 0.",
+        "arkit_conversion": {
+            "_usage": "raw ARKit inputs -> expected protocol pose via "
+                      "R_p = M180x @ R_a^T, t_p = -R_p @ t_a, "
+                      "q_p = (x=w_a, y=z_a, z=-y_a, w=x_a); then "
+                      "probe_world_point must project to expected_uv",
+            "cases": _arkit_conversion_vectors(),
+        },
         "cases": _t08_vectors(),
     }
     schemas = _schemas()

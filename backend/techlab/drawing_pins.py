@@ -71,7 +71,18 @@ class SheetCalibration(BaseModel):
         """Least-squares-free exact solve via 2 independent triangle
         fits; residual = mismatch between the two fits, in world units
         (meters). Raises CalibrationError when degenerate or the two
-        triangles disagree beyond max_residual_m."""
+        triangles disagree beyond max_residual_m.
+
+        P1 review: non-finite (NaN/inf) coordinates are REFUSED here -
+        SheetPoint/WorldPoint are plain dataclasses, so the fit is the
+        single enforcement point."""
+        import math as _math
+        for pr in self.pairs:
+            for v in (pr.sheet.x, pr.sheet.y, pr.world.x, pr.world.y):
+                if not _math.isfinite(v):
+                    raise CalibrationError(
+                        f"non-finite coordinate ({v}) in calibration "
+                        f"points - refused")
         p = self.pairs
         if len(p) < 3:
             raise CalibrationError("at least 3 calibration points required")

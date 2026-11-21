@@ -64,6 +64,7 @@ def site(tmp_path, monkeypatch):
     """One synthetic 'site' with everything a capture produces."""
     import app.api.upload as up_mod
     monkeypatch.setenv("WORKCAM_UPLOAD_DIR", str(tmp_path / "uploads"))
+    monkeypatch.setenv("WORKCAM_UPLOAD_EXPERIMENTAL", "1")
     monkeypatch.setattr(up_mod, "_STORAGE_ROOT", tmp_path / "uploads")
     return type("Site", (), {"root": tmp_path})()
 
@@ -75,8 +76,10 @@ def test_full_chain_synthetic(site):
     # -------------------------------------------------- 1. capture input
     key = ec.generate_private_key(ec.SECP256R1())          # TEST key
     pub = _encode_pub(key.public_key())
+    # ~1.17 MiB photo: realistic evidence size AND guarantees the export
+    # zip splits into MANY upload chunks (P0: real multi-chunk resume)
     photo_bytes = (b"SYNTHETIC-WORKCAM-PHOTO\x00" +
-                   bytes(range(256)) * 16)                  # ~4 KiB
+                   bytes(range(256)) * 4800)
     location = LocationMetadata(
         source=LocationSource.GPS, latitude=39.9001, longitude=116.4001,
         horizontal_accuracy=4.0)
@@ -196,39 +199,81 @@ def test_full_chain_synthetic(site):
     assert report["overall"] is True
     log.append("offline-verify: CLI exit 0, package overall=true")
 
-    # ------------------------------------------- 8. upload with drop+resume (T12)
+    # ------------------------------------------- 8. upload: real multi-chunk
+    #                drop / restart / resume / idempotent / byte-verify
+    # (P0 review fix: the previous single-chunk demo produced
+    #  'dropped 0' - meaningless. This run REQUIRES >= 3 chunks.)
     data = zip_target.read_bytes()
     total_sha = hashlib.sha256(data).hexdigest()
+    CHUNK = 256 * 1024
+    chunks = [data[i:i + CHUNK] for i in range(0, len(data), CHUNK)]
+    n_chunks = len(chunks)
+    assert n_chunks >= 3, (f"export too small for the multi-chunk "
+                           f"acceptance: {n_chunks} chunks")
+
+    # 8.1 upload ONLY chunks 1 and 3 (indexes 0 and 2)
     r = client.post("/upload/experimental/batches",
-                    json={"total_bytes": len(data),
-                          "chunk_size": 256 * 1024,
+                    json={"total_bytes": len(data), "chunk_size": CHUNK,
                           "total_sha256": total_sha})
     assert r.status_code == 200
     bid = r.json()["batch_id"]
-
-    chunks = [data[i:i + 256 * 1024] for i in range(0, len(data), 256 * 1024)]
-    drop = len(chunks) - 1                      # drop the last chunk
-    for i, c in enumerate(chunks):
-        if i == drop:
-            continue
-        rr = client.put(f"/upload/experimental/batches/{bid}/chunks/{i}",
-                        content=c,
-                        headers={"Content-Length": str(len(c))})
+    for idx in (0, 2):
+        rr = client.put(f"/upload/experimental/batches/{bid}/chunks/{idx}",
+                        content=chunks[idx],
+                        headers={"Content-Length": str(len(chunks[idx]))})
         assert rr.status_code == 200, rr.text
-    st = client.get(f"/upload/experimental/batches/{bid}").json()
-    assert st["missing"] == [drop]
 
-    # 'server restart' before resume: a fresh client against the same disk
+    # 8.2 simulate the network going down mid-batch: stop sending NOW
+    dropped = [i for i in range(n_chunks) if i not in (0, 2)]
+    assert len(dropped) > 0
+    log.append(f"upload: {n_chunks} chunks planned; sent #1,#3; "
+                f"network down - dropped {len(dropped)}")
+
+    # 8.3 'server restart': a fresh process/client; ALL state lives on
+    # disk (the in-memory module keeps only the storage path)
     client2 = TestClient(app)
-    rr = client2.put(f"/upload/experimental/batches/{bid}/chunks/{drop}",
-                     content=chunks[drop],
-                     headers={"Content-Length": str(len(chunks[drop]))})
-    assert rr.status_code == 200
+
+    # 8.4 ask the restarted server what is missing
+    st = client2.get(f"/upload/experimental/batches/{bid}").json()
+    assert st["missing"] == dropped
+
+    # 8.5 resume: upload ONLY the missing chunks
+    for idx in st["missing"]:
+        rr = client2.put(f"/upload/experimental/batches/{bid}/chunks/{idx}",
+                         content=chunks[idx],
+                         headers={"Content-Length": str(len(chunks[idx]))})
+        assert rr.status_code == 200, rr.text
+    resumed = len(st["missing"])
+    assert resumed > 0
+    log.append(f"upload: after restart, resumed {resumed} chunks from "
+                f"server status")
+
+    # 8.6 duplicate delivery of an already-stored chunk: idempotent
+    dup = client2.put(f"/upload/experimental/batches/{bid}/chunks/0",
+                      content=chunks[0],
+                      headers={"Content-Length": str(len(chunks[0]))})
+    assert dup.status_code == 200
+    assert dup.json()["status"] == "duplicate_acked"
+    log.append("upload: re-sent stored chunk #1 -> duplicate_acked "
+                "(idempotent)")
+
+    # 8.7 whole-batch SHA-256 verification (server-recomputed)
     comp = client2.post(f"/upload/experimental/batches/{bid}/complete")
     assert comp.status_code == 200, comp.text
     assert comp.json()["total_sha256"] == total_sha
-    log.append(f"upload: {len(chunks)} chunks, dropped {drop}, resumed "
-                f"after restart, server hash == local hash")
+    log.append(f"upload: complete, server sha256 {total_sha[:12]}... == local")
+
+    # 8.8 byte-for-byte verification: stream the assembled file back and
+    # compare against the local export - hashes can collide by design
+    # only at 2^-256; BYTES are the acceptance
+    dl = client2.get(f"/upload/experimental/batches/{bid}/content")
+    assert dl.status_code == 200, dl.text
+    downloaded = b"".join(dl.iter_bytes())
+    assert downloaded == data, ("server-assembled bytes differ from the "
+                               "local export!")
+    assert hashlib.sha256(downloaded).hexdigest() == total_sha
+    log.append(f"upload: streamed back {len(downloaded)} B - "
+                f"byte-identical to local zip ({n_chunks} chunks)")
 
     # ------------------------------------------------------- chain summary
     print("\n[CHAIN] full business chain (SYNTHETIC):")

@@ -99,3 +99,37 @@ def test_t08_vectors_pin_declared_units():
             assert case["intrinsics"].get("units") in ("pixels", "mm_35mm_eq"), (
                 f"case {case['case']}: units not declared - heuristic "
                 f"regression")
+
+
+def test_arkit_conversion_vectors_replay():
+    """P1: every arkit_conversion vector replays exactly: convert the
+    raw ARKit inputs with convert_arkit_pose, compare the protocol pose
+    bit-for-bit, then project the probe point and compare uv to 1e-6.
+    The Swift client must reproduce these from the SAME json."""
+    from techlab.ar_persistence import (
+        ARFrameRecord,
+        Measurement3D,
+        convert_arkit_pose,
+        project_world_to_pixel,
+    )
+
+    data = _load("t08-projection-vectors.json")
+    conv = data["arkit_conversion"]
+    for case in conv["cases"]:
+        pose = convert_arkit_pose(case["arkit_position"],
+                                  case["arkit_quaternion_xyzw"])
+        exp = case["expected_pose"]
+        assert (pose.tx, pose.ty, pose.tz) == \
+            pytest.approx((exp["tx"], exp["ty"], exp["tz"]), abs=1e-12)
+        assert (pose.qx, pose.qy, pose.qz, pose.qw) == \
+            pytest.approx((exp["qx"], exp["qy"], exp["qz"], exp["qw"]),
+                           abs=1e-12)
+        pixels = CameraIntrinsics(fx=2000.0, fy=2000.0, cx=1920.0, cy=1080.0,
+                                  image_width=3840, image_height=2160,
+                                  units=FocalUnits.PIXELS)
+        record = ARFrameRecord(photo_id="vec", session_id="vec",
+                               intrinsics=pixels, pose=pose)
+        pt = case["probe_world_point"]
+        u, v = project_world_to_pixel(
+            record, Measurement3D(x=pt[0], y=pt[1], z=pt[2]))
+        assert (u, v) == pytest.approx(case["expected_uv"], abs=1e-6)

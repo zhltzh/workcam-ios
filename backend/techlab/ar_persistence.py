@@ -151,6 +151,41 @@ class ARFrameRecord(BaseModel):
         return self
 
 
+def convert_arkit_pose(position, quaternion) -> "CameraPose":
+    """Convert an ARKit-native camera transform into THIS protocol's
+    convention. Cross-platform contract (pinned by the
+    'arkit_conversion' vectors in t08-projection-vectors.json):
+
+      R_protocol = M180x @ R_arkit^T
+      t_protocol = -R_protocol @ t_arkit
+
+    where M180x = diag(1, -1, -1) (a 180-deg rotation about X) maps
+    ARKit's camera frame (z points BACK, -z is look direction) onto
+    ours (z points FORWARD), keeping a right-handed system (no mirror).
+
+    Quaternion closed form (Hamilton product q_180x (x)a* with
+    q_180x = (1,0,0, 0)):
+      q_protocol = (x=w_a, y=z_a, z=-y_a, w=x_a)
+
+    Args:
+      position: ARKit transform translation (x, y, z)
+      quaternion: ARKit rotation as (x, y, z, w) - the CAMERA->WORLD
+                 orientation, as simd_quaternionf(transform) gives.
+    """
+    ax, ay, az, aw = quaternion
+    # closed form above
+    fx, fy, fz, fw = aw, az, -ay, ax
+    pose = CameraPose(tx=0.0, ty=0.0, tz=0.0,
+                      qx=fx, qy=fy, qz=fz, qw=fw)
+    # t_protocol = -R_protocol @ t_arkit
+    R = _quat_rotation_matrix(pose)
+    tx, ty, tz = position
+    px = -(R[0][0] * tx + R[0][1] * ty + R[0][2] * tz)
+    py = -(R[1][0] * tx + R[1][1] * ty + R[1][2] * tz)
+    pz = -(R[2][0] * tx + R[2][1] * ty + R[2][2] * tz)
+    return pose.model_copy(update={"tx": px, "ty": py, "tz": pz})
+
+
 def _quat_rotation_matrix(pose: CameraPose) -> list[list[float]]:
     """Rotation matrix from quaternion (column-vector convention:
     p_camera = R @ p_world + t)."""

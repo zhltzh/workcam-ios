@@ -74,16 +74,22 @@ def _bid_path(batch_id: str) -> Path:
 
 
 def _sweep_expired() -> None:
-    """Best-effort GC of expired batches (callers tolerate partial runs)."""
+    """Best-effort GC: expired batches AND orphaned .part temporaries
+    from interrupted uploads (P1 review: killed PUTs used to leave
+    unbounded garbage)."""
     if not _STORAGE_ROOT.exists():
         return
     deadline = time.time() - BATCH_TTL_HOURS * 3600
-    batches = [p for p in _STORAGE_ROOT.iterdir() if p.is_dir()]
-    if len(batches) <= MAX_ACTIVE_BATCHES:
-        # still remove clearly-expired ones
-        pass
-    for p in batches:
+    for p in _STORAGE_ROOT.iterdir():
         try:
+            if p.is_file() and p.name.endswith(".part"):
+                # stray temp file OUTSIDE any batch dir (legacy layout) or
+                # inside one - clean expired ones
+                if time.time() - p.stat().st_mtime > 3600:
+                    p.unlink(missing_ok=True)
+                continue
+            if not p.is_dir():
+                continue
             meta = p / "manifest.json"
             if not meta.exists():
                 if time.time() - p.stat().st_mtime > BATCH_TTL_HOURS * 3600:
@@ -108,9 +114,20 @@ def _active_count() -> int:
 
 
 def _require_not_production() -> None:
+    """Dual gate (P1 security review):
+    1. EXPLICIT OPT-IN: the experimental endpoints stay disabled unless
+       WORKCAM_UPLOAD_EXPERIMENTAL=1 is set. A production deployment that
+       merely forgets WORKCAM_ENV can no longer expose them by accident.
+    2. HARD production veto: WORKCAM_ENV=production disables them even
+       when the opt-in variable is set."""
     if os.environ.get("WORKCAM_ENV") == "production":
         raise HTTPException(503, "upload endpoints are experimental and "
                                  "disabled in production")
+    if os.environ.get("WORKCAM_UPLOAD_EXPERIMENTAL") != "1":
+        raise HTTPException(503, "experimental upload endpoints are "
+                                 "opt-in only: set "
+                                 "WORKCAM_UPLOAD_EXPERIMENTAL=1 "
+                                 "(never in production)")
 
 
 # ------------------------------------------------------------------ routes
@@ -172,9 +189,11 @@ async def put_chunk(batch_id: str, index: int, request: Request,
         raise HTTPException(400, f"declared {content_length} bytes but the "
                                  f"plan requires exactly {spec['size']}")
 
-    # stream to a temp file FIRST, hash while streaming, ack only after
-    # the bytes are durable and the total plan size still holds
-    tmp = batch_dir / f".chunk_{index}.part"
+    # stream to a UNIQUE temp file FIRST (P1 review: the fixed name
+    # `.chunk_{index}.part` let concurrent PUTs of the same index corrupt
+    # each other's bytes), hash while streaming, ack only after the
+    # bytes are durable and the total plan size still holds
+    tmp = batch_dir / f".chunk_{index}.{secrets.token_hex(8)}.part"
     received = 0
     hasher = hashlib.sha256()
     with open(tmp, "wb") as f:
@@ -272,3 +291,29 @@ async def complete_batch(batch_id: str):
     return {"batch_id": batch_id, "status": "complete",
             "total_sha256": manifest.total_sha256,
             "bytes": total, "experimental": True}
+
+
+@router.get("/batches/{batch_id}/content")
+async def batch_content(batch_id: str):
+    """Stream the assembled file back (byte-level verification for the
+    client). Only available after COMPLETE; production-disabled like
+    every other route here."""
+    _require_not_production()
+    batch_dir = _bid_path(batch_id)
+    if not (batch_dir / "manifest.json").exists():
+        raise HTTPException(404, "unknown batch")
+    if not (batch_dir / "COMPLETE").exists():
+        raise HTTPException(409, "batch not completed yet")
+    out_path = batch_dir / "assembled.bin"
+    if not out_path.exists():
+        raise HTTPException(500, "COMPLETE marker exists but assembled "
+                                 "file is missing")
+
+    async def _stream():
+        with open(out_path, "rb") as f:
+            while block := f.read(256 * 1024):
+                yield block
+
+    from fastapi.responses import StreamingResponse
+    return StreamingResponse(_stream(),
+                             media_type="application/octet-stream")

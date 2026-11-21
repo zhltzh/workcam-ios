@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import time
 from pathlib import Path
 
 import pytest
@@ -23,8 +24,10 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def isolated_upload_dir(tmp_path, monkeypatch):
-    """Each test gets its own storage root; 'restart' = new env value."""
+    """Each test gets its own storage root + the opt-in flag; 'restart'
+    semantics = state read from disk again."""
     monkeypatch.setenv("WORKCAM_UPLOAD_DIR", str(tmp_path / "uploads"))
+    monkeypatch.setenv("WORKCAM_UPLOAD_EXPERIMENTAL", "1")
     # import-time binding workaround: the module reads the env lazily via
     # helper, but _STORAGE_ROOT was captured at import. Re-import trick:
     import app.api.upload as up
@@ -214,3 +217,67 @@ def test_limits_enforced():
     # chunk size cap (body-model validation -> 422)
     r = _register(10 * 1024 * 1024, 5 * 1024 * 1024)
     assert r.status_code == 422
+
+
+# ------------------------------------------------- P1 security review tests
+
+
+def test_opt_in_disabled_by_default(monkeypatch):
+    """P1: the endpoints must NOT be reachable unless explicitly opted
+    in. A production deployment that forgot WORKCAM_ENV must not
+    expose them by accident."""
+    monkeypatch.delenv("WORKCAM_UPLOAD_EXPERIMENTAL", raising=False)
+    monkeypatch.delenv("WORKCAM_ENV", raising=False)
+    r = client.post("/upload/experimental/batches",
+                    json={"total_bytes": 100, "chunk_size": 50,
+                          "total_sha256": "ab" * 32})
+    assert r.status_code == 503
+    assert "opt-in" in r.json()["detail"]
+
+
+def test_production_veto_beats_opt_in(monkeypatch):
+    """Even WITH the opt-in flag, production hard-disables."""
+    monkeypatch.setenv("WORKCAM_UPLOAD_EXPERIMENTAL", "1")
+    monkeypatch.setenv("WORKCAM_ENV", "production")
+    r = client.post("/upload/experimental/batches",
+                    json={"total_bytes": 100, "chunk_size": 50,
+                          "total_sha256": "ab" * 32})
+    assert r.status_code == 503
+    assert "production" in r.json()["detail"]
+    monkeypatch.delenv("WORKCAM_ENV")
+
+
+def test_orphan_part_swept(isolated_upload_dir):
+    """A killed PUT leaves a .part behind; the next register() sweep
+    removes expired ones (resource cleanup, P1)."""
+    isolated_upload_dir.mkdir(parents=True, exist_ok=True)
+    orphan = isolated_upload_dir / ".chunk_0.deadbeefcafe1234.part"
+    orphan.write_bytes(b"INTERRUPTED")
+    # force it to look expired for the sweeper
+    import os as _os
+    old = time.time() - 7200
+    _os.utime(orphan, (old, old))
+
+    _register(100, 50)                     # register triggers _sweep
+    assert not orphan.exists()
+
+
+def test_stale_part_does_not_block_correct_upload(isolated_upload_dir):
+    """A leftover .part from a crashed PUT must never interfere with a
+    subsequent correct upload of the same chunk (unique temp names)."""
+    data = b"S" * 200
+    bid = _register_with_plan(data, 100).json()["batch_id"]
+    # simulate a killed upload of chunk 0 (temp file left mid-write)
+    import secrets as _secrets
+    stale = isolated_upload_dir / bid / f".chunk_0.{_secrets.token_hex(8)}.part"
+    stale.parent.mkdir(parents=True, exist_ok=True)
+    stale.write_bytes(b"PARTIAL GARBAGE FROM KILLED PUT")
+
+    r = _chunk_put(bid, 0, data[:100])
+    assert r.status_code == 200            # correct upload unaffected
+    _chunk_put(bid, 1, data[100:])
+    assert _complete(bid).status_code == 200
+    # the server-assembled bytes are exactly the payload
+    dl = client.get(f"/upload/experimental/batches/{bid}/content")
+    assert dl.status_code == 200
+    assert b"".join(dl.iter_bytes()) == data

@@ -82,6 +82,39 @@ def test_collinear_calibration_rejected():
         ]).fit()
 
 
+def test_duplicate_calibration_point_rejected():
+    """P1 degenerate-case review: two IDENTICAL sheet points make the
+    triangle degenerate - must be refused, never produce a garbage fit."""
+    from techlab.drawing_pins import SheetCalibration
+    with pytest.raises(CalibrationError, match="collinear"):
+        SheetCalibration(pairs=[
+            CalibrationPair(sheet=SheetPoint(100, 100), world=WorldPoint(0, 0)),
+            CalibrationPair(sheet=SheetPoint(100, 100), world=WorldPoint(1, 1)),
+            CalibrationPair(sheet=SheetPoint(300, 100), world=WorldPoint(2, 0)),
+        ]).fit()
+
+
+def test_nonfinite_calibration_coordinates_rejected():
+    """P1: NaN/Infinity in calibration points must never produce a fit.
+    SheetPoint/WorldPoint are plain dataclasses (no field validation),
+    so the ENFORCEMENT POINT is SheetCalibration.fit()."""
+    from techlab.drawing_pins import SheetCalibration, SheetPoint, WorldPoint
+    with pytest.raises(CalibrationError, match="non-finite"):
+        SheetCalibration(pairs=[
+            CalibrationPair(sheet=SheetPoint(0, 0), world=WorldPoint(0, 0)),
+            CalibrationPair(sheet=SheetPoint(100, 0), world=WorldPoint(1, 0)),
+            CalibrationPair(sheet=SheetPoint(float("nan"), 100),
+                            world=WorldPoint(0, 1)),
+        ]).fit()
+    with pytest.raises(CalibrationError, match="non-finite"):
+        SheetCalibration(pairs=[
+            CalibrationPair(sheet=SheetPoint(0, 0), world=WorldPoint(0, 0)),
+            CalibrationPair(sheet=SheetPoint(100, 0), world=WorldPoint(1, 0)),
+            CalibrationPair(sheet=SheetPoint(0, 100),
+                            world=WorldPoint(float("inf"), 1)),
+        ]).fit()
+
+
 def test_pin_targets_sheet_revision():
     sheet = _sheet()
     pin = PhotoPin(photo_id="p1", sheet_rev=sheet.pdf_content_hash[:12],
@@ -255,6 +288,69 @@ def test_same_session_merge_allowed():
     merged = merge_cross_session(a, b)
     assert len(merged.measurements) == 1
     assert verify_record_projection(merged) == []
+
+
+# --------------------------------------------- P1: ARKit conversion rules
+
+
+def test_arkit_conversion_matches_matrix_identity():
+    """P1: q_protocol = (x=w_a, y=z_a, z=-y_a, w=x_a) must satisfy
+    R(q_protocol) == M180x @ R_arkit^T for a batch of fixed quaternions.
+    This IS the convention contract; Swift must reproduce it."""
+    import random
+
+    from techlab.ar_persistence import _quat_rotation_matrix, convert_arkit_pose
+    rng = random.Random(20261120)
+    for _ in range(25):
+        # random unit quaternions (ARKit camera->world orientations)
+        q = [rng.uniform(-1, 1) for _ in range(4)]
+        n = math.sqrt(sum(v * v for v in q)) or 1.0
+        qx, qy, qz, qw = [v / n for v in q]
+        pose = convert_arkit_pose((0.5, -0.25, 1.0), (qx, qy, qz, qw))
+        R_p = _quat_rotation_matrix(pose)
+        # R_arkit from the SAME convention used in _quat_rotation_matrix
+        R_a = _quat_rotation_matrix(CameraPose(tx=0, ty=0, tz=0,
+                                               qx=qx, qy=qy, qz=qz, qw=qw))
+        # M180x @ R_a^T   (transpose EXPLICITLY - this test once forgot
+        # it and 'failed' a correct implementation; keep the lesson)
+        M180x = [[1, 0, 0], [0, -1, 0], [0, 0, -1]]
+        R_a_T = [[R_a[j][i] for j in range(3)] for i in range(3)]
+        expected = [[sum(M180x[i][k] * R_a_T[k][j] for k in range(3))
+                     for j in range(3)] for i in range(3)]
+        for i in range(3):
+            for j in range(3):
+                assert R_p[i][j] == pytest.approx(expected[i][j], abs=1e-9)
+
+
+def test_arkit_identity_looks_at_plus_z():
+    """Semantic anchor: an ARKit camera at origin with identity rotation
+    looks down -z_world. After conversion, a world point at -z must
+    project CENTERED (in front, z>0) - i.e. the protocol treats it as
+    'ahead 4m'."""
+    from techlab.ar_persistence import convert_arkit_pose
+    pose = convert_arkit_pose((0.0, 0.0, 0.0), (0.0, 0.0, 0.0, 1.0))
+    record = ARFrameRecord(photo_id="ph", session_id="s",
+                           intrinsics=_intrinsics(), pose=pose)
+    u, v = project_world_to_pixel(record, Measurement3D(x=0, y=0, z=-4.0))
+    assert u == pytest.approx(1920.0)      # centered horizontally
+    assert v == pytest.approx(1080.0)      # centered vertically
+    # and a point at +z (BEHIND the ARKit camera) must now be rejected
+    with pytest.raises(ARExperimentError):
+        project_world_to_pixel(record, Measurement3D(x=0, y=0, z=4.0))
+
+
+def test_arkit_conversion_translation_closed_form():
+    """t_protocol = -R_protocol @ t_arkit (pinned numerically)."""
+    from techlab.ar_persistence import _quat_rotation_matrix, convert_arkit_pose
+    t_arkit = (0.4, -0.2, 1.0)
+    q = (0.0, math.sin(math.pi / 8), 0.0, math.cos(math.pi / 8))  # yaw 45deg
+    pose = convert_arkit_pose(t_arkit, q)
+    R_p = _quat_rotation_matrix(pose)
+    px = -(R_p[0][0] * t_arkit[0] + R_p[0][1] * t_arkit[1] + R_p[0][2] * t_arkit[2])
+    py = -(R_p[1][0] * t_arkit[0] + R_p[1][1] * t_arkit[1] + R_p[1][2] * t_arkit[2])
+    pz = -(R_p[2][0] * t_arkit[0] + R_p[2][1] * t_arkit[1] + R_p[2][2] * t_arkit[2])
+    assert (pose.tx, pose.ty, pose.tz) == pytest.approx((px, py, pz), abs=1e-12)
+
 
 
 # ---------------------------------------------------------------------- T12
