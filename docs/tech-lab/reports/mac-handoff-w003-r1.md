@@ -1,10 +1,13 @@
 # WorkCam Windows → Mac 交接文档（Codex 可直接执行）
 
-日期：2026-11-21 · Windows 侧负责人签署 · 适用于 WC-W-TECH-003-R1 后的联调
+日期：2026-11-21（WC-W-TECH-004 封版更新至 Wave 4） · Windows 侧负责人签署 · 适用于 WC-W-TECH-003-R1 后的联调
 
 本文件是 Mac 端开始任何联调前的**唯一入口**。按顺序执行；所有命令已
-在 Windows 侧实际运行过，Windows 侧全量 **337 passed / 0 failed**
+在 Windows 侧实际运行过，Windows 侧全量 **358 passed / 0 failed**
 （提交见下）。本文件不含任何 iPhone 真机结论——真机数据由 Mac 产出。
+
+Windows 18 项技术攻坚**阶段封版**：不再主动扩张技术范围；后续 Windows
+工作以 Mac 真机发现的问题为优先（联调待命状态）。
 
 ---
 
@@ -14,12 +17,13 @@
 |---|---|
 | 仓库 | https://github.com/zhltzh/workcam-ios |
 | 先合并 PR #8 | `dev/windows-tech-lab` → `main`（Wave 0+1，head `5a57c6a`） |
-| 再合并 PR #10 | `dev/windows-tech-lab-wave2` → base `dev/windows-tech-lab`（Wave 2+3，R1/R2/W003/R1 全部包含） |
-| 交接基线 commit | **`4bb0a43`**（W003 集成）→ 本轮 R1 追加提交（见 PR #10 最新 head） |
+| 再合并 PR #10 | `dev/windows-tech-lab-wave2` → base `dev/windows-tech-lab`（Wave 2+3+4 全部包含） |
+| 交接基线 commit | **`4ee8620`**（Wave 4 + 最终总报告；`git log origin/dev/windows-tech-lab-wave2 -1`） |
 | Mac 分支 | 在你自己的 `dev/mac-*` 分支工作；**不得**提交到上述 Windows 分支 |
 
-依赖关系：PR #10 完整包含 PR #8（已验证 `merge-base --is-ancestor`），
-合并顺序必须 **#8 先、#10 后**，#10 的 diff 才是纯增量。
+依赖关系（已验证 `merge-base --is-ancestor`）：PR #10 完整包含 PR #8，
+合并顺序必须 **#8 先、#10 后**；#10 相对 #8 的 diff 为纯增量（GitHub
+mergeable=True/clean，无冲突）。PR #7 与 PR #10 **零文件交集**。
 
 ## 1. T07/T08：JSON Schema 与测试向量（先对拍，再写代码）
 
@@ -114,35 +118,77 @@ Windows 已用 SYNTHETIC 数据一次跑通（`backend/tests/test_techlab/test_f
 | T07/T08 向量对拍 | Swift 实现的 M/t 与 (u,v) 输出 vs 向量期望值的逐例 diff（全过截图/日志） |
 | T08 真机投影 | 一帧 ARKit transform + intrinsics 原始值 + 屏幕标注的 (u,v)，离线用 Python 重算对比 |
 | 链路复现 | 8 阶段每阶段的产物路径 + 最终 `GET content` 字节比对结果 |
+| T15 模型评测 | 候选 Core ML 模型 + 真实裂缝照片测试集；与 Windows 经典基线（`techlab/defect_detection.py`，合成 recall 0.76）同指标对比的完整数字 |
+| T16 识别实测 | on-device 转写输出 + 现场音频样本（噪声/口音/术语各至少一组）；输入 Windows 溯源协议跑全链审计 |
+| T17 真实照片对 | 同机位不同时期照片对（含视角变化样本）；vImage 配准结果回传，对照 `techlab/change_detection.py` 行为合同 |
 
 红线：**不得**把桌面数字当 iPhone 数字；**不得**删除失败样本；
 **不得**在无真机结果时把状态改出 DEVICE_PENDING。
 
-## 6. 尚未解决的限制（如实）
+## 6. 尚未解决的问题（封版清单，按归属划分）
 
-1. **零真机数据**：T01/T04 全部、T08 ARKit 序列化、链路真机复现均待 Mac
-2. T12 无鉴权（实验端点；opt-in + 生产禁用双门，仍仅限可信网络）
-3. T14 仅断言映射桥接，**非** C2PA 合规（差异表：`t14-c2pa-diff.md`）
-4. T07 图纸修订自动迁移（文本锚点）是 v2 研究项，未承诺
-5. DOCX/XLSX 显示尺寸固定 320×240（真 JPEG 尺寸解析留给 iOS ImageIO）
-6. Office 实测仅到 Office 2007（本机版本），365/WPS 未验证
-7. T12 客户端重试节奏（退避）未规定——协议只锁语义
-8. PR #7（W005）合并前，main 上少 18 项 W005 回归测试（techlab 侧
+### 6a. Windows 可解决（联调中发现问题时随时修复）
+
+1. T12 实验端点鉴权层（若联调需要跨网络部署——当前 opt-in +
+   生产否决双门下仅限可信网络，已按第 5 节复验）
+2. PR #7（W005）合并前 main 上少 18 项 W005 回归测试（techlab 侧
    不受影响；合并后总数自然归一）
+3. 文档/协议措辞微调、Mac 对拍发现的向量偏差修正
 
-## 7. 快速命令速查（Mac 侧）
+### 6b. 必须依赖 iPhone / Mac（Windows 无法代做）
+
+1. **零真机数据**：T01 SE 密钥生命周期、T04 LiDAR 132 条清单全部
+   实测、T08 ARKit 位姿序列化、T09 iOS 编码渲染、T10 CoreGraphics
+   渲染一致性、T11 iPhone SQLite 数字重测、T18 macOS 一次冒烟、
+   八阶段链路真机复现
+2. **Wave 4 真机项**：T15 Core ML 模型选型 + 真实裂缝照片评测
+   （Windows 只给了合成基准与经典基线，模型必须击败基线才算有效）；
+   T16 on-device 语音识别实测（工地噪声/口音/术语）；T17 vImage/
+   Accelerate 配准 + 真实照片对（视角变化）
+3. **产品决策类**：T14 C2PA 证书账户注册（外部账号依赖）
+
+### 6c. 如实声明的边界（非问题，写入协议/报告，不可"修复"掉）
+
+1. T14 桥接**非** C2PA 标准合规（十项差异表：`t14-c2pa-diff.md`）
+2. T07 图纸修订自动迁移（文本锚点）是 v2 研究项，未承诺
+3. DOCX/XLSX 显示尺寸固定 320×240（真 JPEG 尺寸解析留给 iOS ImageIO）
+4. Office 实测仅到 Office 2007（本机版本），365/WPS 未验证不外推
+5. T12 客户端重试节奏（退避）未规定——协议只锁语义
+6. T17 仅平移配准（视角/尺度是**已声明**盲区，随每份报告输出）
+7. Wave 4 全部为合成数据（SYNTHETIC 标注），桌面数字不外推 iPhone
+
+## 7. T12 端点安全（第 5 节要求，封版复验）
+
+实验上传端点 `/upload/experimental` 的暴露控制（全部有测试钉死，
+封版复验通过：`test_opt_in_disabled_by_default` /
+`test_production_veto_beats_opt_in` 均绿）：
+
+1. **双重门**：默认禁用（未设 `WORKCAM_UPLOAD_EXPERIMENTAL=1` → 503）；
+   即使设了 opt-in，`WORKCAM_ENV=production` 仍硬否决（503）
+2. 生产部署**忘记设任何变量**时端点保持关闭（默认拒绝）
+3. 部署纪律：`start_backend.ps1` 不设置 opt-in（联调时显式
+   `$env:WORKCAM_UPLOAD_EXPERIMENTAL="1"` 临时开启）；面向公网时
+   绑定 `--ListenHost 127.0.0.1`（默认）或用防火墙隔离——**该端点
+   无鉴权，不得暴露公网**
+4. 资源防线：块 4MiB / 整包 2GiB / 512 块 / 64 活跃批量 / 72h TTL
+   清扫 / traversal id 十六进制守卫 / 并发 tmp 唯一化
+
+## 8. 快速命令速查（Mac 侧）
 
 ```bash
 git fetch origin
 git checkout -b dev/mac-joint-debug origin/dev/windows-tech-lab-wave2
 python3 -m pip install -r backend/requirements.txt   # 联调工具只需这组依赖
-python3 tools/tech-lab/validation/gen_cross_vectors.py    # 重新生成向量（核对用）
+python3 tools/tech-lab/validation/gen_cross_vectors.py    # 重新生成向量（幂等，可核对）
 # 对拍 T07:
 #   读 test-vectors/tech-lab/t07-calibration-vectors.json，Swift 拟合 → diff
 # 对拍 T08:
 #   读 t08-projection-vectors.json 的 arkit_conversion + cases → diff
-# T12 联调（后端先在 Windows 上跑，带 opt-in）:
+# T12 联调（后端先在 Windows 上跑，带 opt-in，见第 7 节）:
 python3 tools/tech-lab/validation/t12_upload_client.py <file> http://<win-ip>:8000
 # 证据包验证:
 python3 tools/tech-lab/validation/evidence_verifier.py <pkg> --json r.json
 ```
+
+Windows 侧状态：**联调待命**。Mac 真机发现问题请以 issue/PR 评论
+形式提出，Windows 按问题优先响应，不主动扩张技术范围。
