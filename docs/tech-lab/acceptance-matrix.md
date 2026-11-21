@@ -25,7 +25,13 @@ Push-Location backend; .venv\Scripts\python.exe -m pytest tests -q; Pop-Location
 | T11 | DESKTOP_VERIFIED | ✅ 桌面/iPhone 分离声明 | ✅ project_db | ✅ 11 | 10 万条基准（DESKTOP） | ⏳ iPhone 重测 |
 | T13 | DESKTOP_VERIFIED | ✅ W-08 设计 | ✅ evidence_package | ✅ 14 | 四类篡改+衍生图+历史密钥全检出 | —（完备） |
 | T18 | DESKTOP_VERIFIED（Win）/ macOS 待冒烟 | ✅ CLI README | ✅ evidence_verifier + anchor_verifier | ✅ 10（子进程端到端） | 字节级锚点对拍真实服务 | ⏳ macOS 冒烟 |
-| T07/T08/T12/T14/T15/T16/T17 | NOT_STARTED | — | — | — | — | — |
+| T07 | POC_READY | ✅ wave3-design | ✅ drawing_pins | ✅ 10 | ≥4 点校准/退化拒绝/佐证三要素 | PDF 取点 UI、向量对拍 |
+| T08 | POC_READY | ✅ 坐标系合同+闭式 | ✅ ar_persistence | ✅ 13 | 投影 oracle 0.5px；ARKit 转换 1e-12 回放 | ARKit 实测 |
+| T12 | DESKTOP_VERIFIED | ✅ 协议模型+端点 | ✅ upload 端点+客户端 CLI | ✅ 12 端点+链路 | 丢 8/补 8/字节级一致 | iPhone 退避节奏 |
+| T14 | RESEARCHED | ✅ t14-c2pa-diff 十项差异表 | ✅ 桥接映射+哈希不变量 | ✅ 4 | — | SDK 集成+证书（产品决策） |
+| T15 | POC_READY（骨架） | ✅ wave4-report | ✅ defect_detection | ✅ 6 | 合成：recall 0.76，污渍零误报 | Core ML+真实数据 |
+| T16 | POC_READY（协议） | ✅ wave4-report | ✅ voice_chain | ✅ 7 | 防编造强制引用全过 | on-device 识别实测 |
+| T17 | POC_READY（骨架） | ✅ wave4-report | ✅ change_detection | ✅ 6 | 曝光+30 零误报；平移精确找回 | vImage+真实照片对 |
 
 ## 真机验收模板（iPhone 专属，随实验方案交付）
 
