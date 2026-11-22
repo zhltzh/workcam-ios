@@ -1,0 +1,394 @@
+{
+  "_description": "W003 cross-platform JSON Schemas (T07/T08)",
+  "t08_ar_frame_record": {
+    "$defs": {
+      "CameraIntrinsics": {
+        "properties": {
+          "fx": {
+            "exclusiveMinimum": 0,
+            "title": "Fx",
+            "type": "number"
+          },
+          "fy": {
+            "exclusiveMinimum": 0,
+            "title": "Fy",
+            "type": "number"
+          },
+          "cx": {
+            "minimum": 0,
+            "title": "Cx",
+            "type": "number"
+          },
+          "cy": {
+            "minimum": 0,
+            "title": "Cy",
+            "type": "number"
+          },
+          "image_width": {
+            "exclusiveMinimum": 0,
+            "title": "Image Width",
+            "type": "integer"
+          },
+          "image_height": {
+            "exclusiveMinimum": 0,
+            "title": "Image Height",
+            "type": "integer"
+          },
+          "units": {
+            "$ref": "#/$defs/FocalUnits",
+            "default": "unset"
+          }
+        },
+        "required": [
+          "fx",
+          "fy",
+          "cx",
+          "cy",
+          "image_width",
+          "image_height"
+        ],
+        "title": "CameraIntrinsics",
+        "type": "object"
+      },
+      "CameraPose": {
+        "description": "world->camera transform: camera position in world + orientation\nquaternion (x, y, z, w), ARKit convention.",
+        "properties": {
+          "tx": {
+            "title": "Tx",
+            "type": "number"
+          },
+          "ty": {
+            "title": "Ty",
+            "type": "number"
+          },
+          "tz": {
+            "title": "Tz",
+            "type": "number"
+          },
+          "qx": {
+            "title": "Qx",
+            "type": "number"
+          },
+          "qy": {
+            "title": "Qy",
+            "type": "number"
+          },
+          "qz": {
+            "title": "Qz",
+            "type": "number"
+          },
+          "qw": {
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "title": "Qw",
+            "type": "number"
+          }
+        },
+        "required": [
+          "tx",
+          "ty",
+          "tz",
+          "qx",
+          "qy",
+          "qz",
+          "qw"
+        ],
+        "title": "CameraPose",
+        "type": "object"
+      },
+      "FocalUnits": {
+        "description": "Explicit unit declaration for camera intrinsics (W003 review fix:\nthe Wave-3 PoC used a heuristic 'fx < 300 => mm' guess. Heuristics\nhave no place in a cross-platform protocol: a small-fisheye or a\n4K long-focus lens both fall outside naive bounds. The unit is now\nDECLARED by the producer and VALIDATED by range checks per unit.)",
+        "enum": [
+          "pixels",
+          "mm_35mm_eq",
+          "unset"
+        ],
+        "title": "FocalUnits",
+        "type": "string"
+      },
+      "Measurement3D": {
+        "properties": {
+          "point_id": {
+            "title": "Point Id",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Label"
+          },
+          "x": {
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "title": "Y",
+            "type": "number"
+          },
+          "z": {
+            "title": "Z",
+            "type": "number"
+          },
+          "tracking": {
+            "$ref": "#/$defs/TrackingState",
+            "default": "normal"
+          },
+          "persisted_u": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Persisted U"
+          },
+          "persisted_v": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Persisted V"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "z"
+        ],
+        "title": "Measurement3D",
+        "type": "object"
+      },
+      "TrackingState": {
+        "enum": [
+          "normal",
+          "limited",
+          "not_available"
+        ],
+        "title": "TrackingState",
+        "type": "string"
+      }
+    },
+    "description": "One AR-assisted capture with measurements to persist.",
+    "properties": {
+      "record_id": {
+        "title": "Record Id",
+        "type": "string"
+      },
+      "photo_id": {
+        "title": "Photo Id",
+        "type": "string"
+      },
+      "session_id": {
+        "title": "Session Id",
+        "type": "string"
+      },
+      "intrinsics": {
+        "$ref": "#/$defs/CameraIntrinsics"
+      },
+      "pose": {
+        "$ref": "#/$defs/CameraPose"
+      },
+      "measurements": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/Measurement3D"
+        },
+        "title": "Measurements",
+        "type": "array"
+      }
+    },
+    "required": [
+      "photo_id",
+      "session_id",
+      "intrinsics",
+      "pose"
+    ],
+    "title": "ARFrameRecord",
+    "type": "object"
+  },
+  "t07_drawing_sheet": {
+    "$defs": {
+      "CalibrationPair": {
+        "properties": {
+          "sheet": {
+            "$ref": "#/$defs/SheetPoint"
+          },
+          "world": {
+            "$ref": "#/$defs/WorldPoint"
+          }
+        },
+        "required": [
+          "sheet",
+          "world"
+        ],
+        "title": "CalibrationPair",
+        "type": "object"
+      },
+      "PhotoPin": {
+        "description": "A photo pinned onto a drawing sheet.",
+        "properties": {
+          "pin_id": {
+            "title": "Pin Id",
+            "type": "string"
+          },
+          "photo_id": {
+            "title": "Photo Id",
+            "type": "string"
+          },
+          "sheet_rev": {
+            "title": "Sheet Rev",
+            "type": "string"
+          },
+          "sheet_x": {
+            "title": "Sheet X",
+            "type": "number"
+          },
+          "sheet_y": {
+            "title": "Sheet Y",
+            "type": "number"
+          },
+          "placed_from": {
+            "default": "manual_drop",
+            "title": "Placed From",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Note"
+          }
+        },
+        "required": [
+          "photo_id",
+          "sheet_rev",
+          "sheet_x",
+          "sheet_y"
+        ],
+        "title": "PhotoPin",
+        "type": "object"
+      },
+      "SheetPoint": {
+        "properties": {
+          "x": {
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "title": "Y",
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ],
+        "title": "SheetPoint",
+        "type": "object"
+      },
+      "WorldPoint": {
+        "properties": {
+          "x": {
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "title": "Y",
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y"
+        ],
+        "title": "WorldPoint",
+        "type": "object"
+      }
+    },
+    "description": "One drawing revision.\n\ngeo_origin (optional): the WGS84 point that maps to the sheet's\nworld frame (0,0). Corroboration needs it; without it we say so\nhonestly instead of guessing.",
+    "properties": {
+      "sheet_id": {
+        "title": "Sheet Id",
+        "type": "string"
+      },
+      "title": {
+        "title": "Title",
+        "type": "string"
+      },
+      "pdf_content_hash": {
+        "title": "Pdf Content Hash",
+        "type": "string"
+      },
+      "rev": {
+        "default": "1",
+        "title": "Rev",
+        "type": "string"
+      },
+      "geo_origin": {
+        "anyOf": [
+          {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Geo Origin"
+      },
+      "calibration_pairs": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/CalibrationPair"
+        },
+        "title": "Calibration Pairs",
+        "type": "array"
+      },
+      "pins": {
+        "default": [],
+        "items": {
+          "$ref": "#/$defs/PhotoPin"
+        },
+        "title": "Pins",
+        "type": "array"
+      }
+    },
+    "required": [
+      "title",
+      "pdf_content_hash"
+    ],
+    "title": "DrawingSheet",
+    "type": "object"
+  }
+}
