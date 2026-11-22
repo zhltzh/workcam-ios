@@ -1,11 +1,64 @@
 # WC-W005 MVP 后端集成与安全验收报告
 
-日期：2026-11-22 · 分支：`dev/windows-integration-w005`（基于 `origin/dev/windows-tech-lab-wave2` @ `dd0dd88` + merge `origin/dev/windows-w005` @ `b2ea22d`）
-全量测试：**389 passed / 0 failed**（376 组合基线 + 11 鉴权 + 2 端到端）
+日期：2026-11-22（R1 增补于同日） · 分支：`dev/windows-integration-w005`（基于 `origin/dev/windows-tech-lab-wave2` @ `dd0dd88` + merge `origin/dev/windows-w005` @ `b2ea22d`）
+全量测试：**409 passed / 0 failed**（376 组合基线 + 11 鉴权 + 2 端到端 + 9 R1 安全矩阵 + 11 R1 SE 验签）
 
 ---
 
-## P0：集成准备与冲突/回归报告
+## WC-W005-R1 增补
+
+### P1：非回环强制鉴权（代码级，替代操作手册约束）
+
+`_require_safe_network(request)` 接入全部上传路由：**未开鉴权（`WORKCAM_UPLOAD_AUTH` 未设为 1）时，任何非回环客户端 IP 一律 503 拒绝**——服务器在路由内无法观测自身监听地址，但非回环客户端本身证明监听已暴露，拒绝请求等价达成"非回环监听必须强制鉴权"且信号更强。
+
+回环白名单：`127.0.0.1`、`::1`、`::ffff:127.0.0.1`、`localhost`（IPv4 映射回环视同回环）。starlette TestClient 的 `testclient` 标识豁免——它只能由进程内测试客户端产生，不会出现在真实网络 socket 上（注释已说明，防止有人"修复"成漏洞）。
+
+**安全配置矩阵（全部由 `test_upload_security_matrix.py` 断言）**：
+
+| EXPERIMENTAL | AUTH | WORKCAM_ENV | 客户端 | 结果 |
+|---|---|---|---|---|
+| 未设 | 未设 | 未设 | 任意 | **503**（默认全关） |
+| =1 | 未设 | 未设 | 回环 | 200（本机联调模式） |
+| =1 | 未设 | 未设 | **非回环** | **503（代码强制）** |
+| =1 | =1 | 未设 | 非回环 | 401 无令牌 / 200 带有效令牌 |
+| =1 | =1 | =production | 任意 | **503**（硬否决最高优先） |
+| =1 | =1 | =production | 非回环 | **503** |
+
+测试以**手工构造 ASGI scope**（peer 地址可控）证明门禁响应的是网络身份而非测试脚手架；httpx 0.28 的 ASGITransport 为 async-only 不可同步使用，故自建极简调用器。
+
+### P0：Secure Enclave 证据独立验签（receive-only）
+
+新工具 `tools/tech-lab/validation/se_signature_check.py`：Mac 打包一个 evidence JSON，Windows 只接收并验证：
+
+| 接收 | 验证内容 |
+|---|---|
+| 原始 JPEG 文件 | 磁盘字节 SHA-256 == 声明的 photo_sha256 |
+| 原始签名载荷（hex） | 作为不透明字节参与验签（最保真——设备实际签了什么就验什么） |
+| SE 公钥（X9.63 65B base64） | P-256 点解析 + ECDSA-SHA256 数学验证 |
+| DER 签名（base64） | DER 结构校验（复用 W002 的严格校验） |
+| key_id / device_id / claims | 仅记录元数据；SE 来源**只记录声明，不做硬件验证** |
+
+**红线（代码强制）**：
+- 证据文件含任何私钥字段（`private_key`/`priv`/`key_pem`/`secret`…）→ **输入级拒绝**（exit 2），验签前拦截——本工具输入面不允许私钥
+- `mode=software_test_key` → 每次运行打印大写 `SOFTWARE_TEST_KEY` 标记
+- `mode=se_direct` → 打印"不做硬件验证"+"签名数学有效 ≠ Secure Enclave 真机验收"
+- 两种模式共用同一验签路径；不存在"合成密钥冒充 SE 验收"的输出通道
+
+**Mac 联调命令**（Mac 打包 evidence.json + 照片，传给 Windows）：
+
+```bash
+# Mac 侧组装 evidence.json（照片、sha256、SE 公钥、签名载荷 hex、DER 签名、key_id）
+# Windows 侧验证：
+python tools/tech-lab/validation/se_signature_check.py evidence.json
+#   [--photo IMG_0001.jpg]   # 照片不在 JSON 相对路径时覆盖
+# 退出码：0=全部通过  1=验证失败  2=输入错误（含私钥字段）
+```
+
+**11 项测试覆盖**（`test_se_signature_check.py`，子进程驱动真实 CLI）：两种模式正向；载荷不一致/换公钥/原图篡改/签名篡改/垃圾 DER 全部 exit 1；私钥字段/缺字段/缺照片 exit 2；元检查确认源码含全部红线声明。
+
+---
+
+## P0：集成准备与冲突/回归报告（原 W005 主体）
 
 ### 三 PR 依赖关系（复验）
 
@@ -133,6 +186,7 @@ Base64 公钥**未做 URL 编码**直接拼进 register-key 的 query string—�
 
 ## 需要 Mac 配合的事项
 
+0. **（R1 新增）SE 证据独立验签**：真机导出 evidence.json（照片、SHA-256、SE 公钥、签名载荷 hex、DER 签名、key_id），Windows 用 `se_signature_check.py` 验证——这是 SE 签名数学的首个真机数据入口；验签通过 ≠ SE 硬件验收（工具输出会如此声明）
 1. **执行联调脚本**：真机照片 + SE 密钥（`--claim-se`）跑 `chain_joint_debug.py`，回传 10 步输出
 2. 向量对拍（`test-vectors/tech-lab/`，交接文档 §1-§4 不变）
 3. 上传协议 iPhone 客户端实现时按 `upload_auth.py` 语义：`X-Device-Token` header + `/auth/challenge`→`/auth/verify` 身份证明（若后端开了 auth）
@@ -144,3 +198,4 @@ Base64 公钥**未做 URL 编码**直接拼进 register-key 的 query string—�
 2. 限额桶为进程内存（重启清零）——联合调试可接受，生产需共享存储
 3. 审计日志无轮转（append-only；生产需 logrotate 类机制）
 4. 全部真机项（T01/T04/链路 SE 验收）状态不变，仍 DEVICE_PENDING
+5. （R1）`se_signature_check.py` 的载荷是**不透明字节**——它验证"这个签名覆盖这个载荷"，不解释载荷内部字段是否符合 v1.1 协议；协议级校验仍走 `/verify`（需完整 manifest）

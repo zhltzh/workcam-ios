@@ -57,6 +57,47 @@ def _auth_enabled() -> bool:
     return os.environ.get("WORKCAM_UPLOAD_AUTH") == "1"
 
 
+# WC-W005-R1 P1: loopback gate. When auth is OFF the endpoints may only
+# serve LOOPBACK clients - a non-loopback connection without device auth
+# is refused BY CODE (503), not by operator discipline. Rationale: the
+# server cannot observe its own bind address from inside a route, but a
+# non-loopback CLIENT proves the listener is exposed; refusing the
+# request achieves the requirement "non-loopback listeners MUST enforce
+# auth" with a strictly stronger signal.
+_LOOPBACK_HOSTS = {"127.0.0.1", "::1", "::ffff:127.0.0.1", "localhost"}
+# starlette's TestClient hardcodes scope["client"] = ("testclient", 50000)
+# - this identifier can only originate from the in-process test client
+# and never from a real network socket, so exempting it carries zero
+# production risk (documented so nobody 'fixes' this into a hole).
+_TEST_CLIENT_HOSTS = {"testclient"}
+
+
+def _require_safe_network(request) -> None:
+    if _auth_enabled():
+        return                      # auth handles its own refusal paths
+    client = getattr(request, "client", None)
+    host = client.host if client else ""
+    if host in _TEST_CLIENT_HOSTS or host in _LOOPBACK_HOSTS or host == "":
+        return
+    raise HTTPException(
+        503,
+        "upload endpoints reached from a NON-LOOPBACK client without "
+        "device auth. Enforce one of: WORKCAM_UPLOAD_AUTH=1 (enrolled "
+        "device token required), or keep access loopback-only. "
+        "Unauthenticated remote access is refused by code.")
+
+
+def _require_request_gate(request) -> str | None:
+    """Single entry gate for every upload route (R1): production veto ->
+    loopback gate (when auth OFF) -> device auth (when auth ON).
+    Returns the device_id (auth ON) or None (auth OFF, loopback client)."""
+    _require_not_production()
+    if not _auth_enabled():
+        _require_safe_network(request)
+        return None
+    return _auth_device(request)
+
+
 def _auth_device(request) -> str | None:
     """Resolve the calling device when auth is ON; None when OFF (lab
     mode preserves the pre-existing behaviour for joint debugging).
@@ -228,8 +269,7 @@ async def auth_verify(body: dict, request: Request):
 async def register_batch(body: RegisterBody,
                          request: Request,
                          x_device_token: str | None = Header(default=None)):
-    _require_not_production()
-    device_id = _auth_device(request)
+    device_id = _require_request_gate(request)
     _sweep_expired()
     if _active_count() >= MAX_ACTIVE_BATCHES:
         raise HTTPException(507, f"active batch limit reached "
@@ -271,8 +311,7 @@ async def register_batch(body: RegisterBody,
 @router.put("/batches/{batch_id}/chunks/{index}")
 async def put_chunk(batch_id: str, index: int, request: Request,
                     content_length: int | None = Header(default=None)):
-    _require_not_production()
-    device_id = _auth_device(request)
+    device_id = _require_request_gate(request)
     if device_id is not None:
         try:
             require_batch_owner(batch_id, device_id)
@@ -334,9 +373,8 @@ async def put_chunk(batch_id: str, index: int, request: Request,
 
 @router.get("/batches/{batch_id}")
 async def batch_status(batch_id: str, request: Request = None):
-    _require_not_production()
     if request is not None:
-        device_id = _auth_device(request)
+        device_id = _require_request_gate(request)
         if device_id is not None:
             try:
                 require_batch_owner(batch_id, device_id)
@@ -357,9 +395,8 @@ async def batch_status(batch_id: str, request: Request = None):
 
 @router.post("/batches/{batch_id}/complete")
 async def complete_batch(batch_id: str, request: Request = None):
-    _require_not_production()
     if request is not None:
-        device_id = _auth_device(request)
+        device_id = _require_request_gate(request)
         if device_id is not None:
             try:
                 require_batch_owner(batch_id, device_id)
@@ -417,9 +454,8 @@ async def batch_content(batch_id: str, request: Request = None):
     """Stream the assembled file back (byte-level verification for the
     client). Only available after COMPLETE; production-disabled like
     every other route here."""
-    _require_not_production()
     if request is not None:
-        device_id = _auth_device(request)
+        device_id = _require_request_gate(request)
         if device_id is not None:
             try:
                 require_batch_owner(batch_id, device_id)
