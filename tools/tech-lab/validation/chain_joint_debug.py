@@ -143,10 +143,17 @@ def main(argv):
     step("photo sha256 computed", True, f"{photo_hash[:12]}...")
 
     # ---- 2. enroll the public key (test flow) ---------------------------
-    # register-key binds scalar params from the QUERY STRING (W005-2 finding)
+    # register-key binds scalar params from the QUERY STRING (W005-2
+    # finding). Base64 MUST be URL-encoded: '+' decodes as a space in
+    # query strings, so an unencoded key registers a CORRUPTED string
+    # (200 + registered) while /verify looks up the TRUE key and reports
+    # it unregistered - exactly the 2-step failure the first live run
+    # produced. urllib.parse.quote is not optional here.
+    from urllib.parse import quote
     st, r = _req("POST",
-                 f"{base}/register-key?public_key_b64={pub_b64}"
-                 f"&device_id={args.device_id}&allow_test_registration=true")
+                 f"{base}/register-key?public_key_b64={quote(pub_b64)}"
+                 f"&device_id={quote(args.device_id)}"
+                 f"&allow_test_registration=true")
     step("register-key", st == 200 and r.get("registration_status") == "registered",
          f"status={st}")
 

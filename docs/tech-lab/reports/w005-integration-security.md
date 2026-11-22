@@ -58,13 +58,22 @@ python3 tools/tech-lab/validation/chain_joint_debug.py \
 # 真机密钥请加 --claim-se（仅记录来源声明，脚本不做硬件验证）
 ```
 
-**实测输出**（桌面照片 + TEST 密钥，对运行中的后端）：
+**实测输出**（桌面照片 1.5 MB 高熵 + TEST 密钥，对运行中的后端 ：8010）：
 
 ```
 10/10 PASS：hash → register-key → /verify(cryptographically_valid)
 → 篡改照片拒绝 → 换公钥拒绝 → 证据包库验证 → 离线 CLI → store-record
-幂等重复 → 时间锚点签发 → 回执验证(server_anchored)
+幂等重复（first=True retry=duplicate）→ 时间锚点签发 → 回执验证(server_anchored)
 ```
+
+**复验发现并修复的真实 bug**（封版复跑的价值证明）：脚本最初把
+Base64 公钥**未做 URL 编码**直接拼进 register-key 的 query string——
+`+` 被解码为空格，服务器注册了损坏字符串（仍返回 200+registered），
+而 /verify 按真公钥查找 → unregistered → 联调 8/10 FAIL。该 bug 是
+**非确定性**的（密钥的 Base64 恰好不含 `+` 时约 25% 概率侥幸通过，
+这就是它逃过首轮自测的原因）。修复为 `urllib.parse.quote` 后确定性
+10/10。教训已写入脚本注释：**Base64 进 query string，quote 不是可选项**。
+（后端测试全部走 `params=` 自动编码，不受影响。）
 
 ### 红线遵守
 
