@@ -32,6 +32,55 @@ from pydantic import BaseModel, Field, field_validator
 
 from techlab.upload_protocol import UploadError
 
+# ------------------------------------------------------ WC-W005 P2 auth wrap
+# Three independent switches (defense in depth; each defaults OFF):
+#   WORKCAM_UPLOAD_EXPERIMENTAL=1  endpoints reachable at all (W003-R1)
+#   WORKCAM_UPLOAD_AUTH=1         device auth + isolation (this layer)
+#   WORKCAM_ENV=production        hard veto over everything
+# The frozen protocol semantics of every route are UNCHANGED; auth wraps
+# them (identity header + ownership check) and can be disabled entirely
+# for lab use without touching the protocol paths.
+from app.api.upload_auth import (  # noqa: E402
+    AuthError,
+    DeviceRegistry,
+    _audit,
+    _check_rate,
+    _registry_path,
+    claim_batch,
+    issue_challenge,
+    require_batch_owner,
+    verify_identity,
+)
+
+
+def _auth_enabled() -> bool:
+    return os.environ.get("WORKCAM_UPLOAD_AUTH") == "1"
+
+
+def _auth_device(request) -> str | None:
+    """Resolve the calling device when auth is ON; None when OFF (lab
+    mode preserves the pre-existing behaviour for joint debugging).
+    AuthError from any sub-step (unknown token, rate limit) converts to
+    an HTTPException here so no route can forget to catch it."""
+    if not _auth_enabled():
+        return None
+    token = request.headers.get("X-Device-Token")
+    if not token:
+        raise HTTPException(401, "device token required "
+                                 "(X-Device-Token) - auth is enabled")
+    try:
+        device_id = DeviceRegistry(_registry_path()).device_id_for_token(token)
+        if device_id is None:
+            raise HTTPException(401, "device not enrolled")
+        _check_rate(device_id)
+    except AuthError as e:
+        raise _auth_error(e)
+    return device_id
+
+
+def _auth_error(e: AuthError) -> HTTPException:
+    return HTTPException(e.status, e.detail)
+
 router = APIRouter(prefix="/upload/experimental", tags=["upload-experimental"])
 
 # ----------------------------------------------------------------- config
@@ -137,10 +186,50 @@ class RegisterBody(BaseModel):
     chunk_size: int = Field(gt=0, le=MAX_CHUNK_BYTES)
 
 
+@router.post("/auth/challenge")
+async def auth_challenge(request: Request, x_device_token: str | None = Header(default=None)):
+    """P2 identity flow step 1: server issues a single-use nonce for the
+    enrolled device. The device then signs the nonce with its P-256 key
+    (the SAME key as evidence signing - one identity)."""
+    _require_not_production()
+    if not _auth_enabled():
+        raise HTTPException(503, "auth layer is not enabled "
+                                 "(WORKCAM_UPLOAD_AUTH=1)")
+    if not x_device_token:
+        raise HTTPException(401, "X-Device-Token header required")
+    registry = DeviceRegistry(_registry_path())
+    if registry.device_id_for_token(x_device_token) is None:
+        raise HTTPException(401, "device not enrolled")
+    nonce = issue_challenge(x_device_token)
+    _audit({"event": "challenge_issued", "device_id":
+            registry.device_id_for_token(x_device_token)})
+    return {"nonce": nonce, "expires_s": 60}
+
+
+@router.post("/auth/verify")
+async def auth_verify(body: dict, request: Request):
+    """P2 identity flow step 2: {device_token, nonce, signature_b64} ->
+    verifies the nonce signature with the ENROLLED public key. Private
+    keys never leave the device."""
+    _require_not_production()
+    if not _auth_enabled():
+        raise HTTPException(503, "auth layer is not enabled")
+    try:
+        device_id = verify_identity(body.get("device_token", ""),
+                                     body.get("nonce", ""),
+                                     body.get("signature_b64", ""))
+    except AuthError as e:
+        _audit({"event": "identity_failed", "detail": e.detail})
+        raise _auth_error(e)
+    return {"device_id": device_id, "verified": True}
+
+
 @router.post("/batches")
 async def register_batch(body: RegisterBody,
-                         x_upload_token: str | None = Header(default=None)):
+                         request: Request,
+                         x_device_token: str | None = Header(default=None)):
     _require_not_production()
+    device_id = _auth_device(request)
     _sweep_expired()
     if _active_count() >= MAX_ACTIVE_BATCHES:
         raise HTTPException(507, f"active batch limit reached "
@@ -167,6 +256,14 @@ async def register_batch(body: RegisterBody,
     )
     (batch_dir / "manifest.json").write_text(
         json.dumps(manifest.model_dump()), encoding="utf-8")
+    if device_id is not None:
+        try:
+            claim_batch(batch_id, device_id)
+        except AuthError as e:
+            _rmtree(batch_dir)
+            raise _auth_error(e)
+        _audit({"event": "batch_registered", "batch_id": batch_id,
+                "device_id": device_id, "n_chunks": n_chunks})
     return {"batch_id": batch_id, "n_chunks": n_chunks,
             "status": "registered", "experimental": True}
 
@@ -175,6 +272,14 @@ async def register_batch(body: RegisterBody,
 async def put_chunk(batch_id: str, index: int, request: Request,
                     content_length: int | None = Header(default=None)):
     _require_not_production()
+    device_id = _auth_device(request)
+    if device_id is not None:
+        try:
+            require_batch_owner(batch_id, device_id)
+        except AuthError as e:
+            raise _auth_error(e)
+        _audit({"event": "chunk_put", "batch_id": batch_id,
+                "index": index, "device_id": device_id})
     batch_dir = _bid_path(batch_id)
     manifest_path = batch_dir / "manifest.json"
     if not manifest_path.exists():
@@ -228,8 +333,15 @@ async def put_chunk(batch_id: str, index: int, request: Request,
 
 
 @router.get("/batches/{batch_id}")
-async def batch_status(batch_id: str):
+async def batch_status(batch_id: str, request: Request = None):
     _require_not_production()
+    if request is not None:
+        device_id = _auth_device(request)
+        if device_id is not None:
+            try:
+                require_batch_owner(batch_id, device_id)
+            except AuthError as e:
+                raise _auth_error(e)
     batch_dir = _bid_path(batch_id)
     manifest_path = batch_dir / "manifest.json"
     if not manifest_path.exists():
@@ -244,8 +356,15 @@ async def batch_status(batch_id: str):
 
 
 @router.post("/batches/{batch_id}/complete")
-async def complete_batch(batch_id: str):
+async def complete_batch(batch_id: str, request: Request = None):
     _require_not_production()
+    if request is not None:
+        device_id = _auth_device(request)
+        if device_id is not None:
+            try:
+                require_batch_owner(batch_id, device_id)
+            except AuthError as e:
+                raise _auth_error(e)
     batch_dir = _bid_path(batch_id)
     manifest_path = batch_dir / "manifest.json"
     if not manifest_path.exists():
@@ -294,11 +413,18 @@ async def complete_batch(batch_id: str):
 
 
 @router.get("/batches/{batch_id}/content")
-async def batch_content(batch_id: str):
+async def batch_content(batch_id: str, request: Request = None):
     """Stream the assembled file back (byte-level verification for the
     client). Only available after COMPLETE; production-disabled like
     every other route here."""
     _require_not_production()
+    if request is not None:
+        device_id = _auth_device(request)
+        if device_id is not None:
+            try:
+                require_batch_owner(batch_id, device_id)
+            except AuthError as e:
+                raise _auth_error(e)
     batch_dir = _bid_path(batch_id)
     if not (batch_dir / "manifest.json").exists():
         raise HTTPException(404, "unknown batch")
