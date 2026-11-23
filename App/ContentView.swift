@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var exportURL: URL?
     @State private var evidenceReport = "Local verification pending"
     var body: some View {
         NavigationStack {
@@ -25,6 +26,11 @@ struct ContentView: View {
                             Button("Test Tamper Detection on Copies") {
                                 Task { evidenceReport = await Task.detached { EvidenceStore.tamperReport() }.value }
                             }
+                            Button("Prepare Evidence Export") {
+                                do { exportURL = try EvidenceStore.exportPackages() }
+                                catch { exportURL = nil; evidenceReport = "Export failed: \(error)" }
+                            }
+                            if let exportURL { ShareLink("Share Public Evidence Folder", item: exportURL) }
                             Text(evidenceReport).font(.caption).textSelection(.enabled)
                         }.padding()
                     }

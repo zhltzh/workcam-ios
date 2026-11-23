@@ -16,3 +16,5 @@ Wall clock and persisted observations are untrusted. Uptime deltas can flag chan
 LiDAR Lab raycasts are estimates, not raw depth-derived distance or verified engineering measurements. Tracking loss discards the first point. Exported rows and reference distances are untrusted; CSV contains device-reported time. No signatures, coordinate authenticity or precision claims. Experimental camera session only starts on explicit action.
 
 Depth observations remain unverified estimates. Confidence filtering does not establish accuracy. Corrupt experimental archive is preserved rather than silently replaced. Local JSON and CSV are unsigned, user-editable experiment records.
+
+Exported signature validity alone does not prove Secure Enclave provenance or capture authenticity. Public package contains personal photo/metadata; user initiates sharing. Fixed-vector export acceptance is desktop-only. Hardware key origin still requires device-side observations.

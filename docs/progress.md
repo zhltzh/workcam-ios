@@ -153,3 +153,35 @@ xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -dest
 xcrun swiftc -module-cache-path /tmp/workcam-clock-module-cache Features/TechLab/DepthGeometry.swift Features/TechLab/LabArchive.swift Tests/Lidar/main.swift -o /tmp/workcam-lidar-tests && /tmp/workcam-lidar-tests
 ```
 Existing geometry/archive/migration tests PASS. No real Scene Depth, Smoothed Depth, known 1m sample, raw CSV, environment or force-quit recovery evidence this run. T04 remains open, not DEVICE_VERIFIED. Existing PR #9 only; no merge authorized/performed.
+
+## WC-M-006 — 2026-11-23 initial audit
+Branch dev/mac-tech-lab, initial clean HEAD 69f1660f91d20a7f1d87adedb88cf4bdfb998f9b. PR #6 f3b9330 and PR #9 69f1660 both Draft/open, not merged. No Windows branch merged.
+
+DEVICE_VERIFIED (limited scope): existing installed WorkCam process launched successfully via devicectl this run. Physical iPhone17 Pro Max/iPhone18,2, OS27.2, paired, Developer Mode Enabled, localNetwork transport. Installed artifact SHA not established; not latest-build runtime acceptance.
+```sh
+xcrun devicectl list devices
+xcrun devicectl device info details --device 00008150-001251D23482401C > /tmp/workcam-m006-device.log 2>&1
+xcrun devicectl device process launch --device 00008150-001251D23482401C com.example.workcam.dev > /tmp/workcam-m006-launch.log 2>&1
+```
+Added evidence folder export of copies: photo.jpg, record.json, exact payload.bin, public-key.x963 and signature.der. Only UUID committed folders; verification before copy; no private-key data read/exported by export routine. UI prepares folder then user shares. Folder sharing/interoperability requires device acceptance. Unsigned records remain visibly unsigned; export does not promote trust.
+
+DESKTOP_VERIFIED: existing M003 fixed-vector/tamper/missing-signature/forged-status tests passed. New export routine itself not yet covered by dedicated test.
+```sh
+xcrun swiftc -module-cache-path /tmp/workcam-clock-module-cache Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/workcam-m006-tests && /tmp/workcam-m006-tests test-vectors/fixed-vectors.json
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamM006 -allowProvisioningUpdates build > /tmp/workcam-m006-build.log 2>&1
+```
+DEVICE_PENDING: actual photo, SHA/signature observation, public package export, independent Windows verification and real-photo byte tamper rejection; all three LiDAR modes/known reference/angle/orientation/raw coordinates/CSV; flight mode and app restart persistence. No physical environment or known length observable from command-line alone. No real sample or accuracy table generated. Windows W007–W009 handoff review outstanding; sync not implemented here. T04 remains open.
+
+## WC-M-006 second stage — export-specific tests
+DESKTOP_VERIFIED: exact public export file allowlist, byte-for-byte JPEG/payload/public key, DER signature mathematics, sentinel file exclusion, one-byte photo tamper rejection and refusal to export tampered source. Public fixed vector only, not real JPEG capture or Secure Enclave hardware evidence.
+```sh
+xcrun swiftc -module-cache-path /tmp/workcam-clock-module-cache Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/workcam-m006-export-tests && /tmp/workcam-m006-export-tests test-vectors/fixed-vectors.json
+```
+PASS all existing tests plus export suite. Export routine copies only explicit files; never enumerates Keychain or includes key dataRepresentation. Metadata follows EvidenceRecord allowlist. Dedicated export test injects private-key-test-sentinel and asserts it absent. Actual real-record credential absence still awaits real package inspection.
+
+DEVICE_VERIFIED (installation only): /tmp/WorkCamM006/Build/Products/Debug-iphoneos/WorkCam.app installed successfully via devicectl. This build contains export UI, precedes the test-injection-only optional sourceRoot argument change.
+```sh
+xcrun devicectl device install app --device 00008150-001251D23482401C /tmp/WorkCamM006/Build/Products/Debug-iphoneos/WorkCam.app > /tmp/workcam-m006-install.log 2>&1
+xcrun devicectl device process launch --device 00008150-001251D23482401C com.example.workcam.dev > /tmp/workcam-m006-stage2-launch.log 2>&1
+```
+BLOCKED P0 physical actions: agent has no direct iPhone screen input/physical camera positioning in current tools. Need real user capture in Open Camera, then Evidence Debug/Reverify/Prepare Evidence Export. No real record yet retrieved/observed. P0 independent W005-R1 verification still DEVICE_PENDING; CryptoKit fixture test does not substitute the Windows verifier. Device-end Secure Enclave creation observations are pending. P1 known 1m five repeats and P2 actual flight-mode network loss/kill-relaunch are DEVICE_PENDING; no invented measurements, no completed-task claim.

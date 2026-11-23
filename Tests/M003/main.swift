@@ -86,3 +86,31 @@ try saveRecord(forged)
 try Data("Signed — local verification passed".utf8).write(to: folder.appendingPathComponent("local-status.txt"))
 precondition(EvidenceStore.inspect(folder, expectedPublicKey: fixturePublic).contains("Verification Failed"))
 print("PASS deleted manifest signature property and forged persisted verification status")
+
+// Public fixed-vector export fixture; never hardware evidence.
+let exportRoot = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+let committed = exportRoot.appendingPathComponent(UUID().uuidString)
+try FileManager.default.createDirectory(at: committed, withIntermediateDirectories: true)
+defer { try? FileManager.default.removeItem(at: exportRoot) }
+try photo.write(to: committed.appendingPathComponent("photo.jpg"))
+try JSONEncoder().encode(record).write(to: committed.appendingPathComponent("record.json"))
+try Data("must never export".utf8).write(to: committed.appendingPathComponent("private-key-test-sentinel"))
+let exported = try EvidenceStore.exportPackages(sourceRoot: exportRoot)
+defer { try? FileManager.default.removeItem(at: exported) }
+let package = exported.appendingPathComponent(committed.lastPathComponent)
+let names = try FileManager.default.contentsOfDirectory(atPath: package.path)
+precondition(Set(names) == Set(["photo.jpg", "record.json", "payload.bin", "public-key.x963", "signature.der"]))
+let exportedPhoto = try Data(contentsOf: package.appendingPathComponent("photo.jpg"))
+let exportedPayload = try Data(contentsOf: package.appendingPathComponent("payload.bin"))
+let exportedKey = try Data(contentsOf: package.appendingPathComponent("public-key.x963"))
+let exportedSignature = try Data(contentsOf: package.appendingPathComponent("signature.der"))
+precondition(exportedPhoto == photo && exportedPayload == payload && exportedKey == publicData)
+let exportKey = try P256.Signing.PublicKey(x963Representation: exportedKey)
+let exportSig = try P256.Signing.ECDSASignature(derRepresentation: exportedSignature)
+precondition(exportKey.isValidSignature(exportSig, for: exportedPayload))
+var oneByteChanged = exportedPhoto
+oneByteChanged[0] ^= 1
+fails { _ = try EvidenceStore.verify(record, photo: oneByteChanged) }
+try oneByteChanged.write(to: committed.appendingPathComponent("photo.jpg"))
+fails { _ = try EvidenceStore.exportPackages(sourceRoot: exportRoot) }
+print("PASS export exact allowlist/bytes/signature; one-byte tamper rejected (desktop fixture only)")

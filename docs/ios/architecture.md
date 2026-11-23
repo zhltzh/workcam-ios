@@ -16,3 +16,5 @@ Standalone Core/TechLab/ClockObservation.swift has no app integration or network
 Debug-only LiDAR Lab uses an isolated ARSCNView session, explicit user Start, scene-depth support gating, estimated-plane raycasts and world-space point markers. Stops session on leaving screen. Existing capture/evidence pipeline unchanged. CSV uses a provisional internal schema, not yet Windows-compatible; sharing is user initiated.
 
 M1-R1 partial: depth modes unproject display-mapped depth pixel centers with scaled intrinsics and camera transform; high-confidence depth only, no fallback. Experimental rows are atomically archived separately from evidence. Schema and matrix compatibility concerns recorded in progress.md.
+
+WC-M-006 public evidence export creates explicit copies of JPEG, EvidenceRecord, exact canonical payload, X9.63 public key and DER signature. Export verifies source mathematics first; no private key access in export path. Dedicated fixed-vector allowlist/byte/tamper tests added.
