@@ -147,6 +147,40 @@ CREATE TABLE mvp_photo_originals (
 CREATE INDEX IF NOT EXISTS idx_porig_owner
     ON mvp_photo_originals(owner_token);
 """,
+    # v4 (W008): offline sync engine. Three additions:
+    #  a) mvp_projects.revision - optimistic concurrency counter
+    #  b) mvp_sync_ops - idempotency ledger (operation_id PK + request
+    #     hash + receipt JSON); survives restarts by living in the DB
+    #  c) mvp_sync_events - append-only change log with a restart-stable
+    #     monotonic cursor (AUTOINCREMENT seq)
+    4: """
+ALTER TABLE mvp_projects ADD COLUMN revision INTEGER NOT NULL DEFAULT 1;
+CREATE TABLE IF NOT EXISTS mvp_sync_ops (
+    operation_id    TEXT NOT NULL,
+    owner_token     TEXT NOT NULL,
+    request_hash    TEXT NOT NULL,
+    result_json     TEXT NOT NULL,
+    created_at      TEXT NOT NULL,
+    PRIMARY KEY (operation_id, owner_token)
+);
+CREATE INDEX IF NOT EXISTS idx_sync_ops_owner
+    ON mvp_sync_ops(owner_token, created_at DESC);
+CREATE TABLE IF NOT EXISTS mvp_sync_events (
+    seq             INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner_token     TEXT NOT NULL,
+    entity_type     TEXT NOT NULL CHECK (entity_type IN
+                      ('project', 'photo', 'evidence_link', 'original')),
+    entity_id       TEXT NOT NULL,
+    action          TEXT NOT NULL CHECK (action IN
+                      ('created', 'updated', 'archived',
+                       'bound', 'status_changed')),
+    revision        INTEGER,
+    payload_hint    TEXT NOT NULL DEFAULT '',
+    created_at      TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_sync_events_owner
+    ON mvp_sync_events(owner_token, seq ASC);
+""",
 }
 
 _write_lock = threading.Lock()
