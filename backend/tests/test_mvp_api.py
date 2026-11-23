@@ -451,9 +451,9 @@ def test_unified_error_structure(biz_env):
 def test_openapi_documented(biz_env):
     """P4 #8: the /api/v1 surface must appear in the OpenAPI schema.
     (FastAPI groups same-path different-method routes under one key;
-    assert on unique paths AND total operations.)"""
+    assert on unique paths AND total operations. W007 added 2.)"""
     spec = client.get("/openapi.json").json()
     v1_paths = [p for p in spec["paths"] if p.startswith("/api/v1")]
     ops = sum(len(spec["paths"][p]) for p in v1_paths)
-    assert len(v1_paths) == 7          # unique resource paths (verify adds 1)
-    assert ops >= 11                   # 5P+3Ph+2L+1V operations present
+    assert len(v1_paths) >= 9          # W006 7 + W007 originals/integrity
+    assert ops >= 14                   # +PUT/GET original, GET integrity
