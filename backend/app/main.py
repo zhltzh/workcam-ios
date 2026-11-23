@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from app.api.time_anchor import router as time_anchor_router
 from app.api.upload import router as upload_router
 from app.api.verify import router as verify_router
+from app.api.mvp import router as mvp_router, ensure_ready as mvp_ready
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("workcam")
@@ -39,3 +40,12 @@ app = FastAPI(
 app.include_router(verify_router)
 app.include_router(time_anchor_router)
 app.include_router(upload_router)   # experimental prefix /upload/experimental
+app.include_router(mvp_router)      # /api/v1 business surface (W006)
+
+# run business-DB migrations at startup (idempotent)
+try:
+    mvp_ready()
+except Exception:  # startup must not crash when the DB path is read-only
+    import logging
+    logging.getLogger("workcam").exception("business DB migration failed at "
+                                           "startup - /api/v1 may be unavailable")
