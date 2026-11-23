@@ -184,3 +184,126 @@ def test_negative_test_photo_differs(vectors):
     real_hash = vectors["photo"]["sha256_hex"]
     wrong_hash = vectors["negative_tests"]["wrong_photo"]["sha256_hex"]
     assert real_hash != wrong_hash
+
+
+# ---------------------------------------------------------------------------
+# WC-W005-3: negative cross-language vectors (Swift and Python must both
+# reject these the same way).
+# ---------------------------------------------------------------------------
+
+
+def test_tampered_photo_hash_mismatches_manifest(vectors):
+    """tampered_photo: last byte flipped; SHA-256 must NOT equal manifest hash."""
+    neg = vectors["negative_tests"]["tampered_photo"]
+    photo_bytes = bytes.fromhex(neg["bytes_hex"])
+    actual = hashlib.sha256(photo_bytes).hexdigest()
+    assert actual == neg["sha256_hex"]
+    assert actual != vectors["manifest"]["photo_hash"]
+    assert neg["expected"] == "photo_hash_mismatch"
+
+
+def test_tampered_payload_rejects_original_signature(vectors):
+    """tampered_payload: original signature must NOT verify after field change."""
+    pub_bytes = bytes.fromhex(vectors["public_key"]["hex"])
+    pub_key = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), pub_bytes)
+
+    tampered = bytes.fromhex(vectors["negative_tests"]["tampered_payload"]["hex"])
+    original = bytes.fromhex(vectors["canonical_payload"]["hex"])
+
+    # sanity: tampered payload differs from original, same length
+    assert len(tampered) == len(original)
+    assert tampered != original
+
+    sig_bytes = bytes.fromhex(vectors["signature"]["der_hex"])
+
+    with pytest.raises(InvalidSignature):
+        pub_key.verify(sig_bytes, tampered, ec.ECDSA(SHA256()))
+
+
+def test_wrong_signature_rejected_by_fixed_public_key(vectors):
+    """wrong_signature: valid DER from a different key must NOT verify."""
+    pub_bytes = bytes.fromhex(vectors["public_key"]["hex"])
+    pub_key = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), pub_bytes)
+
+    payload = bytes.fromhex(vectors["canonical_payload"]["hex"])
+    neg = vectors["negative_tests"]["wrong_signature"]
+    sig_bytes = bytes.fromhex(neg["der_hex"])
+
+    # sanity: it is well-formed DER
+    assert sig_bytes[0] == 0x30
+
+    with pytest.raises(InvalidSignature):
+        pub_key.verify(sig_bytes, payload, ec.ECDSA(SHA256()))
+
+
+def test_invalid_der_signature_rejected_by_structure(vectors):
+    """invalid_der_signature: wrong SEQUENCE tag must fail backend DER check."""
+    from app.services.signature import validate_manifest_structure
+    from app.models.capture import SignatureManifest
+
+    neg = vectors["negative_tests"]["invalid_der_signature"]
+    bad_b64 = neg["base64"]
+
+    manifest = SignatureManifest(
+        version=vectors["manifest"]["version"],
+        record_id=vectors["manifest"]["record_id"],
+        sequence_number=vectors["manifest"]["sequence_number"],
+        previous_record_hash=vectors["manifest"]["previous_record_hash"],
+        photo_hash=vectors["manifest"]["photo_hash"],
+        capture_timestamp=vectors["manifest"]["capture_timestamp"],
+        device_reported_time=vectors["manifest"]["device_reported_time"],
+        device_id=vectors["manifest"]["device_id"],
+        location=None,
+        signature=bad_b64,
+        public_key=vectors["public_key"]["base64"],
+    )
+    errors = validate_manifest_structure(manifest)
+    assert any("DER" in e or "signature" in e.lower() for e in errors)
+
+
+def test_invalid_timestamp_rejected_by_backend(vectors):
+    """invalid_timestamp_manifest: non-ISO8601 timestamp must be rejected."""
+    from app.services.signature import validate_manifest_structure
+    from app.models.capture import SignatureManifest
+
+    bad_ts = vectors["negative_tests"]["invalid_timestamp_manifest"]["capture_timestamp"]
+
+    manifest = SignatureManifest(
+        version=vectors["manifest"]["version"],
+        record_id=vectors["manifest"]["record_id"],
+        sequence_number=vectors["manifest"]["sequence_number"],
+        previous_record_hash=vectors["manifest"]["previous_record_hash"],
+        photo_hash=vectors["manifest"]["photo_hash"],
+        capture_timestamp=bad_ts,
+        device_reported_time=bad_ts,
+        device_id=vectors["manifest"]["device_id"],
+        location=None,
+        signature=vectors["signature"]["base64"],
+        public_key=vectors["public_key"]["base64"],
+    )
+    errors = validate_manifest_structure(manifest)
+    assert any("ISO 8601" in e for e in errors)
+
+
+def test_invalid_public_key_rejected_by_backend(vectors):
+    """invalid_public_key: 64-byte value without 0x04 prefix must be rejected."""
+    from app.services.signature import validate_manifest_structure
+    from app.models.capture import SignatureManifest
+
+    neg = vectors["negative_tests"]["invalid_public_key"]
+
+    manifest = SignatureManifest(
+        version=vectors["manifest"]["version"],
+        record_id=vectors["manifest"]["record_id"],
+        sequence_number=vectors["manifest"]["sequence_number"],
+        previous_record_hash=vectors["manifest"]["previous_record_hash"],
+        photo_hash=vectors["manifest"]["photo_hash"],
+        capture_timestamp=vectors["manifest"]["capture_timestamp"],
+        device_reported_time=vectors["manifest"]["device_reported_time"],
+        device_id=vectors["manifest"]["device_id"],
+        location=None,
+        signature=vectors["signature"]["base64"],
+        public_key=neg["base64"],
+    )
+    errors = validate_manifest_structure(manifest)
+    assert any("public_key" in e.lower() for e in errors)

@@ -1,0 +1,330 @@
+"""WC-W006 P3 - SQLite persistence layer for MVP business data.
+
+Design decisions (audited from techlab/project_db.py lessons, promoted
+to production form):
+
+  - WAL journal mode + foreign_keys=ON (enforced PER CONNECTION - a
+    process-level default is not inherited reliably across drivers)
+  - versioned migrations via PRAGMA user_version (idempotent, replayable)
+  - all timestamps are UTC ISO-8601 strings
+  - business DB is SEPARATE from the experimental upload store: this is
+    evidence-adjacent business data, not a tech-lab artifact
+  - backup: VACUUM INTO (SQLite's consistent online backup - never a
+    raw file copy of a live database)
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import sqlite3
+import threading
+import time
+import uuid
+from contextlib import contextmanager
+from pathlib import Path
+
+from fastapi import HTTPException
+
+# NOTE: no module-level DB_PATH constant on purpose - see _db_path().
+
+_schema_v1 = """
+CREATE TABLE IF NOT EXISTS mvp_projects (
+    project_id   TEXT PRIMARY KEY,
+    owner_token  TEXT NOT NULL,              -- P4: owning device token
+    name         TEXT NOT NULL,
+    description  TEXT NOT NULL DEFAULT '',
+    site_address TEXT NOT NULL DEFAULT '',
+    status       TEXT NOT NULL DEFAULT 'active'
+                 CHECK (status IN ('active', 'archived')),
+    created_at   TEXT NOT NULL,
+    updated_at   TEXT NOT NULL,
+    archived_at  TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_projects_owner
+    ON mvp_projects(owner_token, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS mvp_photos (
+    photo_id          TEXT PRIMARY KEY,
+    project_id        TEXT NOT NULL REFERENCES mvp_projects(project_id),
+    idempotency_key   TEXT NOT NULL,          -- per-project uniqueness
+    original_sha256   TEXT NOT NULL,          -- immutable once written
+    original_filename TEXT NOT NULL,
+    mime_type         TEXT NOT NULL,
+    byte_size         INTEGER NOT NULL CHECK (byte_size > 0),
+    captured_at       TEXT NOT NULL,          -- client-claimed, untrusted
+    received_at       TEXT NOT NULL,          -- server UTC
+    device_id         TEXT NOT NULL,          -- client-claimed, untrusted
+    evidence_id       TEXT,                   -- nullable legacy link
+    created_at        TEXT NOT NULL,
+    UNIQUE (project_id, idempotency_key)
+);
+CREATE INDEX IF NOT EXISTS idx_photos_project
+    ON mvp_photos(project_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_photos_sha
+    ON mvp_photos(original_sha256);
+
+CREATE TABLE IF NOT EXISTS mvp_evidence_links (
+    evidence_link_id     TEXT PRIMARY KEY,
+    photo_id             TEXT NOT NULL REFERENCES mvp_photos(photo_id),
+    evidence_reference   TEXT NOT NULL,
+    evidence_type        TEXT NOT NULL
+                         CHECK (evidence_type IN
+                                ('signature_manifest', 'time_anchor')),
+    original_sha256      TEXT NOT NULL,       -- bound at link time
+    verification_status  TEXT NOT NULL
+                         CHECK (verification_status IN
+                                ('unverified', 'cryptographically_valid',
+                                 'verification_failed', 'server_anchored')),
+    failure_reason       TEXT,                 -- audit trail on failure
+    verified_at          TEXT,
+    created_at           TEXT NOT NULL,
+    UNIQUE (photo_id, evidence_reference)
+);
+CREATE INDEX IF NOT EXISTS idx_elinks_photo
+    ON mvp_evidence_links(photo_id, created_at DESC);
+"""
+
+MIGRATIONS: dict[int, str] = {
+    1: _schema_v1,
+    # v2 (W006 follow-up): the evidence-link status vocabulary was
+    # missing 'signature_valid' - the EXISTING protocol's state for
+    # "signature math valid but key not registered" (task brief: align
+    # with the existing machine, never invent a second one). SQLite
+    # cannot ALTER a CHECK constraint, so the table is rebuilt.
+    2: """
+CREATE TABLE mvp_evidence_links_v2 (
+    evidence_link_id     TEXT PRIMARY KEY,
+    photo_id             TEXT NOT NULL REFERENCES mvp_photos(photo_id),
+    evidence_reference   TEXT NOT NULL,
+    evidence_type        TEXT NOT NULL
+                         CHECK (evidence_type IN
+                                ('signature_manifest', 'time_anchor')),
+    original_sha256      TEXT NOT NULL,
+    verification_status  TEXT NOT NULL
+                         CHECK (verification_status IN
+                                ('unverified', 'signature_valid',
+                                 'cryptographically_valid',
+                                 'verification_failed', 'server_anchored')),
+    failure_reason       TEXT,
+    verified_at          TEXT,
+    created_at           TEXT NOT NULL,
+    UNIQUE (photo_id, evidence_reference)
+);
+INSERT INTO mvp_evidence_links_v2
+    SELECT evidence_link_id, photo_id, evidence_reference, evidence_type,
+           original_sha256, verification_status, failure_reason,
+           verified_at, created_at
+    FROM mvp_evidence_links;
+DROP TABLE mvp_evidence_links;
+ALTER TABLE mvp_evidence_links_v2
+    RENAME TO mvp_evidence_links;
+CREATE INDEX IF NOT EXISTS idx_elinks_photo
+    ON mvp_evidence_links(photo_id, created_at DESC);
+""",
+}
+
+_write_lock = threading.Lock()
+
+
+def utc_now() -> str:
+    """UTC ISO-8601 with timezone - every business timestamp uses this."""
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _db_path() -> Path:
+    """Lazy resolution: tests override WORKCAM_BUSINESS_DB per-test via
+    monkeypatch AFTER import - a module-level constant would freeze the
+    first value and silently write to the wrong database (found by the
+    backup-restore roundtrip test)."""
+    return Path(os.environ.get("WORKCAM_BUSINESS_DB",
+                               "data/business/workcam.db"))
+
+
+def connect(db_path: Path | None = None) -> sqlite3.Connection:
+    path = Path(db_path) if db_path else _db_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(path), timeout=30, isolation_level=None)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA foreign_keys=ON")     # per-connection, NOT inherited
+    conn.execute("PRAGMA busy_timeout=30000")
+    return conn
+
+
+def migrate(db_path: Path | None = None) -> int:
+    """Apply pending migrations in order. Idempotent: replaying on a
+    database at version N is a no-op. Returns the applied count.
+
+    NOTE: sqlite3.executescript() IMPLICITLY COMMITS before running -
+    inside an explicit transaction the COMMIT would fire on an empty
+    transaction ('cannot commit - no transaction is active', found by
+    the startup smoke test). Statements therefore execute one by one
+    inside the same BEGIN IMMEDIATE."""
+    conn = connect(db_path)
+    applied = 0
+    try:
+        with _write_lock:
+            current = conn.execute("PRAGMA user_version").fetchone()[0]
+            for version in sorted(MIGRATIONS):
+                if version > current:
+                    conn.execute("BEGIN IMMEDIATE")
+                    try:
+                        for stmt in _split_statements(MIGRATIONS[version]):
+                            conn.execute(stmt)
+                        conn.execute(f"PRAGMA user_version = {version}")
+                        conn.execute("COMMIT")
+                        applied += 1
+                        current = version
+                    except Exception:
+                        try:
+                            conn.execute("ROLLBACK")
+                        except sqlite3.OperationalError:
+                            pass    # transaction already gone
+                        raise
+    finally:
+        conn.close()
+    return applied
+
+
+def _split_statements(script: str) -> list[str]:
+    """Naive but sufficient splitter: our schema uses no triggers and
+    no statements containing embedded semicolons in strings."""
+    return [s.strip() for s in script.split(";") if s.strip()]
+
+
+@contextmanager
+def db(db_path: Path | None = None):
+    """Transaction-scoped connection: COMMIT on success, ROLLBACK on
+    any exception (P3 requirement: no inconsistent data on errors)."""
+    conn = connect(db_path)
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        yield conn
+        conn.execute("COMMIT")
+    except Exception:
+        conn.execute("ROLLBACK")
+        raise
+    finally:
+        conn.close()
+
+
+# ------------------------------------------------------------ domain errors
+
+class ApiError(HTTPException):
+    """Unified JSON error envelope for every business endpoint."""
+
+    def __init__(self, status: int, code: str, message: str,
+                 details: dict | None = None):
+        super().__init__(
+            status_code=status,
+            detail={"code": code, "message": message,
+                    "details": details or {}})
+
+
+def row_to_project(row: sqlite3.Row) -> dict:
+    return {
+        "project_id": row["project_id"],
+        "name": row["name"],
+        "description": row["description"],
+        "site_address": row["site_address"],
+        "status": row["status"],
+        "created_at": row["created_at"],
+        "updated_at": row["updated_at"],
+        "archived_at": row["archived_at"],
+    }
+
+
+def row_to_photo(row: sqlite3.Row) -> dict:
+    return {
+        "photo_id": row["photo_id"],
+        "project_id": row["project_id"],
+        "original_sha256": row["original_sha256"],
+        "original_filename": row["original_filename"],
+        "mime_type": row["mime_type"],
+        "byte_size": row["byte_size"],
+        "captured_at": row["captured_at"],
+        "received_at": row["received_at"],
+        "device_id": row["device_id"],
+        "evidence_id": row["evidence_id"],
+        "created_at": row["created_at"],
+        # trust annotations (P1 #6): client claims are DATA, not trust
+        "trust_notes": {
+            "captured_at": "client-claimed, untrusted",
+            "device_id": "client-claimed, untrusted",
+        },
+    }
+
+
+def row_to_evidence_link(row: sqlite3.Row) -> dict:
+    return {
+        "evidence_link_id": row["evidence_link_id"],
+        "photo_id": row["photo_id"],
+        "evidence_reference": row["evidence_reference"],
+        "evidence_type": row["evidence_type"],
+        "original_sha256": row["original_sha256"],
+        "verification_status": row["verification_status"],
+        "failure_reason": row["failure_reason"],
+        "verified_at": row["verified_at"],
+        "created_at": row["created_at"],
+    }
+
+
+# ------------------------------------------------------------ backup / restore
+
+def backup_to(target: Path, db_path: Path | None = None) -> int:
+    """SQLite-consistent online backup via VACUUM INTO - NEVER a raw
+    copy of a live database file. Returns the page count."""
+    conn = connect(db_path)
+    try:
+        target = Path(target)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        conn.execute("VACUUM INTO ?", (str(target),))
+        pages = conn.execute(
+            "SELECT page_count FROM pragma_page_count()").fetchone()[0]
+        return pages
+    finally:
+        conn.close()
+
+
+def verify_backup(backup_path: Path) -> dict:
+    """Open a backup read-only: integrity check + row counts + foreign
+    key audit. Raises on corruption - a backup that cannot be verified
+    is not a backup."""
+    conn = sqlite3.connect(f"file:{backup_path}?mode=ro", uri=True)
+    try:
+        integrity = conn.execute("PRAGMA integrity_check").fetchone()[0]
+        if integrity != "ok":
+            raise ValueError(f"backup integrity_check: {integrity}")
+        fka = conn.execute("PRAGMA foreign_key_check").fetchall()
+        if fka:
+            raise ValueError(f"backup foreign_key_check violations: {fka[:5]}")
+        counts = {
+            "projects": conn.execute(
+                "SELECT COUNT(*) FROM mvp_projects").fetchone()[0],
+            "photos": conn.execute(
+                "SELECT COUNT(*) FROM mvp_photos").fetchone()[0],
+            "evidence_links": conn.execute(
+                "SELECT COUNT(*) FROM mvp_evidence_links").fetchone()[0],
+        }
+        version = conn.execute("PRAGMA user_version").fetchone()[0]
+        return {"version": version, "counts": counts}
+    finally:
+        conn.close()
+
+
+def restore_from(backup_path: Path, target_db: Path) -> None:
+    """Restore into a FRESH target path (must not exist or must be an
+    empty/absent file) - restore never silently overwrites live data."""
+    target_db = Path(target_db)
+    if target_db.exists() and target_db.stat().st_size > 0:
+        raise ValueError("refusing to restore onto a non-empty database - "
+                         "restore must target a fresh path")
+    shutil_path = backup_path
+    import shutil
+    target_db.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(shutil_path, target_db)
+    # verify the restored copy is loadable and consistent
+    info = verify_backup(target_db)
+    return info

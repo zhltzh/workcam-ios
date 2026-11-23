@@ -1,0 +1,184 @@
+{
+  "_description": "T07 drawing calibration cross-platform vectors",
+  "_usage": "fit an affine from the sheet->world pairs; M/t must match expected_M/expected_t to 1e-9; probe maps as expected; rejection cases must raise",
+  "cases": [
+    {
+      "case": "scale_offset",
+      "sheet_points": [
+        [
+          0,
+          0
+        ],
+        [
+          1000,
+          0
+        ],
+        [
+          0,
+          1000
+        ]
+      ],
+      "world_points": [
+        [
+          10,
+          20
+        ],
+        [
+          11,
+          20
+        ],
+        [
+          10,
+          21
+        ]
+      ],
+      "expected_M": [
+        0.001,
+        0.0,
+        0.0,
+        0.001
+      ],
+      "expected_t": [
+        10.0,
+        20.0
+      ],
+      "expected_residual": 0.0,
+      "probe": {
+        "sheet": [
+          500.0,
+          500.0
+        ],
+        "expected_world": [
+          10.5,
+          20.5
+        ]
+      }
+    },
+    {
+      "case": "rotation90_scale0.5",
+      "sheet_points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          200
+        ],
+        [
+          200,
+          0
+        ]
+      ],
+      "world_points": [
+        [
+          0,
+          0
+        ],
+        [
+          100,
+          0
+        ],
+        [
+          0,
+          -100
+        ]
+      ],
+      "expected_M": [
+        -0.0,
+        0.5,
+        -0.5,
+        -0.0
+      ],
+      "expected_t": [
+        0.0,
+        0.0
+      ],
+      "expected_residual": 0.0,
+      "probe": {
+        "sheet": [
+          50.0,
+          50.0
+        ],
+        "expected_world": [
+          25.0,
+          -25.0
+        ]
+      }
+    },
+    {
+      "case": "reject_collinear",
+      "sheet_points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "world_points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "expected": "raise",
+      "reason": "collinear calibration points"
+    },
+    {
+      "case": "reject_residual",
+      "sheet_points": [
+        [
+          0,
+          0
+        ],
+        [
+          1000,
+          0
+        ],
+        [
+          0,
+          1000
+        ],
+        [
+          1000,
+          1000
+        ]
+      ],
+      "world_points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      "expected": "raise",
+      "reason": "4th verification point exceeds max_residual_m (0.05 default)"
+    }
+  ]
+}
