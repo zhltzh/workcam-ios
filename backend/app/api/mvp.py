@@ -362,6 +362,182 @@ def _resolve_evidence_status(conn, photo_sha256: str,
         f"awaiting time-anchor verification for {evidence_reference}")
 
 
+# ------------------------------------------------ P2-followup: server verify
+
+
+class SignatureManifestVerifyBody(BaseModel):
+    """Verification MATERIAL for a signature_manifest evidence link.
+    The client submits the manifest (and optionally the photo bytes);
+    the STATUS is computed server-side and written back - the request
+    schema has no status field by design."""
+    manifest: dict
+    photo_base64: str | None = None
+
+
+class TimeAnchorVerifyBody(BaseModel):
+    receipt: dict
+
+
+def _load_link_owned(conn, photo_id: str, link_id: str,
+                     token: str) -> tuple[dict, dict]:
+    """Fetch photo + link enforcing ownership through the photo's
+    project (cross-subject -> 404, identical to not-found)."""
+    photo = _get_owned_photo(conn, photo_id, token)
+    row = conn.execute(
+        "SELECT * FROM mvp_evidence_links WHERE evidence_link_id = ?",
+        (link_id,)).fetchone()
+    if row is None or row["photo_id"] != photo_id:
+        raise ApiError(404, "not_found", "evidence link not found")
+    return photo, row_to_evidence_link(row)
+
+
+def _write_back_status(conn, link_id: str, status: str,
+                       reason: str | None, verified_at: str | None) -> dict:
+    """The ONLY writer of non-unverified statuses in the business DB -
+    always the result of a real server-side verification run."""
+    conn.execute(
+        "UPDATE mvp_evidence_links SET verification_status = ?, "
+        "failure_reason = ?, verified_at = ? WHERE evidence_link_id = ?",
+        (status, reason, verified_at, link_id))
+    row = conn.execute(
+        "SELECT * FROM mvp_evidence_links WHERE evidence_link_id = ?",
+        (link_id,)).fetchone()
+    return row_to_evidence_link(row)
+
+
+@router.post("/photos/{photo_id}/evidence-links/{evidence_link_id}/verify")
+async def verify_evidence_link(photo_id: str, evidence_link_id: str,
+                               request: Request,
+                               body: dict):
+    """Server-side verification of a registered evidence link.
+
+    The client submits the verification MATERIAL (manifest / anchor
+    receipt); the server runs the EXISTING trusted verification paths
+    (W002 signature service, W003 anchor service - unmodified) and
+    writes the resulting status back. Clients still cannot submit a
+    status: the computed value is the only thing that lands in the DB.
+
+    Traceability + binding guards (fail fast, 400 - no state change):
+      - signature_manifest: manifest.record_id MUST equal the link's
+        evidence_reference, and manifest.photo_hash MUST equal the
+        photo's original_sha256 (anti cross-photo misbinding)
+      - time_anchor: receipt.batch_id MUST equal the evidence_reference
+    """
+    token = require_caller(request)
+    _require_uuid(photo_id, "photo_id")
+    now = utc_now()
+
+    with db() as conn:
+        photo, link = _load_link_owned(conn, photo_id, evidence_link_id,
+                                        token)
+
+        if link["evidence_type"] == "signature_manifest":
+            if "manifest" not in body:
+                raise ApiError(400, "missing_material",
+                               "signature_manifest links require "
+                               "{manifest: {...}}")
+            manifest_dict = body["manifest"]
+            record_id = manifest_dict.get("record_id")
+            if record_id != link["evidence_reference"]:
+                raise ApiError(400, "reference_mismatch",
+                               f"manifest.record_id {record_id!r} does not "
+                               f"match the registered evidence_reference "
+                               f"{link['evidence_reference']!r}")
+            photo_hash = manifest_dict.get("photo_hash")
+            if photo_hash != photo["original_sha256"]:
+                raise ApiError(400, "hash_binding_mismatch",
+                               "manifest.photo_hash does not match the "
+                               "photo's registered original_sha256 - "
+                               "refusing to bind evidence to the wrong "
+                               "photo")
+
+            from app.models.capture import SignatureManifest
+            try:
+                manifest = SignatureManifest.model_validate(manifest_dict)
+            except Exception as e:
+                return _write_back_status(
+                    conn, evidence_link_id, "verification_failed",
+                    f"manifest failed schema validation: {e}", now)
+
+            from app.services.signature import (
+                validate_manifest_structure, verify_signature_with_details,
+                verify_photo_hash as check_photo_hash)
+            import base64
+
+            struct_errors = validate_manifest_structure(manifest)
+            if struct_errors:
+                return _write_back_status(
+                    conn, evidence_link_id, "verification_failed",
+                    "structure validation failed: "
+                    + "; ".join(struct_errors[:3]), now)
+
+            if body.get("photo_base64"):
+                try:
+                    photo_bytes = base64.b64decode(body["photo_base64"],
+                                                   validate=True)
+                except Exception as e:
+                    return _write_back_status(
+                        conn, evidence_link_id, "verification_failed",
+                        f"photo_base64 undecodable: {e}", now)
+                if not check_photo_hash(manifest, photo_bytes):
+                    return _write_back_status(
+                        conn, evidence_link_id, "verification_failed",
+                        "photo bytes do not match the signed photo_hash",
+                        now)
+
+            sig_ok, sig_msg = verify_signature_with_details(manifest)
+            if not sig_ok:
+                return _write_back_status(
+                    conn, evidence_link_id, "verification_failed",
+                    f"signature invalid: {sig_msg}", now)
+
+            # trust level mapped from the EXISTING status machine:
+            # registered key -> cryptographically_valid; unregistered
+            # -> signature_valid (same semantics as /verify's
+            # evidence_status, never inflated)
+            from app.services.key_registry import (
+                get_registry, KeyRegistrationStatus)
+            reg = get_registry().lookup(manifest.public_key)
+            if reg.registration_status == KeyRegistrationStatus.REGISTERED:
+                status, reason = "cryptographically_valid", None
+            else:
+                status = "signature_valid"
+                reason = ("signature math valid; public key not in the "
+                          "registry - device identity not established")
+            return _write_back_status(conn, evidence_link_id, status,
+                                      reason, now)
+
+        # ---------------- time_anchor ----------------
+        if "receipt" not in body:
+            raise ApiError(400, "missing_material",
+                           "time_anchor links require {receipt: {...}}")
+        receipt_dict = body["receipt"]
+        if receipt_dict.get("batch_id") != link["evidence_reference"]:
+            raise ApiError(400, "reference_mismatch",
+                           f"receipt.batch_id {receipt_dict.get('batch_id')!r}"
+                           f" does not match the registered "
+                           f"evidence_reference "
+                           f"{link['evidence_reference']!r}")
+
+        from app.models.time_anchor import TimeAnchorReceipt
+        from app.services.time_anchor import get_time_anchor_service
+        try:
+            receipt = TimeAnchorReceipt.model_validate(receipt_dict)
+        except Exception as e:
+            return _write_back_status(
+                conn, evidence_link_id, "verification_failed",
+                f"receipt failed schema validation: {e}", now)
+
+        service = get_time_anchor_service()
+        result = service.verify_anchor(receipt, check_storage=True)
+        if result.valid:
+            return _write_back_status(
+                conn, evidence_link_id, "server_anchored", None, now)
+        return _write_back_status(
+            conn, evidence_link_id, "verification_failed",
+            f"anchor verification failed: {result.message}", now)
+
+
 @router.post("/photos/{photo_id}/evidence-links", status_code=201)
 async def create_evidence_link(photo_id: str, body: EvidenceLinkCreate,
                                request: Request):

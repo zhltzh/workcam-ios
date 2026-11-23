@@ -1,6 +1,8 @@
 # WorkCam W006 数据模型
 
-版本：v1（`PRAGMA user_version = 1`，`app/db.py` 管理，幂等可重放）
+版本：v2（`PRAGMA user_version = 2`，`app/db.py` 管理，幂等可重放；
+v1→v2 重建 evidence_links 表补入既有状态机的 `signature_valid`——
+SQLite 无法 ALTER CHECK，迁移保留全部数据并重建索引）
 
 ```
 mvp_projects                          mvp_photos
@@ -28,7 +30,8 @@ archived_at  TEXT nullable           received_at        TEXT (server UTC)
             evidence_reference  TEXT NOT NULL
             evidence_type       'signature_manifest'|'time_anchor'
             original_sha256     TEXT NOT NULL   ← 链接时刻照片哈希绑定
-            verification_status 'unverified'|'cryptographically_valid'
+            verification_status 'unverified'|'signature_valid'
+                               |'cryptographically_valid'
                                |'verification_failed'|'server_anchored'
             failure_reason      TEXT nullable    ← 失败审计
             verified_at         TEXT nullable

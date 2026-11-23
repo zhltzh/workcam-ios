@@ -455,5 +455,5 @@ def test_openapi_documented(biz_env):
     spec = client.get("/openapi.json").json()
     v1_paths = [p for p in spec["paths"] if p.startswith("/api/v1")]
     ops = sum(len(spec["paths"][p]) for p in v1_paths)
-    assert len(v1_paths) == 6          # unique resource paths
-    assert ops >= 10                   # 5P+3Ph+2L operations present
+    assert len(v1_paths) == 7          # unique resource paths (verify adds 1)
+    assert ops >= 11                   # 5P+3Ph+2L+1V operations present

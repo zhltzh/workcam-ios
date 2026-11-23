@@ -60,10 +60,18 @@ curl -s -X POST "$BASE/photos/<photoid>/evidence-links" -H "$H" \
   -d '{"evidence_reference":"<record_id>","evidence_type":"signature_manifest"}'
 # → verification_status:"unverified"（可信状态只能由服务端验证写入）
 
-# 2.4 查询项目照片
+# 2.4 服务端验证回写（提交材料；状态由服务端计算）
+curl -s -X POST "$BASE/photos/<photoid>/evidence-links/<linkid>/verify" -H "$H" \
+  -H "Content-Type: application/json" \
+  -d '{"manifest": {…完整签名清单…}, "photo_base64": "…可选，字节级复核…"}'
+# → 签名有效+公钥已注册: cryptographically_valid
+# → 签名有效+公钥未注册: signature_valid（reason 注明设备身份未确立）
+# → 任一失败: verification_failed + failure_reason（可重跑恢复）
+
+# 2.5 查询项目照片
 curl -s "$BASE/projects/<pid>/photos?limit=20" -H "$H"
 
-# 2.5 查看证据状态
+# 2.6 查看证据状态
 curl -s "$BASE/photos/<photoid>/evidence-links" -H "$H"
 ```
 
@@ -86,14 +94,15 @@ python3 -m pytest tests/test_mvp_api.py -q
 
 - 本轮全部验证为**桌面测试**（软件测试密钥、模拟设备令牌）
 - `device_id` / `captured_at` 是客户端声明数据，服务端永不标记可信
-- 证据关联的 `cryptographically_valid`/`server_anchored` 状态
-  **只能**由服务端验证路径产生；W006 里新建链接一律 `unverified`
-- 真机需要验证：SE 公钥注册流程、真实照片登记（大文件传输走既有
-  实验上传通道，本轮未做元数据+二进制的完整闭环）
+- 证据状态闭环已实现：verify 端点由服务端运行既有验证路径并回写
+  `signature_valid` / `cryptographically_valid` / `server_anchored` /
+  `verification_failed`——但全部验证样本仍为桌面合成数据
+- 真机需要验证：SE 公钥注册流程、真实照片登记、真机签名清单走完
+  关联→验证→回写全链（大文件传输走既有实验上传通道）
 
 ## 6. 已知限制
 
 1. 照片登记只存元数据——原图二进制的业务化存储（非实验上传）在后续轮
-2. 证据链接的"服务端验证后回写状态"路径在 W006 未闭环（新链接一律
-   `unverified`，等待与 /verify /锚点服务的真实联动）
-3. 设备注册表仍为文件型（`devices.jsonl`）——与上传鉴权共用的既有边界
+2. 设备注册表仍为文件型（`devices.jsonl`）——与上传鉴权共用的既有边界
+3. `signature_valid` 状态的语义与既有 /verify 的同名状态一致（数学
+   有效、身份未确立）——永远不夸大为 cryptographically_valid

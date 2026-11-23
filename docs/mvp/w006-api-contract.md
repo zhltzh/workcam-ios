@@ -116,15 +116,40 @@
   "verified_at": null, "created_at": "…" }
 ```
 
-**状态语义（对齐既有系统，不造第二套）**：
+**状态语义（完全对齐既有状态机）**：
 - `unverified`：链接已登记，服务端尚未运行验证
-- `cryptographically_valid` / `server_anchored`：**只能**由服务端验证路径写入
+- `signature_valid`：签名数学有效但公钥未注册（设备身份未确立）
+- `cryptographically_valid`：签名有效 + 公钥已注册（服务端验证写入）
+- `server_anchored`：锚点回经服务端验证写入
 - `verification_failed`：保留 `failure_reason` 审计记录
 
-**W006 边界**：新链接一律以 `unverified` 创建——可信状态的写入只发生在
-服务端真实验证之后（/verify 或锚点服务），请求体里带任何
-`verification_status` 字段都会被忽略。`original_sha256` 在链接时刻绑定，
-防止照片 A 的证据被关联到照片 B。
+**新链接一律以 `unverified` 创建**——请求体里带任何 `verification_status` 字段都会被忽略。状态转换只发生在服务端验证之后（见下方 verify 端点）。`original_sha256` 在链接时刻绑定，防止照片 A 的证据被关联到照片 B。
+
+### POST /api/v1/photos/{photo_id}/evidence-links/{evidence_link_id}/verify → 200
+
+**服务端验证回写**：客户端提交验证材料，服务端运行**既有**验证路径（W002 签名服务 / W003 锚点服务，未修改）并把结果回写。这是唯一的非 unverified 状态写入者。
+
+```json
+// signature_manifest 类型的请求（photo_base64 可选，用于字节级复核）
+{ "manifest": { …完整 SignatureManifest… }, "photo_base64": "…" }
+// time_anchor 类型的请求
+{ "receipt": { …完整 TimeAnchorReceipt… } }
+```
+
+**追溯与绑定防护（400 快速拒绝，不写状态）**：
+- `manifest.record_id` 必须等于链接登记的 `evidence_reference`（`reference_mismatch`）
+- `manifest.photo_hash` 必须等于照片登记的 `original_sha256`（`hash_binding_mismatch`——防跨照片误关联）
+- `receipt.batch_id` 必须等于 `evidence_reference`（`reference_mismatch`）
+
+**状态映射（既有语义，不夸大）**：
+- 签名有效 + 公钥已注册 → `cryptographically_valid`
+- 签名有效 + 公钥未注册 → `signature_valid`（failure_reason 注明设备身份未确立）
+- 结构/签名/字节哈希任一失败 → `verification_failed` + 原因
+- 锚点回执验证通过 → `server_anchored`
+
+**可重跑**：verify 是可重复执行的服务端动作——失败后用正确材料重验可恢复为有效状态（每次验证覆盖 verified_at / failure_reason）。
+
+**材料中仍无状态字段**：请求体注入的 `verification_status` 会被忽略，数据库里的状态永远是服务端计算值。
 
 ### GET /api/v1/photos/{photo_id}/evidence-links → 200
 
@@ -140,3 +165,6 @@
 | `empty_patch` | 400 | PATCH 无字段 |
 | `project_archived` | 409 | 归档项目不可改/不可加照片 |
 | `idempotency_conflict` | 409 | 同 key 不同内容 |
+| `missing_material` | 400 | verify 缺 manifest/receipt |
+| `reference_mismatch` | 400 | 材料 record_id/batch_id 与登记引用不符 |
+| `hash_binding_mismatch` | 400 | 材料 photo_hash 与照片登记哈希不符（防跨照片误关联） |

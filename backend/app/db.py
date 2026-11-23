@@ -87,6 +87,41 @@ CREATE INDEX IF NOT EXISTS idx_elinks_photo
 
 MIGRATIONS: dict[int, str] = {
     1: _schema_v1,
+    # v2 (W006 follow-up): the evidence-link status vocabulary was
+    # missing 'signature_valid' - the EXISTING protocol's state for
+    # "signature math valid but key not registered" (task brief: align
+    # with the existing machine, never invent a second one). SQLite
+    # cannot ALTER a CHECK constraint, so the table is rebuilt.
+    2: """
+CREATE TABLE mvp_evidence_links_v2 (
+    evidence_link_id     TEXT PRIMARY KEY,
+    photo_id             TEXT NOT NULL REFERENCES mvp_photos(photo_id),
+    evidence_reference   TEXT NOT NULL,
+    evidence_type        TEXT NOT NULL
+                         CHECK (evidence_type IN
+                                ('signature_manifest', 'time_anchor')),
+    original_sha256      TEXT NOT NULL,
+    verification_status  TEXT NOT NULL
+                         CHECK (verification_status IN
+                                ('unverified', 'signature_valid',
+                                 'cryptographically_valid',
+                                 'verification_failed', 'server_anchored')),
+    failure_reason       TEXT,
+    verified_at          TEXT,
+    created_at           TEXT NOT NULL,
+    UNIQUE (photo_id, evidence_reference)
+);
+INSERT INTO mvp_evidence_links_v2
+    SELECT evidence_link_id, photo_id, evidence_reference, evidence_type,
+           original_sha256, verification_status, failure_reason,
+           verified_at, created_at
+    FROM mvp_evidence_links;
+DROP TABLE mvp_evidence_links;
+ALTER TABLE mvp_evidence_links_v2
+    RENAME TO mvp_evidence_links;
+CREATE INDEX IF NOT EXISTS idx_elinks_photo
+    ON mvp_evidence_links(photo_id, created_at DESC);
+""",
 }
 
 _write_lock = threading.Lock()
