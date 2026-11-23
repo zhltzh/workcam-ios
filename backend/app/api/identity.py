@@ -1,54 +1,33 @@
-"""WC-W006 P4 - business API identity model.
+"""WC-W006/W009 - business API identity layer.
 
-THE AUDIT FINDING: the experimental upload DeviceRegistry (opt-in,
-file-based, loopback-gated) exists, but NOTHING protects cross-subject
-business data. This module is the minimal security layer for /api/v1:
-
-  - Caller identity = an ENROLLED DEVICE TOKEN (reuses upload_auth's
-    DeviceRegistry - one identity system, not two).
-  - Every project row records its owner_token at creation; ownership is
-    checked on EVERY subsequent access.
-  - The client-supplied `device_id` field on photos is DATA (clearly
-    annotated untrusted) and NEVER an authentication identity.
-  - Cross-subject access returns 404 - identical to 'not found', so a
-    caller cannot probe which UUIDs exist under other owners.
-  - The whole /api/v1 surface defaults to REQUIRING a valid enrolled
-    token; there is no unauthenticated mode (contrast: the experimental
-    upload prefix keeps its own separate, stricter gate chain).
+Identity = an ENROLLED DEVICE TOKEN resolving through the SQLite-backed
+device store (W009: mvp_devices with revocation), with read-compat to
+the legacy devices.jsonl. Every /api/v1 route calls require_caller;
+revoked tokens are refused here; the caller's token is the ownership
+key. Cross-subject access returns 404-identical responses (no
+existence oracle). Client-supplied device_id is DATA, never identity.
 """
 
 from __future__ import annotations
 
-import os
-from pathlib import Path
-
 from fastapi import Request
 
-from app.api.upload_auth import AuthError, DeviceRegistry
 from app.db import ApiError
-
-
-def _registry_path() -> Path:
-    return Path(os.environ.get("WORKCAM_DEVICE_REGISTRY",
-                               "data/uploads-experimental/devices.jsonl"))
+from app.services import device_identity
 
 
 def require_caller(request: Request) -> str:
     """Resolve the authenticated caller's DEVICE TOKEN (the stable
-    identity key for ownership). Returns the token; raises the unified
-    business error on any failure."""
+    identity key for ownership). Raises the unified business error on
+    any failure. Checks revocation + enrollment + per-token rate limit."""
     token = request.headers.get("X-Device-Token")
     if not token:
         raise ApiError(401, "unauthorized",
                        "X-Device-Token header required for /api/v1")
-    registry = DeviceRegistry(_registry_path())
-    device_id = registry.device_id_for_token(token)
-    if device_id is None:
-        raise ApiError(401, "unauthorized",
-                       "device token is not enrolled")
+    device_id = device_identity.resolve_device(token)      # revocation here
+    device_identity.check_rate(token)
     return token
 
 
 def caller_device_id(token: str) -> str:
-    registry = DeviceRegistry(_registry_path())
-    return registry.device_id_for_token(token) or "unknown"
+    return device_identity.resolve_device(token) or "unknown"

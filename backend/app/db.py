@@ -181,6 +181,44 @@ CREATE TABLE IF NOT EXISTS mvp_sync_events (
 CREATE INDEX IF NOT EXISTS idx_sync_events_owner
     ON mvp_sync_events(owner_token, seq ASC);
 """,
+    # v5 (W009): SQLite-persisted device identity + challenges + rate
+    # limits + structured audit log. Replaces the file-based devices.jsonl
+    # (read-compat kept: lookups fall back to the legacy file).
+    5: """
+CREATE TABLE IF NOT EXISTS mvp_devices (
+    device_token    TEXT PRIMARY KEY,
+    device_id       TEXT NOT NULL,
+    public_key_b64  TEXT NOT NULL,
+    key_fingerprint TEXT NOT NULL,
+    status          TEXT NOT NULL DEFAULT 'active'
+                    CHECK (status IN ('active', 'revoked')),
+    enrolled_at     TEXT NOT NULL,
+    revoked_at      TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_devices_status
+    ON mvp_devices(status, device_id);
+CREATE TABLE IF NOT EXISTS mvp_auth_challenges (
+    nonce           TEXT PRIMARY KEY,
+    device_token    TEXT NOT NULL,
+    expires_at      REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS mvp_rate_limits (
+    device_token    TEXT NOT NULL,
+    window_start   REAL NOT NULL,
+    request_count  INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (device_token, window_start)
+);
+CREATE TABLE IF NOT EXISTS mvp_audit_log (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts              TEXT NOT NULL,
+    event_type      TEXT NOT NULL,
+    device_token    TEXT,
+    device_id       TEXT,
+    detail          TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_audit_ts
+    ON mvp_audit_log(ts DESC);
+""",
 }
 
 _write_lock = threading.Lock()
