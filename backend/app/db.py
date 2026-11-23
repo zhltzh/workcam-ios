@@ -122,6 +122,31 @@ ALTER TABLE mvp_evidence_links_v2
 CREATE INDEX IF NOT EXISTS idx_elinks_photo
     ON mvp_evidence_links(photo_id, created_at DESC);
 """,
+    # v3 (W007): immutable original-photo objects, content-addressed.
+    # mvp_originals is the storage ledger (sha256 IS the identity);
+    # mvp_photo_originals is the explicit photo->object binding with
+    # per-project ownership (an object MAY be referenced by several
+    # photos; each binding still belongs to exactly one project).
+    3: """
+CREATE TABLE mvp_originals (
+    sha256       TEXT PRIMARY KEY,
+    byte_size    INTEGER NOT NULL CHECK (byte_size > 0),
+    status       TEXT NOT NULL DEFAULT 'stored'
+                 CHECK (status IN ('stored', 'orphan_suspected',
+                                   'corruption_detected')),
+    stored_at    TEXT NOT NULL,
+    verified_at  TEXT
+);
+CREATE TABLE mvp_photo_originals (
+    photo_id    TEXT NOT NULL REFERENCES mvp_photos(photo_id),
+    sha256      TEXT NOT NULL REFERENCES mvp_originals(sha256),
+    owner_token TEXT NOT NULL,
+    bound_at    TEXT NOT NULL,
+    PRIMARY KEY (photo_id, sha256)
+);
+CREATE INDEX IF NOT EXISTS idx_porig_owner
+    ON mvp_photo_originals(owner_token);
+""",
 }
 
 _write_lock = threading.Lock()
