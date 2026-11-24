@@ -192,10 +192,11 @@ def test_rc1_full_chain_with_inline_negatives(rc1_env):
         print(f"  {line}")
 
 
-def test_rc2_v1_to_v5_sequential_migration(tmp_path, monkeypatch):
-    """P2: v1 -> v2 -> v3 -> v4 -> v5 STEP BY STEP (migrate() applies
-    ALL pending at once by design; stepwise verification executes one
-    migration script per step to prove each level is self-contained)."""
+def test_rc2_v1_to_latest_sequential_migration(tmp_path, monkeypatch):
+    """P2: v1 -> ... -> latest STEP BY STEP (migrate() applies ALL
+    pending at once by design; stepwise verification executes one
+    migration script per step to prove each level is self-contained).
+    Updated in W011: 'latest' is now v6 (derivatives)."""
     import app.db as dbm
     import sqlite3
     db = tmp_path / "seq.db"
@@ -210,7 +211,8 @@ def test_rc2_v1_to_v5_sequential_migration(tmp_path, monkeypatch):
     conn.close()
 
     monkeypatch.setenv("WORKCAM_BUSINESS_DB", str(db))
-    for version in (2, 3, 4, 5):
+    latest = max(dbm.MIGRATIONS)
+    for version in range(2, latest + 1):
         conn = sqlite3.connect(str(db))
         conn.execute("BEGIN IMMEDIATE")
         for stmt in dbm._split_statements(dbm.MIGRATIONS[version]):

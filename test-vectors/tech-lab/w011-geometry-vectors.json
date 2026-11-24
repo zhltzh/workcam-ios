@@ -1,0 +1,418 @@
+{
+  "_description": "WC-W011 cross-platform watermark geometry vectors: identical inputs must yield identical geometry on iOS (font metrics aside, the panel box/colors/scale are the parity contract). The committed sample images let a reviewer SEE the rendering.",
+  "_usage": "iOS: reproduce the panel box, colors, font_scale, line order from expected_geometry for the same input size/template; pixel identity is NOT required (fonts differ) but geometry must match to 1px.",
+  "cases": [
+    {
+      "case": "minimal_landscape",
+      "template": "minimal",
+      "image_width": 1600,
+      "image_height": 1200,
+      "original_sha256": "c3e8736dc691e4dd60d01d6104932e911938830695824b2bf4146862233bee14",
+      "derivative_sha256": "b41181ac82a005fe90775339bc96f2f4632c65b18de9b05662f1d30f927543f6",
+      "expected_geometry": {
+        "template": "minimal",
+        "template_version": "1",
+        "image_width": 1600,
+        "image_height": 1200,
+        "exif_orientation_applied": 1,
+        "font_size": 21,
+        "font_scale": 0.018,
+        "panel": {
+          "x": 1099,
+          "y": 1071,
+          "w": 483,
+          "h": 111,
+          "opacity": 0.45,
+          "color_rgb": [
+            245,
+            245,
+            245
+          ]
+        },
+        "text_color_rgb": [
+          20,
+          20,
+          20
+        ],
+        "background_dark": false,
+        "region_luminance": 0.1558,
+        "line_count": 3,
+        "logo": null,
+        "position": "bottom_right",
+        "margin": 18
+      }
+    },
+    {
+      "case": "minimal_portrait",
+      "template": "minimal",
+      "image_width": 1200,
+      "image_height": 1600,
+      "original_sha256": "84957ea6122e2537d8efd6c45ca6a086299e9eb8048aae246e8849535066d0cb",
+      "derivative_sha256": "f76cc5363e4d062beed6e591c5b39c2d3e7038e490905a30f50f5853b36ed47d",
+      "expected_geometry": {
+        "template": "minimal",
+        "template_version": "1",
+        "image_width": 1200,
+        "image_height": 1600,
+        "exif_orientation_applied": 1,
+        "font_size": 21,
+        "font_scale": 0.018,
+        "panel": {
+          "x": 699,
+          "y": 1471,
+          "w": 483,
+          "h": 111,
+          "opacity": 0.45,
+          "color_rgb": [
+            245,
+            245,
+            245
+          ]
+        },
+        "text_color_rgb": [
+          20,
+          20,
+          20
+        ],
+        "background_dark": false,
+        "region_luminance": 0.1569,
+        "line_count": 3,
+        "logo": null,
+        "position": "bottom_right",
+        "margin": 18
+      }
+    },
+    {
+      "case": "construction_landscape",
+      "template": "construction",
+      "image_width": 1600,
+      "image_height": 1200,
+      "original_sha256": "1af8e33bee966b43142c26a31747ca7c52b4ff000e3642ab0e981609ca5bafe9",
+      "derivative_sha256": "6609332974731c1615195d3f695dd584e5527398df72c8356135df1fc6fd8a86",
+      "expected_geometry": {
+        "template": "construction",
+        "template_version": "1",
+        "image_width": 1600,
+        "image_height": 1200,
+        "exif_orientation_applied": 1,
+        "font_size": 26,
+        "font_scale": 0.022,
+        "panel": {
+          "x": 18,
+          "y": 960,
+          "w": 511,
+          "h": 222,
+          "opacity": 0.6,
+          "color_rgb": [
+            20,
+            20,
+            20
+          ]
+        },
+        "text_color_rgb": [
+          255,
+          255,
+          255
+        ],
+        "background_dark": true,
+        "region_luminance": 0.7989,
+        "line_count": 6,
+        "logo": null,
+        "position": "bottom_left",
+        "margin": 18
+      }
+    },
+    {
+      "case": "construction_portrait",
+      "template": "construction",
+      "image_width": 1200,
+      "image_height": 1600,
+      "original_sha256": "5675558981e05bf3a7b1d6cd98e8c2a8bec6514e0fb5301e1add7f88a3d15242",
+      "derivative_sha256": "8ae5aaa01112f4ad496df37f419e802249c5ae3361939c3eed4c13d80628b91e",
+      "expected_geometry": {
+        "template": "construction",
+        "template_version": "1",
+        "image_width": 1200,
+        "image_height": 1600,
+        "exif_orientation_applied": 1,
+        "font_size": 26,
+        "font_scale": 0.022,
+        "panel": {
+          "x": 18,
+          "y": 1360,
+          "w": 511,
+          "h": 222,
+          "opacity": 0.6,
+          "color_rgb": [
+            20,
+            20,
+            20
+          ]
+        },
+        "text_color_rgb": [
+          255,
+          255,
+          255
+        ],
+        "background_dark": true,
+        "region_luminance": 0.7746,
+        "line_count": 6,
+        "logo": null,
+        "position": "bottom_left",
+        "margin": 18
+      }
+    },
+    {
+      "case": "inspection_landscape",
+      "template": "inspection",
+      "image_width": 1600,
+      "image_height": 1200,
+      "original_sha256": "c3e8736dc691e4dd60d01d6104932e911938830695824b2bf4146862233bee14",
+      "derivative_sha256": "38452a7b0218ca0a1ffd5fedd1a2b4a35db41afc24ba2400eb62a6d92d87fa9f",
+      "expected_geometry": {
+        "template": "inspection",
+        "template_version": "1",
+        "image_width": 1600,
+        "image_height": 1200,
+        "exif_orientation_applied": 1,
+        "font_size": 24,
+        "font_scale": 0.02,
+        "panel": {
+          "x": 1004,
+          "y": 978,
+          "w": 578,
+          "h": 204,
+          "opacity": 0.55,
+          "color_rgb": [
+            245,
+            245,
+            245
+          ]
+        },
+        "text_color_rgb": [
+          20,
+          20,
+          20
+        ],
+        "background_dark": false,
+        "region_luminance": 0.1541,
+        "line_count": 6,
+        "logo": null,
+        "position": "bottom_right",
+        "margin": 18
+      }
+    },
+    {
+      "case": "inspection_portrait",
+      "template": "inspection",
+      "image_width": 1200,
+      "image_height": 1600,
+      "original_sha256": "84957ea6122e2537d8efd6c45ca6a086299e9eb8048aae246e8849535066d0cb",
+      "derivative_sha256": "9d15eb9a529605624b158d8196f84218deade0efe3d90ef4288731b262631f0b",
+      "expected_geometry": {
+        "template": "inspection",
+        "template_version": "1",
+        "image_width": 1200,
+        "image_height": 1600,
+        "exif_orientation_applied": 1,
+        "font_size": 24,
+        "font_scale": 0.02,
+        "panel": {
+          "x": 604,
+          "y": 1378,
+          "w": 578,
+          "h": 204,
+          "opacity": 0.55,
+          "color_rgb": [
+            245,
+            245,
+            245
+          ]
+        },
+        "text_color_rgb": [
+          20,
+          20,
+          20
+        ],
+        "background_dark": false,
+        "region_luminance": 0.1551,
+        "line_count": 6,
+        "logo": null,
+        "position": "bottom_right",
+        "margin": 18
+      }
+    },
+    {
+      "case": "corporate_landscape",
+      "template": "corporate",
+      "image_width": 1600,
+      "image_height": 1200,
+      "original_sha256": "1af8e33bee966b43142c26a31747ca7c52b4ff000e3642ab0e981609ca5bafe9",
+      "derivative_sha256": "002bf85cf82e99342b3cad45e561a6ff9a8b3c5d8d1b67acc9aabfae99da8b81",
+      "expected_geometry": {
+        "template": "corporate",
+        "template_version": "1",
+        "image_width": 1600,
+        "image_height": 1200,
+        "exif_orientation_applied": 1,
+        "font_size": 28,
+        "font_scale": 0.024,
+        "panel": {
+          "x": 18,
+          "y": 916,
+          "w": 491,
+          "h": 266,
+          "opacity": 0.65,
+          "color_rgb": [
+            20,
+            20,
+            20
+          ]
+        },
+        "text_color_rgb": [
+          255,
+          255,
+          255
+        ],
+        "background_dark": true,
+        "region_luminance": 0.7945,
+        "line_count": 5,
+        "logo": {
+          "present": true,
+          "height": 60
+        },
+        "position": "bottom_left",
+        "margin": 18
+      }
+    },
+    {
+      "case": "corporate_portrait",
+      "template": "corporate",
+      "image_width": 1200,
+      "image_height": 1600,
+      "original_sha256": "5675558981e05bf3a7b1d6cd98e8c2a8bec6514e0fb5301e1add7f88a3d15242",
+      "derivative_sha256": "83e529d3d1856a83a8fbb33dcb226754725951df1fc826e4976c1025060ba417",
+      "expected_geometry": {
+        "template": "corporate",
+        "template_version": "1",
+        "image_width": 1200,
+        "image_height": 1600,
+        "exif_orientation_applied": 1,
+        "font_size": 28,
+        "font_scale": 0.024,
+        "panel": {
+          "x": 18,
+          "y": 1316,
+          "w": 491,
+          "h": 266,
+          "opacity": 0.65,
+          "color_rgb": [
+            20,
+            20,
+            20
+          ]
+        },
+        "text_color_rgb": [
+          255,
+          255,
+          255
+        ],
+        "background_dark": true,
+        "region_luminance": 0.7753,
+        "line_count": 5,
+        "logo": {
+          "present": true,
+          "height": 60
+        },
+        "position": "bottom_left",
+        "margin": 18
+      }
+    },
+    {
+      "case": "evidence_landscape",
+      "template": "evidence",
+      "image_width": 1600,
+      "image_height": 1200,
+      "original_sha256": "c3e8736dc691e4dd60d01d6104932e911938830695824b2bf4146862233bee14",
+      "derivative_sha256": "78f5709d542f1e62a56c46f74202b340228fe86fa3187a0fc2bc889ef6fdb274",
+      "expected_geometry": {
+        "template": "evidence",
+        "template_version": "1",
+        "image_width": 1600,
+        "image_height": 1200,
+        "exif_orientation_applied": 1,
+        "font_size": 26,
+        "font_scale": 0.022,
+        "panel": {
+          "x": 963,
+          "y": 802,
+          "w": 619,
+          "h": 380,
+          "opacity": 0.7,
+          "color_rgb": [
+            245,
+            245,
+            245
+          ]
+        },
+        "text_color_rgb": [
+          20,
+          20,
+          20
+        ],
+        "background_dark": false,
+        "region_luminance": 0.1507,
+        "line_count": 9,
+        "logo": {
+          "present": true,
+          "height": 60
+        },
+        "position": "bottom_right",
+        "margin": 18
+      }
+    },
+    {
+      "case": "evidence_portrait",
+      "template": "evidence",
+      "image_width": 1200,
+      "image_height": 1600,
+      "original_sha256": "84957ea6122e2537d8efd6c45ca6a086299e9eb8048aae246e8849535066d0cb",
+      "derivative_sha256": "f2128883b70f90bf523d4f1da297c0ff5efc47a32dd792bfd04cd8181bb8cd1a",
+      "expected_geometry": {
+        "template": "evidence",
+        "template_version": "1",
+        "image_width": 1200,
+        "image_height": 1600,
+        "exif_orientation_applied": 1,
+        "font_size": 26,
+        "font_scale": 0.022,
+        "panel": {
+          "x": 563,
+          "y": 1202,
+          "w": 619,
+          "h": 380,
+          "opacity": 0.7,
+          "color_rgb": [
+            245,
+            245,
+            245
+          ]
+        },
+        "text_color_rgb": [
+          20,
+          20,
+          20
+        ],
+        "background_dark": false,
+        "region_luminance": 0.1527,
+        "line_count": 9,
+        "logo": {
+          "present": true,
+          "height": 60
+        },
+        "position": "bottom_right",
+        "margin": 18
+      }
+    }
+  ]
+}
