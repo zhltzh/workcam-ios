@@ -13,6 +13,7 @@ from app.api.sync import router as sync_router
 from app.api.device_admin import router as device_admin_router
 from app.api.derivatives import router as derivatives_router
 from app.api.reports import router as reports_router
+from app.api.inspection import router as inspection_router
 from app.services.security_config import check_startup_security
 
 logging.basicConfig(level=logging.INFO)
@@ -52,6 +53,7 @@ app.include_router(sync_router)     # /api/v1/sync (W008)
 app.include_router(device_admin_router)  # /api/v1/devices (W009)
 app.include_router(derivatives_router)  # /api/v1 derivatives (W011)
 app.include_router(reports_router)    # /api/v1 reports (W012)
+app.include_router(inspection_router)  # /api/v1 annotations+issues (W013)
 
 # W009: startup security guards - dangerous configurations abort boot
 # (fail_fast=True) or print warnings; prints go to stderr.
