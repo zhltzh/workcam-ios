@@ -1,0 +1,30 @@
+workcam-evidence-verifier 1.0.0 (task B02-W018) - offline, no account, no network
+input photos are hashed locally and never uploaded
+  ! This report is OFFLINE VERIFICATION MATH ONLY.
+  ! A valid signature proves byte integrity and signature math.
+  ! It is NOT proof that the photo content is genuine.
+  ! It is NOT proof of hardware key provenance (Secure Enclave).
+  ! It is NOT a legal certification of anything.
+  ! DEVICE_PENDING: validated against public test vectors only; no real Mac device evidence package has been cross-validated yet
+
+== Package 1/1: C:\Users\admin\AppData\Local\Temp\b02w018-sample-bqg7fnka\site-a-evidence-package.zip ==
+  kind: zip
+  package version: 1 | device_id: vector-device-001
+  [record a1b2c3d4-e5f6-7890-abcd-ef1234567890] verdict: PASS
+    L1 file integrity      : PASS
+    L2 signature math      : PASS
+    L3 device identity     : NOT_CHECKED
+    L4 hardware provenance : NOT_VERIFIABLE_OFFLINE
+    L5 trusted time        : DEVICE_REPORTED
+    L6 location provenance : NONE
+    note: DEVICE_PENDING: validated against public test vectors only; no real Mac device evidence package has been cross-validated yet
+    note: signature: ECDSA P-256 (secp256r1) + SHA-256 over canonical payload v1.1
+    note: identity not checked: no --registry provided
+    note: hardware key provenance (Secure Enclave attestation) cannot be verified from package bytes offline; a valid signature is never proof of a hardware-backed key
+    note: no anchor receipt: timestamp is device-reported only
+    note: the signature only fixes the coordinate BYTES at signing time; the coordinate source (gps/manual) and its truthfulness cannot be proven offline
+    NOTE: a valid signature proves byte integrity only; it is NOT proof that the photo content was genuine, NOT proof of hardware provenance, and NOT a legal certification
+  package outcome: PASS
+
+Summary: 1 packages | 1 passed | 0 failed | 0 corrupt
+exit code: 0

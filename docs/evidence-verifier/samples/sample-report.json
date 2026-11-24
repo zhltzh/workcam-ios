@@ -1,0 +1,68 @@
+{
+  "tool": "workcam-evidence-verifier",
+  "task": "B02-W018",
+  "version": "1.0.0",
+  "offline": true,
+  "disclaimer": [
+    "This report is OFFLINE VERIFICATION MATH ONLY.",
+    "A valid signature proves byte integrity and signature math.",
+    "It is NOT proof that the photo content is genuine.",
+    "It is NOT proof of hardware key provenance (Secure Enclave).",
+    "It is NOT a legal certification of anything."
+  ],
+  "device_pending": true,
+  "packages": [
+    {
+      "input": "C:\\Users\\admin\\AppData\\Local\\Temp\\b02w018-sample-bqg7fnka\\site-a-evidence-package.zip",
+      "kind": "zip",
+      "outcome": "pass",
+      "package_version": "1",
+      "device_id": "vector-device-001",
+      "records": [
+        {
+          "record_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+          "verdict": "pass",
+          "layers": {
+            "L1_file_integrity": "pass",
+            "L2_signature_math": "pass",
+            "L3_device_identity": "not_checked",
+            "L4_hardware_provenance": "not_verifiable_offline",
+            "L5_trusted_time": "device_reported",
+            "L6_location_provenance": "none"
+          },
+          "problems": [],
+          "notes": [
+            "DEVICE_PENDING: validated against public test vectors only; no real Mac device evidence package has been cross-validated yet",
+            "signature: ECDSA P-256 (secp256r1) + SHA-256 over canonical payload v1.1",
+            "identity not checked: no --registry provided",
+            "hardware key provenance (Secure Enclave attestation) cannot be verified from package bytes offline; a valid signature is never proof of a hardware-backed key",
+            "no anchor receipt: timestamp is device-reported only",
+            "the signature only fixes the coordinate BYTES at signing time; the coordinate source (gps/manual) and its truthfulness cannot be proven offline"
+          ],
+          "raw": {
+            "record_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            "photo_found": true,
+            "photo_hash_valid": true,
+            "manifest_found": true,
+            "manifest_struct_valid": true,
+            "signature_valid": true,
+            "key_registered": null,
+            "derivative_problems": [],
+            "problems": [],
+            "status": "pass"
+          }
+        }
+      ],
+      "package_problems": [],
+      "derivative_problems": [],
+      "anchor_receipts": []
+    }
+  ],
+  "summary": {
+    "packages": 1,
+    "passed": 1,
+    "failed": 0,
+    "corrupt": 0
+  },
+  "exit_code": 0
+}
