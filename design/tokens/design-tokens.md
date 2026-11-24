@@ -1,173 +1,116 @@
-# WorkCam Design Tokens
+# WorkCam Design Tokens (Human-Readable Reference)
 
-## Direction A: "Field Pro" — Engineering-first, high-visibility
+> **机器事实源：`design/tokens/design-tokens.json`（w014-rc2）。**
+> 本文档是其人类可读摘要，供评审与手写代码参考；两者不一致时以 JSON 为准。
+> 所有色值均通过 `design/tools/contrast_check.py` 的 WCAG 2.1 AA 审计（硬检查 141/141）。
 
-Corporate blue base with safety-orange accents. Optimized for outdoor
-readability. Inspired by construction site signage and professional
-engineering tools.
+## Token 架构
 
-### Colors — Light Mode
+- `shared`：跨方向共享（间距/圆角/阴影/字体/**证据状态色（亮暗双变体）**/标注色板/严重度映射/问题 chip/hover 规则/恒定表面）。
+- `directions.{a|b|c}.themes.{light|dark}`：品牌层（primary 系/accent 系/背景/文字/边框）。
+- 证据状态色与品牌色正交：任何方向下语义一致，只有亮暗变体之分。
+
+## 方向
+
+| Key | 名称 | 意图 |
+|---|---|---|
+| `a` | Field Pro | 深蓝权威 + 安全橙，工业现场工具感，户外可读优先 |
+| `b` | Trust Slate | 冷岩蓝 + 青绿，文档化、合规卷宗气质 |
+| `c` | Signal Clean | iOS 系统色对齐，零学习成本（注：系统绿不能承载白字，CTA 用加深绿） |
+
+## Colors — Direction A "Field Pro"
+
+| Token | Light | Dark |
+|---|---|---|
+| `primary` | `#1a355e` | `#5c9dff` |
+| `primary_hover` | `#244a7c` | `#7ab5ff` |
+| `primary_subtle` | `#e8eef7` | `#1a2a3a` |
+| `primary_ink`（subtle 底上的文字） | `#1a355e` | `#5c9dff` |
+| `accent`（装饰） | `#e8590c` | `#ff8c42` |
+| `accent_strong`（CTA 底） | `#c2410c` | `#ff8c42` |
+| `accent_strong_hover` | `#ad3b09` | `#ffa05c` |
+| `on_accent`（CTA 标签） | `#ffffff` | `#0e1113` |
+| `bg` / `surface` / `border` | `#f8f9fa` / `#ffffff` / `#dee2e6` | `#0e1113` / `#1a1e23` / `#2a3038` |
+| `text_1` / `text_2` / `text_3` | `#1b1e23` / `#5a6472` / `#66707d` | `#e9ecef` / `#909aa3` / `#8b95a1` |
+
+## Colors — Direction B "Trust Slate"
+
+| Token | Light | Dark |
+|---|---|---|
+| `primary` / `primary_hover` / `primary_subtle` | `#0c4a6e` / `#155e8a` / `#e0f2fe` | `#38bdf8` / `#7dd3fc` / `#0c2638` |
+| `primary_ink` | `#0c4a6e` | `#38bdf8` |
+| `accent` | `#0d9488` | `#2dd4bf` |
+| `accent_strong` / `accent_strong_hover` | `#0f766e` / `#0c635c` | `#2dd4bf` / `#55e0cc` |
+| `on_accent` | `#ffffff` | `#02120f` |
+| `bg` / `surface` / `border` | `#f1f5f9` / `#ffffff` / `#cbd5e1` | `#020617` / `#0f172a` / `#1e293b` |
+| `text_1` / `text_2` / `text_3` | `#0f172a` / `#475569` / `#5c6a7e` | `#f1f5f9` / `#b6c2d2` / `#94a3b8` |
+
+## Colors — Direction C "Signal Clean"
+
+| Token | Light | Dark |
+|---|---|---|
+| `primary` / `primary_hover` / `primary_subtle` | `#007AFF` / `#0056b3` / `#e3f0ff` | `#0A84FF` / `#409cff` / `#0a1a2a` |
+| `primary_ink` | `#0056b3` | `#409cff` |
+| `accent` | `#34C759` | `#30D158` |
+| `accent_strong` / `accent_strong_hover` | `#1e7a34` / `#186a2e` | `#30D158` / `#45e06d` |
+| `on_accent` | `#ffffff` | `#00140a` |
+| `bg` / `surface` / `border` | `#F2F2F7` / `#FFFFFF` / `#C6C6C8` | `#000000` / `#1C1C1E` / `#38383A` |
+| `text_1` / `text_2` / `text_3` | `#000000` / `#3c3c43` / `#6d6d72` | `#FFFFFF` / `#ebebf5` / `#8e8e93` |
+
+## 证据状态色（shared，亮暗双变体）
+
+语义与文案见 `design/specs/ui-spec.md` §4；徽章底 = 状态色与 surface 的 `color-mix`（15%；failed 12%）。
+
+| Status | Light | Dark | Badge 文案（EN） |
+|---|---|---|---|
+| `none` | `#5b6470` | `#a3abb5` | No evidence |
+| `unverified` | `#8a5f00` | `#ffc94d` | Awaiting verification |
+| `signature_valid` | `#3b5bdb` | `#7a95ff` | Signature valid |
+| `verified` | `#1e6f38` | `#51cf66` | Verified |
+| `failed` | `#c92a2a` | `#ff6b6b` | Verification failed |
+| `anchored` | `#5f3dc4` | `#a58af9` | Time-anchored |
+
+严重度映射：low→`none`，medium→`unverified`，high→`accent_strong`，critical→`failed`。
+问题 chip：open→`primary_ink`，in_progress→`unverified`，resolved→`verified`，closed→`text_3` on `bg`。
+
+## Typography
 
 | Token | Value | Usage |
 |---|---|---|
-| `--color-primary` | `#1a355e` | Navigation, primary buttons |
-| `--color-primary-hover` | `#244a7c` | Hover states |
-| `--color-primary-subtle` | `#e8eef7` | Selected item backgrounds |
-| `--color-accent` | `#e8590c` | CTAs, active states |
-| `--color-accent-hover` | `#f06c1a` | CTA hover |
-| `--color-success` | `#2f9e44` | Verified states |
-| `--color-warning` | `#e8a80c` | In-progress states |
-| `--color-danger` | `#c92a2a` | Critical, destructive actions |
-| `--color-danger-subtle` | `#fff0f0` | Critical issue backgrounds |
-| `--color-bg` | `#f8f9fa` | Page background |
-| `--color-surface` | `#ffffff` | Card surfaces |
-| `--color-text-primary` | `#1b1e23` | Primary text |
-| `--color-text-secondary` | `#5a6472` | Secondary text |
-| `--color-text-tertiary` | `#9aa3af` | Placeholder text |
-| `--color-border` | `#dee2e6` | Dividers, input borders |
-| `--color-focus-ring` | `#2e6da4` | Focus outlines |
+| `--font-family` | `-apple-system, BlinkMacSystemFont, "SF Pro Text", Segoe UI, Roboto, sans-serif` | Body |
+| `--font-family-mono` | `"SF Mono", "Fira Code", Consolas, monospace` | SHA-256、photo id、sync op、device token |
+| `--text-xs` | `11px / 16px` | 徽章、caption |
+| `--text-sm` | `13px / 18px` | 次要信息 |
+| `--text-base` | `15px / 22px` | 正文 |
+| `--text-lg` | `17px / 24px` | 分节标题 |
+| `--text-xl` | `20px / 28px` | 页面标题 |
 
-### Colors — Dark Mode
-
-| Token | Value | Usage |
-|---|---|---|
-| `--color-primary` | `#5c9d ff` | Navigation, primary buttons |
-| `--color-primary-hover` | `#7ab5ff` | Hover states |
-| `--color-primary-subtle` | `#1a2a3a` | Selected item backgrounds |
-| `--color-accent` | `#ff8c42` | CTAs, active states |
-| `--color-bg` | `#0e1113` | Page background |
-| `--color-surface` | `#1a1e23` | Card surfaces |
-| `--color-text-primary` | `#e9ecef` | Primary text |
-| `--color-text-secondary` | `#909aa3` | Secondary text |
-| `--color-border` | `#2a3038` | Dividers, input borders |
-
-### Typography
-
-| Token | Value | Usage |
-|---|---|---|
-| `--font-family` | `-apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, sans-serif` | Body |
-| `--font-family-mono` | `"SF Mono", "Fira Code", monospace` | SHA-256, IDs |
-| `--text-xs` | `11px / 16px` | Captions, badges |
-| `--text-sm` | `13px / 18px` | Secondary info |
-| `--text-base` | `15px / 22px` | Body text |
-| `--text-lg` | `17px / 24px` | Section headers |
-| `--text-xl` | `20px / 28px` | Page titles |
-| `--text-2xl` | `28px / 36px` | Hero text |
-
-### Spacing & Radius
+## Spacing · Radius · Shadow
 
 | Token | Value |
 |---|---|
-| `--space-xs` | `4px` |
-| `--space-sm` | `8px` |
-| `--space-md` | `16px` |
-| `--space-lg` | `24px` |
-| `--space-xl` | `32px` |
-| `--radius-sm` | `6px` |
-| `--radius-md` | `10px` |
-| `--radius-lg` | `16px` |
+| `--space-xs/sm/md/lg/xl` | `4 / 8 / 16 / 24 / 32px` |
+| `--radius-sm/md/lg` | `6 / 10 / 16px` |
 | `--shadow-card` | `0 1px 3px rgba(0,0,0,0.08)` |
 | `--shadow-pop` | `0 4px 16px rgba(0,0,0,0.12)` |
 
-### Evidence Status Colors (all directions)
+## 共享组件 tokens
 
-| Status | Color | Badge |
+| Token | Value | 说明 |
 |---|---|---|
-| `no_evidence` | `#9aa3af` (gray) | ○ No Evidence |
-| `unverified` | `#e8a80c` (amber) | ◐ Unverified |
-| `signature_valid` | `#5c7cfa` (blue) | ◐ Signature Valid |
-| `cryptographically_valid` | `#2f9e44` (green) | ● Verified |
-| `verification_failed` | `#c92a2a` (red) | ✕ Failed |
-| `server_anchored` | `#7048e8` (purple) | ⬢ Anchored |
+| evidence badge | `--text-xs, 600`，胶囊 | 11px semibold |
+| photo grid gap | `8px`（原型 `--space-sm`） | 网格缩略 |
+| annotation 默认描边 | `4px`（规格允许 1..40） | 见 w013-annotation-spec |
+| `annotation_palette` | `#FF3B30 #FF9500 #FFCC00 #34C759 #007AFF #AF52DE` | 六色取色器 |
+| 恒定表面 | 报告纸面 `#ffffff`/`#1b1e23`；相机 HUD 与照片角标 `rgba(0,0,0,.6)`；快门 `#ffffff` | 报告纸面不随暗色主题反转 |
 
----
+## iOS API 映射（摘要）
 
-## Direction B: "Trust Slate" — Evidence-first, forensic
+完整版见 `design/swiftui/swiftui-mapping.md`。
 
-Muted dark-gray base with a single teal accent. Optimized for
-evidence review and report reading. Inspired by legal/forensic
-software and medical imaging viewers.
-
-### Colors — Light Mode
-
-| Token | Value |
+| Design Token | SwiftUI |
 |---|---|
-| `--color-primary` | `#0c4a6e` |
-| `--color-accent` | `#0d9488` |
-| `--color-bg` | `#f1f5f9` |
-| `--color-surface` | `#ffffff` |
-| `--color-border` | `#cbd5e1` |
-| `--color-text-primary` | `#0f172a` |
-| `--color-text-secondary` | `#475569` |
-
-### Colors — Dark Mode
-
-| Token | Value |
-|---|---|
-| `--color-primary` | `#38bdf8` |
-| `--color-accent` | `#2dd4bf` |
-| `--color-bg` | `#020617` |
-| `--color-surface` | `#0f172a` |
-| `--color-border` | `#1e293b` |
-| `--color-text-primary` | `#f1f5f9` |
-| `--color-text-secondary` | `#94a3b8` |
-
----
-
-## Direction C: "Signal Clean" — Minimal, iOS-native
-
-Pure white/near-black base, SF symbols, no custom brand accent —
-relies entirely on Apple system colors and iOS-native feel. Inspired
-by Apple's own productivity apps (Notes, Files, Freeform).
-
-### Colors — Light Mode
-
-| Token | Value |
-|---|---|
-| `--color-primary` | `#007AFF` (Apple system blue) |
-| `--color-accent` | `#34C759` (Apple system green) |
-| `--color-bg` | `#F2F2F7` (Apple system gray 6) |
-| `--color-surface` | `#FFFFFF` |
-| `--color-border` | `#C6C6C8` |
-| `--color-text-primary` | `#000000` |
-| `--color-text-secondary` | `#3C3C4399` |
-
-### Colors — Dark Mode
-
-| Token | Value |
-|---|---|
-| `--color-primary` | `#0A84FF` |
-| `--color-accent` | `#30D158` |
-| `--color-bg` | `#000000` |
-| `--color-surface` | `#1C1C1E` |
-| `--color-border` | `#38383A` |
-| `--color-text-primary` | `#FFFFFF` |
-| `--color-text-secondary` | `#EBEBF599` |
-
----
-
-## Shared Component Tokens
-
-| Token | Value | Note |
-|---|---|---|
-| `--evidence-badge-radius` | `12px` | Pill-shaped status badges |
-| `--evidence-badge-font` | `--text-xs, 600 weight` | Small, legible |
-| `--photo-thumb-radius` | `8px` | Grid thumbnails |
-| `--photo-grid-gap` | `2px` | Camera-roll tight grid |
-| `--issue-card-radius` | `--radius-md` | Issue cards |
-| `--annotation-stroke-default` | `4px` | Default stroke width |
-| `--annotation-colors` | `#FF3B30, #FF9500, #FFCC00, #34C759, #007AFF, #AF52DE` | 6-color picker |
-| `--map-pin-primary` | `--color-accent` | GPS marker color |
-
-## iOS API Mapping
-
-| Design Token | SwiftUI | UIKit |
-|---|---|---|
-| `--color-primary` | `Color("Primary")` or `.blue` | `UIColor.systemBlue` |
-| `--color-bg` | `Color(.systemGroupedBackground)` | `.systemGroupedBackground` |
-| `--color-surface` | `Color(.secondarySystemGroupedBackground)` | `.secondarySystemGroupedBackground` |
-| `--font-family` | `.system` (default) | `UIFont.systemFont` |
-| `--radius-md` | `cornerRadius(10)` | `layer.cornerRadius = 10` |
-| `--shadow-card` | `.shadow(radius: 2, y: 1)` | `layer.shadowPath` |
-
-> SwiftUI component reference code is in `design/swiftui/`.
+| 主题双变体 | Asset Catalog Color Set 的 Any / Dark Appearance |
+| `bg` / `surface` | `Color(.systemGroupedBackground)` / `Color(.secondarySystemGroupedBackground)` |
+| `radius-md` | `.clipShape(RoundedRectangle(cornerRadius: 10))` |
+| `--font-family-mono` | `.system(.footnote, design: .monospace)` |
