@@ -185,3 +185,59 @@ xcrun devicectl device install app --device 00008150-001251D23482401C /tmp/WorkC
 xcrun devicectl device process launch --device 00008150-001251D23482401C com.example.workcam.dev > /tmp/workcam-m006-stage2-launch.log 2>&1
 ```
 BLOCKED P0 physical actions: agent has no direct iPhone screen input/physical camera positioning in current tools. Need real user capture in Open Camera, then Evidence Debug/Reverify/Prepare Evidence Export. No real record yet retrieved/observed. P0 independent W005-R1 verification still DEVICE_PENDING; CryptoKit fixture test does not substitute the Windows verifier. Device-end Secure Enclave creation observations are pending. P1 known 1m five repeats and P2 actual flight-mode network loss/kill-relaunch are DEVICE_PENDING; no invented measurements, no completed-task claim.
+
+## WC-M-006 second-stage real package retrieval attempt
+HEAD 5399a74. Clean worktree at start. Attempted device evidence copy:
+```sh
+xcrun devicectl device copy from --device 00008150-001251D23482401C --domain-type appDataContainer --domain-identifier com.example.workcam.dev --source 'Library/Application Support/Evidence' --destination /tmp/workcam-m006-device-evidence --timeout 25
+xcrun devicectl device info files --device 00008150-001251D23482401C --domain-type appDataContainer --domain-identifier com.example.workcam.dev --subdirectory Library --recurse --timeout 20
+```
+Copy failed CoreDevice 7000 failed to retrieve file node. Subsequent successful Library listing shows caches/preferences/saved-state, no Application Support/Evidence. No actual photo record available at expected app storage path. Not a signature rejection. BLOCKED P0 at physical capture; no Secure Enclave creation observed. Do not claim independent real-photo validation. Full local logs /tmp/workcam-m006-copy.log and /tmp/workcam-m006-files.log.
+
+Read Windows dev/windows-w005 docs/ios-backend-w005-handoff.md via GitHub connector; register-key uses query params, X9.63 public key/DER signature and canonical v1.1. Specific W005-R1 standalone tool still requires identification/retrieval; no real package exists to run it against yet.
+
+Latest HEAD signed Debug rebuild /tmp/workcam-m006-stage2-latest.log: BUILD SUCCEEDED. Latest install/launch attempted, logs /tmp/workcam-m006-latest-install.log and /tmp/workcam-m006-latest-launch.log. Exact commands same devicectl installation and launch documented above. P1/P2 remain DEVICE_PENDING, no measured CSV. Export fixture suite remains DESKTOP_VERIFIED; not hardware provenance.
+
+## WC-M-006 actual photo received — 2026-11-23
+User reported successful real capture. DEVICE_VERIFIED limited to persisted artifacts: device listing shows committed UUID folder with ~1.6 MB photo.jpg, 822-byte record.json, 70-byte signature.der and local-status.txt. Directory copy failed (CoreDevice7000/POSIX1), but subsequent per-file copy succeeded for photo/record/DER. Lock state query: passcodeRequired=false, unlockedSinceBoot=true. Do not attribute initial copy error to capture/signature failure.
+
+Private local material only (not committed): /tmp/workcam-m006-real-files/{photo.jpg,record.json,signature.der,public-key.x963,payload.bin,verification-report.json}. Public key extracted from record; payload reconstructed on desktop from v1.1 canonical fields, not yet compared against device-exported payload.bin. Record status reports local verification pending; not treated as proof.
+
+DESKTOP_VERIFIED on actual photo: SHA256(photo)==record.sha256==manifest.photo_hash; X9.63 public-key hash matches device_id/publicKeyID; detached DER equals manifest DER. Independent OpenSSL P-256 SHA256 verification returned Verified OK. A copy with first photo byte XOR1 fails original hash; replacing signed photo_hash with changed hash fails signature. Original JPEG preserved. Local report verification-report.json records results. Python cryptography unavailable (ModuleNotFoundError), so used OpenSSL; this is NOT execution of Windows W005-R1 code.
+
+Commands used devicectl copy from appDataContainer com.example.workcam.dev, each source Library/Application Support/Evidence/<record UUID>/{record.json,photo.jpg,signature.der}, destination /tmp/workcam-m006-real-files. OpenSSL commands:
+```sh
+openssl pkey -pubin -inform DER -in /tmp/workcam-m006-real-files/public-key.spki.der -out /tmp/workcam-m006-real-files/public-key.pem
+openssl dgst -sha256 -verify /tmp/workcam-m006-real-files/public-key.pem -signature /tmp/workcam-m006-real-files/signature.der /tmp/workcam-m006-real-files/payload.bin
+openssl dgst -sha256 -verify /tmp/workcam-m006-real-files/public-key.pem -signature /tmp/workcam-m006-real-files/signature.der /tmp/workcam-m006-real-files/tampered-payload.bin
+```
+First verify success, second nonzero failure expected. Generated SPKI wraps X9.63 key with prime256v1 public algorithm header; no private material used. Temp folder includes deliberately tampered copies; these are not original evidence.
+
+DEVICE_PENDING: hardware provenance/creation telemetry (capture source uses SecureEnclave.P256.Signing.PrivateKey without software fallback but math alone is insufficient), exact device-exported payload comparison, Windows W005-R1 execution, LiDAR real 1m×5 and flight mode/restart. P0 progressed but not fully accepted. No screenshot attached in user's last message; none claimed inspected.
+
+## WC-M-006 user-triggered export inspection
+User reports tapping Prepare Evidence Export. Read app tmp directory: 0 files. Full container listing likewise has no WorkCam-Evidence folder, payload.bin or public-key.x963. It does show a second committed evidence UUID folder (21:12 device-reported modification time); not yet verified. Lock state now passcodeRequired=true, unlockedSinceBoot=true. Cannot conclude export success or precise failure cause from directory listing. Need unlocked foreground app and observed result/error after Prepare Evidence Export. Original real-photo math verification remains valid; device exact payload comparison still pending.
+```sh
+xcrun devicectl device info files --device 00008150-001251D23482401C --domain-type appDataContainer --domain-identifier com.example.workcam.dev --subdirectory tmp --recurse --timeout 20
+xcrun devicectl device info files --device 00008150-001251D23482401C --domain-type appDataContainer --domain-identifier com.example.workcam.dev --subdirectory . --recurse --timeout 20
+xcrun devicectl device info lockState --device 00008150-001251D23482401C
+```
+Local outputs /tmp/workcam-m006-export-list.log and /tmp/workcam-m006-export-all.log. No export package claimed received. No private imagery committed.
+
+## 2026-11-24 export button feedback repair
+User reports tapping export with no visible response. Exact root cause not proven. Replaced synchronous main-thread preparation with background task, progress/disabled button, persistent result text and explicit success/error alert. Empty export now throws noExportableRecords instead of reporting empty folder success. Existing evidence preserved. No claim that folder sharing itself is fixed/verified.
+
+DESKTOP_VERIFIED: full M003 suite including allowlist/exact payload/tamper export tests and new empty-source explicit-error test PASS. Signed Debug build BUILD SUCCEEDED (/tmp/workcam-m006-export-feedback.log). Command uses same /tmp/WorkCamM006 derived data and -allowProvisioningUpdates documented above. Device install/launch attempts logged /tmp/workcam-m006-feedback-install.log and /tmp/workcam-m006-feedback-launch.log. Actual button tap/result and exact device payload retrieval remain DEVICE_PENDING.
+
+## WC-M006-R1 — 2026-11-24 wired deployment recovery
+Initial HEAD5399a74 plus pending export-feedback repair. Device confirmed connected/paired, wired transport, iOS27.2, Developer Mode Enabled. Lock query passcodeRequired=true. Signed Debug rebuild succeeded /tmp/workcam-r1-build.log. Original app updated in place successfully /tmp/workcam-r1-install.log; no uninstall, container reset or key deletion. Installed directly from /tmp/WorkCamM006/Build/Products/Debug-iphoneos/WorkCam.app produced by this build. Existing CFBundleVersion does not distinguish revisions; independent installed binary identity comparison remains pending.
+
+Launch failed Locked/RequestDenied CoreDevice10002 (/tmp/workcam-r1-launch.log), not 4000/4016. File-list after update succeeded and shows both historical photo/record/DER sets still present (~1.6MB and ~2.7MB originals), /tmp/workcam-r1-preserved.log. File presence is DEVICE_VERIFIED; byte/hash preservation and Keychain continuity after this update still pending unlocked verification. No claim of newly completed hardware provenance.
+
+Actual commands: same xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamM006 -allowProvisioningUpdates build; devicectl device install app from that artifact; device process launch com.example.workcam.dev; device info files appDataContainer Library/Application Support/Evidence. No destructive recovery action used.
+
+DESKTOP_VERIFIED export feedback core regression suite PASS:
+```sh
+xcrun swiftc -module-cache-path /tmp/workcam-clock-module-cache Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/workcam-r1-tests && /tmp/workcam-r1-tests test-vectors/fixed-vectors.json
+```
+UI progress/success/error/repeated tap acceptance remains DEVICE_PENDING. Empty-source explicit error test PASS; no historical data removed to manufacture empty-device state. P2 real photo OpenSSL verification from prior stage remains DESKTOP_VERIFIED, not hardware provenance proof. P3 known-reference measurement and P4 confirmed offline + restart remain DEVICE_PENDING. P0 launch currently BLOCKED by lock screen. M007 planning not started.

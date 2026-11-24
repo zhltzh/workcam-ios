@@ -29,7 +29,7 @@ struct EvidenceManifest: Codable {
     }
 }
 
-enum EvidenceError: Error { case invalid, unavailable, keychain(OSStatus) }
+enum EvidenceError: Error { case noExportableRecords, invalid, unavailable, keychain(OSStatus) }
 
 func evidenceHash(_ data: Data) -> String {
     SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
@@ -86,11 +86,13 @@ struct EvidenceStore {
         let source = try sourceRoot ?? root()
         let output = FileManager.default.temporaryDirectory.appendingPathComponent("WorkCam-Evidence-" + UUID().uuidString)
         try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
+        var exportedCount = 0
         for item in try FileManager.default.contentsOfDirectory(at: source, includingPropertiesForKeys: nil) {
             guard UUID(uuidString: item.lastPathComponent) != nil else { continue }
             let record = try JSONDecoder().decode(EvidenceRecord.self, from: Data(contentsOf: item.appendingPathComponent("record.json")))
             let photo = try Data(contentsOf: item.appendingPathComponent("photo.jpg"))
             _ = try verify(record, photo: photo)
+            exportedCount += 1
             let destination = output.appendingPathComponent(item.lastPathComponent)
             try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
             try photo.write(to: destination.appendingPathComponent("photo.jpg"), options: .atomic)
@@ -103,6 +105,7 @@ struct EvidenceStore {
                 try signature.write(to: destination.appendingPathComponent("signature.der"), options: .atomic)
             }
         }
+        guard exportedCount > 0 else { throw EvidenceError.noExportableRecords }
         return output
     }
 

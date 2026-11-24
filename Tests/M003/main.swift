@@ -114,3 +114,8 @@ fails { _ = try EvidenceStore.verify(record, photo: oneByteChanged) }
 try oneByteChanged.write(to: committed.appendingPathComponent("photo.jpg"))
 fails { _ = try EvidenceStore.exportPackages(sourceRoot: exportRoot) }
 print("PASS export exact allowlist/bytes/signature; one-byte tamper rejected (desktop fixture only)")
+let emptyExportRoot = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+try FileManager.default.createDirectory(at: emptyExportRoot, withIntermediateDirectories: true)
+defer { try? FileManager.default.removeItem(at: emptyExportRoot) }
+do { _ = try EvidenceStore.exportPackages(sourceRoot: emptyExportRoot); fatalError("empty export accepted") }
+catch EvidenceError.noExportableRecords { print("PASS empty export reports explicit error") }
