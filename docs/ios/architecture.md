@@ -18,3 +18,8 @@ Debug-only LiDAR Lab uses an isolated ARSCNView session, explicit user Start, sc
 M1-R1 partial: depth modes unproject display-mapped depth pixel centers with scaled intrinsics and camera transform; high-confidence depth only, no fallback. Experimental rows are atomically archived separately from evidence. Schema and matrix compatibility concerns recorded in progress.md.
 
 WC-M-006 public evidence export creates explicit copies of JPEG, EvidenceRecord, exact canonical payload, X9.63 public key and DER signature. Export verifies source mathematics first; no private key access in export path. Dedicated fixed-vector allowlist/byte/tamper tests added.
+
+Evidence capture, re-verification and export retry promotion of complete pending
+transactions. Promotion checks the directory identifier, original hash, and
+signed record plus detached DER when present. Write and promotion are serialized
+within the app process. Incomplete pending originals remain isolated for inspection.

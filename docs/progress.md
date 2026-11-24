@@ -255,3 +255,19 @@ Local files /tmp/workcam-r1-device-export; directory enumeration /tmp/workcam-r1
 DESKTOP_VERIFIED on BOTH actual exported records: exact allowlist photo.jpg,record.json,payload.bin,public-key.x963,signature.der; device payload.bin byte-for-byte equals independently reconstructed v1.1 canonical payload; SHA256 matches photo/manifest/record; X9.63 key and DER match manifest; key hash equals publicKeyID/device_id; OpenSSL SHA256 P256 verifies both signatures. XOR first byte on photo copy fails hash; substituting modified hash into payload fails original signature. Original evidence untouched. Report /tmp/workcam-r1-export-verification.json. OpenSSL public-key conversion and dgst commands are as documented in prior section; ran against device payload.bin this time, not reconstructed file. Only five explicit public files present; record schema contains no private-key reference/token. Not Windows W005-R1 executable; verifier is independent OpenSSL.
 
 P0 deployment/real photo/export/math verification chain now has actual evidence. Remaining P2 hardware origin is DEVICE_PENDING: source uses SecureEnclave.P256.Signing.PrivateKey with no software fallback, and prior phone screenshot verifies matches installation key; no recorded first-key-creation telemetry/attestation. Cannot equate public signature validity to proven hardware origin. P3 LiDAR real known1m×5, orientation, recovery and P4 verified flight mode/new capture/kill-relaunch still pending. UI failure/empty-export behavior desktop-tested, not induced destructively on device. P0-P4 not all complete; M007 plan not started.
+
+## 2026-11-25 WorkCam Mac Batch 02
+
+基线 4676a30，隔离分支 codex/workcam-mac-batch-02。GitHub 连接器确认 PR #6、#9 为 open draft 且 #9 基于 #6。初次受限构建出现 sandbox_apply 与 SwiftUI StateMacro 错误。同命令在普通 macOS 权限下重试，基线 Debug/Release 成功。独立 worktree 候选同样执行以下命令。
+
+```sh
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamBatch02-Debug CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamBatch02-Release CODE_SIGNING_ALLOWED=NO build
+xcrun swiftc -module-cache-path /tmp/workcam-batch02-module-cache Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/workcam-batch02-evidence-tests && /tmp/workcam-batch02-evidence-tests test-vectors/fixed-vectors.json
+xcrun swiftc -module-cache-path /tmp/workcam-batch02-module-cache Features/TechLab/DepthGeometry.swift Features/TechLab/LabArchive.swift Tests/Lidar/main.swift -o /tmp/workcam-batch02-lidar-tests && /tmp/workcam-batch02-lidar-tests
+xcrun devicectl list devices --timeout 5
+```
+
+设备枚举超时。无签名候选未安装，未产生本轮真机证据。详细状态见 WORKCAM-MAC-BATCH-02-REPORT.md。
+
+候选 Debug 与 Release 均 BUILD SUCCEEDED，日志为 /tmp/workcam-batch02-Debug-candidate.log 与 /tmp/workcam-batch02-Release-candidate.log。macOS 证据回归六组通过，包含暂存恢复、重复恢复及不完整原图保留。LiDAR 桌面回归三组通过，覆盖合成坐标几何、归档和 CSV、v1→v2 迁移。

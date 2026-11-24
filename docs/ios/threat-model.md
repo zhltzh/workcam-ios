@@ -18,3 +18,8 @@ LiDAR Lab raycasts are estimates, not raw depth-derived distance or verified eng
 Depth observations remain unverified estimates. Confidence filtering does not establish accuracy. Corrupt experimental archive is preserved rather than silently replaced. Local JSON and CSV are unsigned, user-editable experiment records.
 
 Exported signature validity alone does not prove Secure Enclave provenance or capture authenticity. Public package contains personal photo/metadata; user initiates sharing. Fixed-vector export acceptance is desktop-only. Hardware key origin still requires device-side observations.
+
+Pending transaction recovery preserves incomplete or unreadable originals and
+never replaces an existing committed destination. Recovery verifies record
+integrity. A recovered unsigned record has no signing claim, and signature
+verification alone does not establish remote hardware provenance.

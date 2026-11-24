@@ -20,15 +20,17 @@ struct ContentView: View {
                 NavigationLink("LiDAR Lab") { LidarLabView() }
                 #endif
                 NavigationLink("Open Camera") { CameraView() }
-                NavigationLink("Evidence Debug") {
+                NavigationLink("Evidence") {
                     ScrollView {
                         VStack {
                             Button("Reverify Saved Evidence") {
                                 Task { evidenceReport = await Task.detached { EvidenceStore.report() }.value }
                             }
+                            #if DEBUG
                             Button("Test Tamper Detection on Copies") {
                                 Task { evidenceReport = await Task.detached { EvidenceStore.tamperReport() }.value }
                             }
+                            #endif
                             Button(exporting ? "Preparing Export…" : "Prepare Evidence Export") {
                                 exporting = true
                                 exportURL = nil

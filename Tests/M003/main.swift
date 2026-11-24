@@ -119,3 +119,19 @@ try FileManager.default.createDirectory(at: emptyExportRoot, withIntermediateDir
 defer { try? FileManager.default.removeItem(at: emptyExportRoot) }
 do { _ = try EvidenceStore.exportPackages(sourceRoot: emptyExportRoot); fatalError("empty export accepted") }
 catch EvidenceError.noExportableRecords { print("PASS empty export reports explicit error") }
+let pendingID = UUID().uuidString.lowercased()
+let complete = emptyExportRoot.appendingPathComponent(".pending-" + pendingID)
+let recovered = emptyExportRoot.appendingPathComponent(pendingID)
+let incomplete = emptyExportRoot.appendingPathComponent(".pending-" + UUID().uuidString)
+for directory in [complete, incomplete] {
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
+    try photo.write(to: directory.appendingPathComponent("photo.jpg"))
+}
+let pendingRecord = EvidenceRecord(photoID: pendingID, sha256: evidenceHash(photo), status: "Unsigned")
+try JSONEncoder().encode(pendingRecord).write(to: complete.appendingPathComponent("record.json"))
+let promoted = try EvidenceStore.recoverPending(in: emptyExportRoot)
+let rerun = try EvidenceStore.recoverPending(in: emptyExportRoot)
+let recoveredPhoto = try Data(contentsOf: recovered.appendingPathComponent("photo.jpg"))
+let incompletePhoto = try Data(contentsOf: incomplete.appendingPathComponent("photo.jpg"))
+precondition(promoted == 1 && rerun == 0 && recoveredPhoto == photo && incompletePhoto == photo)
+print("PASS complete capture restored, retry idempotent, incomplete original preserved")
