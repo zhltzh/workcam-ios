@@ -242,6 +242,32 @@ CREATE TABLE IF NOT EXISTS mvp_derivatives (
 CREATE INDEX IF NOT EXISTS idx_derivatives_photo
     ON mvp_derivatives(photo_id, created_at DESC);
 """,
+    # v7 (W012): engineering reports. Snapshot model: the report binds
+    # the photo/evidence state AT GENERATION TIME; regeneration creates
+    # a new row (version), never mutates an existing one.
+    7: """
+CREATE TABLE IF NOT EXISTS mvp_reports (
+    report_id      TEXT PRIMARY KEY,
+    project_id     TEXT NOT NULL REFERENCES mvp_projects(project_id),
+    owner_token    TEXT NOT NULL,
+    report_number  TEXT NOT NULL,
+    report_type    TEXT NOT NULL
+                   CHECK (report_type IN
+                          ('site_photo', 'inspection', 'evidence')),
+    template_version TEXT NOT NULL,
+    page_size      TEXT NOT NULL CHECK (page_size IN ('a4', 'letter')),
+    per_page       INTEGER NOT NULL CHECK (per_page IN (1, 2, 4)),
+    photo_ids_json TEXT NOT NULL,
+    snapshot_json  TEXT NOT NULL,
+    pdf_sha256     TEXT NOT NULL,
+    page_count     INTEGER NOT NULL,
+    status         TEXT NOT NULL DEFAULT 'complete'
+                   CHECK (status IN ('generating', 'complete', 'failed')),
+    created_at     TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_reports_project
+    ON mvp_reports(project_id, created_at DESC);
+""",
 }
 
 _write_lock = threading.Lock()

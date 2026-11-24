@@ -44,6 +44,38 @@ def derivative_root() -> Path:
     return dbm._db_path().parent / "derivatives"
 
 
+# P0 SECURITY (W012): server-side evidence-state resolution for
+# watermarks. The RENDERED status is always the server's own truth.
+_STATUS_RANK = {
+    "no_evidence": 0, "unverified": 1, "signature_valid": 2,
+    "verification_failed": 2, "cryptographically_valid": 3,
+    "server_anchored": 4,
+}
+
+
+def _resolve_actual_evidence_status(conn, photo_id: str,
+                                   original_sha256: str) -> str:
+    """Derive the photo's REAL evidence state from the evidence links
+    the server itself verified. Also enforces hash binding: a link
+    whose original_sha256 does not match this photo is EXCLUDED from
+    consideration (anti cross-photo misbinding). No links at all ->
+    'no_evidence'."""
+    rows = conn.execute(
+        "SELECT original_sha256, verification_status "
+        "FROM mvp_evidence_links WHERE photo_id = ?",
+        (photo_id,)).fetchall()
+    best = "no_evidence"
+    best_rank = 0
+    for row in rows:
+        if row["original_sha256"] != original_sha256:
+            continue                       # bound to a different photo
+        rank = _STATUS_RANK.get(row["verification_status"], 0)
+        if rank > best_rank:
+            best = row["verification_status"]
+            best_rank = rank
+    return best
+
+
 def derivative_path(sha256: str) -> Path:
     if not sha256 or len(sha256) != 64 or any(
             c not in "0123456789abcdef" for c in sha256):
@@ -78,6 +110,15 @@ async def create_watermark_derivative(photo_id: str, body: WatermarkRequest,
     # ownership + fetch the ORIGINAL (bound at render time)
     with db() as conn:
         photo = _get_owned_photo(conn, photo_id, token)
+        # ---- P0 SECURITY FIX (W012): the evidence status on a
+        # derivative MUST come from the SERVER's own evidence-link
+        # state, never from the client's claim. A closed enum prevents
+        # free-text forgery but NOT a false claim of the highest
+        # status - so we resolve the photo's ACTUAL highest verified
+        # state from mvp_evidence_links and override the submitted
+        # field outright.
+        fields.evidence_status = _resolve_actual_evidence_status(
+            conn, photo_id, photo["original_sha256"])
     original_sha = photo["original_sha256"]
 
     binding_row = None
