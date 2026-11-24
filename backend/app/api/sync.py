@@ -32,6 +32,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, Field, field_validator
+from pydantic import ValidationError as pydanticValidationError
 
 from app.api.identity import require_caller
 from app.db import ApiError, db, utc_now
@@ -696,6 +697,29 @@ async def sync_batch(body: SyncBatchRequest, request: Request):
                            "message": str(e.detail)}))
                 # record the REJECTION too - a retried op that failed for
                 # a deterministic reason returns the same rejection
+                conn.execute(
+                    "INSERT INTO mvp_sync_ops (operation_id, owner_token, "
+                    "request_hash, result_json, created_at) "
+                    "VALUES (?,?,?,?,?)",
+                    (op.operation_id, token, request_hash,
+                     json.dumps({"status": "rejected"}), now))
+                continue
+            except pydanticValidationError as e:
+                # B02-W021 fix (ISSUE-W021-03): the SyncOp 'payload' is
+                # an opaque dict at the outer schema level, so a field
+                # violating the EXECUTOR's model (e.g. byte_size over
+                # the cap) used to escape as an unhandled 500. A schema
+                # violation in queued data is a typed REJECTION with the
+                # same ledger discipline as ApiError rejections - never a
+                # 5xx, and a retry with the same content replays the
+                # same stored rejection.
+                receipts.append(OpReceipt(
+                    operation_id=op.operation_id, status="rejected",
+                    error={"code": "invalid_payload",
+                           "message": "payload failed schema validation: "
+                                      + "; ".join(
+                                          f"{err['loc'][-1]}: {err['msg']}"
+                                          for err in e.errors()[:3])}))
                 conn.execute(
                     "INSERT INTO mvp_sync_ops (operation_id, owner_token, "
                     "request_hash, result_json, created_at) "

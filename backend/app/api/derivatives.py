@@ -152,7 +152,26 @@ async def create_watermark_derivative(photo_id: str, body: WatermarkRequest,
             "note": "derivative is a DERIVATIVE image, not the trusted "
                     "original evidence"}
 
-    result = render_watermark(original_bytes, fields, body.template)
+    from PIL import Image as _PILImage
+    try:
+        result = render_watermark(original_bytes, fields, body.template)
+    except _PILImage.DecompressionBombError as e:
+        # PIL's bomb guard inherits Exception directly (not OSError /
+        # ValueError) - caught explicitly so an oversized-pixel bomb is
+        # a typed 400 too, never an unhandled 500.
+        raise ApiError(400, "image_too_large",
+                       f"the original exceeds the decompression-bomb "
+                       f"guard: {e}")
+    except (OSError, ValueError) as e:
+        # B02-W021 fix (ISSUE-W021-02): PIL raises OSError (truncated /
+        # unidentifiable bytes) or ValueError (decompression-bomb
+        # escalation, or the renderer's all-toggles-off business rule)
+        # for bytes that are not a decodable image or a request that
+        # renders nothing. The original stays intact in storage; the
+        # request is a typed 400, never an unhandled 500.
+        raise ApiError(400, "invalid_image_or_request",
+                       f"cannot render a derivative from these bytes "
+                       f"and fields: {e}")
     d_sha = result["derivative_sha256"]
 
     # integrity guard: rendered output must hash to what we store
