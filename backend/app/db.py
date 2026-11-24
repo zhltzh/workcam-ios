@@ -268,6 +268,87 @@ CREATE TABLE IF NOT EXISTS mvp_reports (
 CREATE INDEX IF NOT EXISTS idx_reports_project
     ON mvp_reports(project_id, created_at DESC);
 """,
+    # v8 (W013): photo annotations + inspection issues + issue history +
+    # before/after comparison links. Annotations use NORMALIZED coords
+    # on the EXIF-transposed display frame. Issues carry optimistic
+    # revision + append-only history.
+    8: """
+CREATE TABLE IF NOT EXISTS mvp_annotations (
+    annotation_id    TEXT PRIMARY KEY,
+    photo_id         TEXT NOT NULL REFERENCES mvp_photos(photo_id),
+    owner_token      TEXT NOT NULL,
+    annotation_type  TEXT NOT NULL CHECK (annotation_type IN
+                     ('arrow', 'rectangle', 'circle', 'freehand',
+                      'text', 'number_marker')),
+    norm_x1          REAL NOT NULL CHECK (norm_x1 >= 0 AND norm_x1 <= 1),
+    norm_y1          REAL NOT NULL CHECK (norm_y1 >= 0 AND norm_y1 <= 1),
+    norm_x2          REAL CHECK (norm_x2 IS NULL OR
+                        (norm_x2 >= 0 AND norm_x2 <= 1)),
+    norm_y2          REAL CHECK (norm_y2 IS NULL OR
+                        (norm_y2 >= 0 AND norm_y2 <= 1)),
+    color_hex        TEXT NOT NULL DEFAULT '#FF3B30',
+    stroke_width     INTEGER NOT NULL DEFAULT 4 CHECK (stroke_width >= 1
+                        AND stroke_width <= 40),
+    text_content     TEXT CHECK (text_content IS NULL OR
+                        length(text_content) <= 200),
+    marker_number    INTEGER CHECK (marker_number IS NULL OR
+                        (marker_number >= 1 AND marker_number <= 999)),
+    z_order         INTEGER NOT NULL DEFAULT 0,
+    revision         INTEGER NOT NULL DEFAULT 1,
+    is_active        INTEGER NOT NULL DEFAULT 1,
+    created_at       TEXT NOT NULL,
+    updated_at       TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_annotations_photo
+    ON mvp_annotations(photo_id, z_order ASC);
+CREATE TABLE IF NOT EXISTS mvp_issues (
+    issue_id          TEXT PRIMARY KEY,
+    project_id        TEXT NOT NULL REFERENCES mvp_projects(project_id),
+    owner_token       TEXT NOT NULL,
+    title             TEXT NOT NULL CHECK (length(title) >= 1
+                        AND length(title) <= 300),
+    description       TEXT NOT NULL DEFAULT '',
+    severity          TEXT NOT NULL CHECK (severity IN
+                        ('low', 'medium', 'high', 'critical')),
+    status            TEXT NOT NULL DEFAULT 'open' CHECK (status IN
+                        ('open', 'in_progress', 'resolved', 'closed')),
+    location_description TEXT NOT NULL DEFAULT '',
+    assigned_to       TEXT NOT NULL DEFAULT '',
+    revision          INTEGER NOT NULL DEFAULT 1,
+    created_at        TEXT NOT NULL,
+    updated_at        TEXT NOT NULL,
+    resolved_at       TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_issues_project
+    ON mvp_issues(project_id, status);
+CREATE TABLE IF NOT EXISTS mvp_issue_history (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    issue_id         TEXT NOT NULL REFERENCES mvp_issues(issue_id),
+    actor_token      TEXT NOT NULL,
+    action           TEXT NOT NULL,
+    from_value       TEXT,
+    to_value         TEXT,
+    detail           TEXT NOT NULL DEFAULT '',
+    created_at       TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_issue_history_issue
+    ON mvp_issue_history(issue_id, id ASC);
+CREATE TABLE IF NOT EXISTS mvp_issue_photos (
+    issue_id         TEXT NOT NULL REFERENCES mvp_issues(issue_id),
+    photo_id         TEXT NOT NULL REFERENCES mvp_photos(photo_id),
+    role             TEXT NOT NULL CHECK (role IN
+                        ('before', 'progress', 'after')),
+    added_at         TEXT NOT NULL,
+    PRIMARY KEY (issue_id, photo_id, role)
+);
+CREATE TABLE IF NOT EXISTS mvp_issue_links (
+    issue_id         TEXT NOT NULL REFERENCES mvp_issues(issue_id),
+    annotation_id    TEXT NOT NULL REFERENCES
+                        mvp_annotations(annotation_id),
+    linked_at        TEXT NOT NULL,
+    PRIMARY KEY (issue_id, annotation_id)
+);
+""",
 }
 
 _write_lock = threading.Lock()

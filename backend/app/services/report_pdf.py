@@ -84,6 +84,8 @@ class ReportMeta:
     logo_bytes: bytes | None = None
     # appendix config
     include_evidence_appendix: bool = False
+    # W013-R1: issue snapshot (list of issue dicts from the API)
+    issue_snapshot: list | None = None
 
 
 # ---------------------------------------------------------------- palette
@@ -290,6 +292,71 @@ def _photo_grid(story, photos: list[PhotoEntry], per_page: int, styles,
                 story.append(PageBreak())
 
 
+# -------------------------------------------------- W013-R1: issue section
+
+
+_SEVERITY_LABELS = {"low": "Low", "medium": "Medium",
+                    "high": "High", "critical": "Critical"}
+_STATUS_LABELS = {"open": "Open", "in_progress": "In Progress",
+                  "resolved": "Resolved", "closed": "Closed"}
+
+
+def _issue_section(story, issues: list, styles):
+    story.append(PageBreak())
+    story.append(Paragraph("Inspection Issues", styles["h2"]))
+    story.append(Paragraph(
+        "The issues below are HUMAN records captured at generation time. "
+        "Annotations and before/after photo associations are manual - "
+        "they do not constitute acceptance of completed work or prove "
+        "the photos show the same location.",
+        styles["notes"]))
+    story.append(Spacer(1, 0.10 * inch))
+
+    for idx, iss in enumerate(issues):
+        block = []
+        sev = _SEVERITY_LABELS.get(iss.get("severity"), iss.get("severity"))
+        st = _STATUS_LABELS.get(iss.get("status"), iss.get("status"))
+        block.append(Paragraph(
+            f"<b>{idx + 1}. {_escape(iss.get('title', 'Untitled'))}</b>",
+            styles["body"]))
+        info_bits = [f"Severity: {sev}", f"Status: {st}"]
+        if iss.get("assigned_to"):
+            info_bits.append(f"Assigned: {_escape(iss['assigned_to'])}")
+        if iss.get("location_description"):
+            info_bits.append(
+                f"Location: {_escape(iss['location_description'])}")
+        block.append(Paragraph(" | ".join(info_bits), styles["small"]))
+        if iss.get("description"):
+            block.append(Paragraph(f"Description: "
+                                    f"{_escape(iss['description'])}",
+                                    styles["small"]))
+        if iss.get("photos"):
+            role_bits = []
+            for p in iss["photos"]:
+                sha_short = p.get("original_sha256", "")[:16] + "…"
+                role_bits.append(f"{p['role'].title()}: "
+                                 f"{_escape(p['photo_id'])} "
+                                 f"(sha {sha_short})")
+            block.append(Paragraph(" | ".join(role_bits), styles["small"]))
+        if iss.get("history"):
+            block.append(Paragraph("<b>History:</b>", styles["small"]))
+            for h in iss["history"][:10]:
+                parts = [h.get("created_at", "")]
+                if h.get("action"):
+                    parts.append(h["action"])
+                if h.get("from_value") and h.get("to_value"):
+                    parts.append(f"{h['from_value']} -> {h['to_value']}")
+                block.append(Paragraph(" | ".join(parts), styles["small"]))
+        block.append(Spacer(1, 0.08 * inch))
+        story.append(KeepTogether(block))
+
+    story.append(Spacer(1, 0.06 * inch))
+    story.append(Paragraph(
+        "Issue severity and status are HUMAN records; no AI assessment "
+        "is implied. Before/after photos are manual associations.",
+        styles["notes"]))
+
+
 # ----------------------------------------------------- evidence appendix
 
 
@@ -372,6 +439,10 @@ def generate_report_pdf(report_type: ReportType, meta: ReportMeta,
     story: list = []
     _front_page(story, meta, styles, report_type, len(photos))
     _photo_grid(story, photos, per_page, styles, meta, doc)
+
+    # W013-R1: issue section (if issues were snapshotted)
+    if meta.issue_snapshot:
+        _issue_section(story, meta.issue_snapshot, styles)
 
     want_appendix = (include_appendix if include_appendix is not None
                      else report_type == ReportType.EVIDENCE)

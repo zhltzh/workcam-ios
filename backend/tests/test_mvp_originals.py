@@ -33,21 +33,22 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setenv("WORKCAM_BUSINESS_DB", str(tmp_path / "biz.db"))
     monkeypatch.setenv("WORKCAM_DEVICE_REGISTRY",
                        str(tmp_path / "devices.jsonl"))
+    monkeypatch.setenv("WORKCAM_ENROLLMENT_CODE", "test-code-123")
     monkeypatch.delenv("WORKCAM_UPLOAD_EXPERIMENTAL", raising=False)
     monkeypatch.delenv("WORKCAM_UPLOAD_AUTH", raising=False)
     import app.db as dbm
     import app.api.upload_auth as ua
     dbm.migrate(tmp_path / "biz.db")
+    from app.services import device_identity
     from app.services.key_registry import reset_registry
     reset_registry()
 
     key = ec.generate_private_key(ec.SECP256R1())       # TEST key
     pub_b64 = base64.b64encode(_encode_pub(key.public_key())).decode()
-    registry = ua.DeviceRegistry(tmp_path / "devices.jsonl")
-    token_a = registry.enroll(pub_b64, "device-AAA")
+    token_a = device_identity.enroll_device(pub_b64, "device-AAA", "test-code-123")
     key_b = ec.generate_private_key(ec.SECP256R1())
     pub_b = base64.b64encode(_encode_pub(key_b.public_key())).decode()
-    token_b = registry.enroll(pub_b, "device-BBB")
+    token_b = device_identity.enroll_device(pub_b, "device-BBB", "test-code-123")
     ua._batch_owners.clear(); ua._buckets.clear(); ua._challenges.clear()
     return type("E", (), {
         "tmp": tmp_path, "key": key, "pub_b64": pub_b64,

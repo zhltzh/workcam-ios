@@ -101,18 +101,24 @@ def _require_request_gate(request) -> str | None:
 def _auth_device(request) -> str | None:
     """Resolve the calling device when auth is ON; None when OFF (lab
     mode preserves the pre-existing behaviour for joint debugging).
-    AuthError from any sub-step (unknown token, rate limit) converts to
-    an HTTPException here so no route can forget to catch it."""
+    W013: routes through the SQLite identity store (device_identity),
+    so new random tokens work everywhere and derived legacy tokens are
+    refused per the P0 acceptance rules."""
     if not _auth_enabled():
         return None
     token = request.headers.get("X-Device-Token")
     if not token:
         raise HTTPException(401, "device token required "
                                  "(X-Device-Token) - auth is enabled")
+    from app.services.device_identity import resolve_device
     try:
-        device_id = DeviceRegistry(_registry_path()).device_id_for_token(token)
-        if device_id is None:
-            raise HTTPException(401, "device not enrolled")
+        device_id = resolve_device(token)
+    except Exception as e:
+        detail = getattr(e, "detail", None)
+        if isinstance(detail, dict):
+            raise HTTPException(401, detail.get("message", str(e)))
+        raise HTTPException(401, str(e))
+    try:
         _check_rate(device_id)
     except AuthError as e:
         raise _auth_error(e)
@@ -238,12 +244,16 @@ async def auth_challenge(request: Request, x_device_token: str | None = Header(d
                                  "(WORKCAM_UPLOAD_AUTH=1)")
     if not x_device_token:
         raise HTTPException(401, "X-Device-Token header required")
-    registry = DeviceRegistry(_registry_path())
-    if registry.device_id_for_token(x_device_token) is None:
+    from app.services.device_identity import resolve_device
+    try:
+        device_id = resolve_device(x_device_token)
+    except Exception:
         raise HTTPException(401, "device not enrolled")
-    nonce = issue_challenge(x_device_token)
-    _audit({"event": "challenge_issued", "device_id":
-            registry.device_id_for_token(x_device_token)})
+    from app.services.device_identity import (
+        issue_challenge as _issue_challenge_sqlite)
+    nonce = _issue_challenge_sqlite(x_device_token)
+    # W013: SQLite-backed challenge (device_identity) so verify matches
+    _audit({"event": "challenge_issued", "device_id": device_id})
     return {"nonce": nonce, "expires_s": 60}
 
 
@@ -251,17 +261,22 @@ async def auth_challenge(request: Request, x_device_token: str | None = Header(d
 async def auth_verify(body: dict, request: Request):
     """P2 identity flow step 2: {device_token, nonce, signature_b64} ->
     verifies the nonce signature with the ENROLLED public key. Private
-    keys never leave the device."""
+    keys never leave the device. W013: routes through the SQLite-backed
+    challenge store (device_identity.verify_challenge_signature)."""
     _require_not_production()
     if not _auth_enabled():
         raise HTTPException(503, "auth layer is not enabled")
+    from app.services.device_identity import verify_challenge_signature
+    from app.db import ApiError as _ApiError
     try:
-        device_id = verify_identity(body.get("device_token", ""),
-                                     body.get("nonce", ""),
-                                     body.get("signature_b64", ""))
-    except AuthError as e:
-        _audit({"event": "identity_failed", "detail": e.detail})
-        raise _auth_error(e)
+        device_id = verify_challenge_signature(
+            body.get("device_token", ""),
+            body.get("nonce", ""),
+            body.get("signature_b64", ""))
+    except _ApiError as e:
+        _audit({"event": "identity_failed",
+                "detail": e.detail.get("message", "")})
+        raise HTTPException(401, e.detail.get("message", "verification failed"))
     return {"device_id": device_id, "verified": True}
 
 
