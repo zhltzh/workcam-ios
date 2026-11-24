@@ -43,6 +43,54 @@ _MAX_ZIP_ITEMS = 2000
 _EMBED_MAX_EDGE = 1800
 
 
+def _snapshot_issues(conn, token: str, issue_ids: list[str],
+                     project_id: str) -> list:
+    """Collect per-issue state AT GENERATION TIME: title, severity,
+    status, history, linked photos by role, and their SHAs."""
+    ordered = issue_ids
+    seen = set()
+    for iid in ordered:
+        if iid in seen:
+            raise ApiError(400, "duplicate_issue_id",
+                           f"issue {iid} appears more than once")
+        seen.add(iid)
+
+    issues = []
+    for iid in ordered:
+        row = conn.execute(
+            "SELECT * FROM mvp_issues WHERE issue_id = ?",
+            (iid,)).fetchone()
+        if row is None or row["owner_token"] != token:
+            raise ApiError(404, "not_found", f"issue {iid} not found")
+        if row["project_id"] != project_id:
+            raise ApiError(400, "issue_project_mismatch",
+                           f"issue {iid} belongs to a different project")
+        history = conn.execute(
+            "SELECT action, from_value, to_value, detail, created_at "
+            "FROM mvp_issue_history WHERE issue_id = ? ORDER BY id ASC",
+            (iid,)).fetchall()
+        photos = conn.execute(
+            "SELECT ip.photo_id, ip.role, ph.original_sha256 "
+            "FROM mvp_issue_photos ip "
+            "JOIN mvp_photos ph ON ph.photo_id = ip.photo_id "
+            "WHERE ip.issue_id = ? ORDER BY ip.role", (iid,)).fetchall()
+        issues.append({
+            "issue_id": iid, "title": row["title"],
+            "description": row["description"],
+            "severity": row["severity"], "status": row["status"],
+            "location_description": row["location_description"],
+            "assigned_to": row["assigned_to"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "resolved_at": row["resolved_at"],
+            "history": [dict(h) for h in history],
+            "photos": [{"photo_id": p["photo_id"], "role": p["role"],
+                         "original_sha256": p["original_sha256"]}
+                        for p in photos],
+        })
+    return issues
+
+
 def _load_photo_image(orig_sha: str) -> tuple[bytes | None, int, int]:
     """Load the original for embedding; downscale if beyond the embed
     bound. Returns (jpeg_bytes_for_report, width, height)."""
@@ -76,6 +124,8 @@ class ReportCreateRequest(BaseModel):
     per_page: int = Field(default=2, ge=1, le=4)
     photo_ids: list[str] = Field(min_length=1,
                                  max_length=MAX_REPORT_PHOTOS)
+    issue_ids: list[str] = Field(default_factory=list,
+                                   max_length=MAX_REPORT_PHOTOS)
     operator: str = Field(default="", max_length=128)
     company_name: str = Field(default="", max_length=200)
     company_logo_b64: str | None = None
@@ -218,6 +268,8 @@ async def create_report(project_id: str, body: ReportCreateRequest,
         project = _get_owned_project(conn, project_id, token)
         snapshot = _snapshot_photos(conn, token, body.photo_ids,
                                    project_id)
+        issue_snapshot = _snapshot_issues(conn, token, body.issue_ids,
+                                           project_id)
 
     # ---- build photo entries with embedded images ---------------------
     # Images are loaded ONE AT A TIME and downscaled to the embed bound
@@ -235,7 +287,8 @@ async def create_report(project_id: str, body: ReportCreateRequest,
         generated_at=now,
         operator=body.operator, company_name=body.company_name,
         logo_bytes=logo_bytes,
-        include_evidence_appendix=body.include_evidence_appendix)
+        include_evidence_appendix=body.include_evidence_appendix,
+        issue_snapshot=issue_snapshot if issue_snapshot else None)
 
     try:
         result = generate_report_pdf(
@@ -271,8 +324,8 @@ async def create_report(project_id: str, body: ReportCreateRequest,
             (report_id, project_id, token, report_number,
              body.report_type, result["version"], body.page_size,
              body.per_page, json.dumps(body.photo_ids),
-             json.dumps(snapshot), result["sha256"],
-             result["page_count"], now))
+             json.dumps({"photos": snapshot, "issues": issue_snapshot}),
+             result["sha256"], result["page_count"], now))
 
     # release embedded images (bytes referenced by the built flowables
     # are already consumed by doc.build; drop locals explicitly for
@@ -335,10 +388,18 @@ async def report_detail(report_id: str, request: Request):
         row = _require_report_owned(conn, report_id, token)
     out = _row_to_report(row)
     out["photo_ids"] = json.loads(row["photo_ids_json"])
+    raw_snap = json.loads(row["snapshot_json"])
+    if isinstance(raw_snap, dict) and "photos" in raw_snap:
+        photos_snap = raw_snap["photos"]
+        issues_snap = raw_snap.get("issues", [])
+    else:
+        photos_snap = raw_snap     # pre-R1 format: bare photo list
+        issues_snap = []
     out["snapshot"] = {
         s["photo_id"]: {k: v for k, v in s.items()
                         if k not in ("image_bytes",)}
-        for s in json.loads(row["snapshot_json"])}
+        for s in photos_snap}
+    out["issue_snapshot"] = issues_snap
     return out
 
 
@@ -375,7 +436,14 @@ async def create_delivery_package(report_id: str,
     _require_uuid(report_id, "report_id")
     with db() as conn:
         row = _require_report_owned(conn, report_id, token)
-        snapshot = json.loads(row["snapshot_json"])
+        raw_snap = json.loads(row["snapshot_json"])
+    # handle both formats (pre-R1 list, post-R1 combined dict)
+    if isinstance(raw_snap, dict) and "photos" in raw_snap:
+        snapshot = raw_snap["photos"]
+        issue_snap = raw_snap.get("issues", [])
+    else:
+        snapshot = raw_snap
+        issue_snap = []
 
     store = _report_store()
     pdf_path = _report_path(report_id)

@@ -71,24 +71,47 @@ check_startup_security(fail_fast=False)  # warnings for the non-fatal set
 # pytest's hash-randomized collection order then made later fixtures hit
 # a stale/removed tmp DB path (the 'only fails on full-suite runs'
 # class of flake, root-caused by setting PYTHONHASHSEED=0 -> all green).
-# Lazy migration keeps uvicorn behavior identical (first request does
-# the same idempotent migrate) while removing the import-order hazard.
+#
+# W013-R1 P0 hardening:
+#  - a threading.Lock guards the check-then-migrate sequence against
+#    concurrent first requests (double-migrate was harmless because
+#    migrate() is idempotent, but the lock makes the guarantee explicit)
+#  - migration FAILURE now FAILS THE REQUEST with 503 instead of being
+#    swallowed: the previous 'log and mark done' let the service keep
+#    running on a half-initialized database (violates the R1 acceptance
+#    rule: no serving from an incomplete state). _migrations_done stays
+#    False on failure so a later request retries when the DB recovers.
+import threading as _threading
+
+_migration_lock = _threading.Lock()
 _migrations_done = False
 
 
 def _ensure_migrations() -> None:
     global _migrations_done
-    if not _migrations_done:
-        try:
-            mvp_ready()
-        except Exception:
-            import logging
-            logging.getLogger("workcam").exception(
-                "business DB migration failed - /api/v1 may be unavailable")
+    if _migrations_done:
+        return
+    with _migration_lock:
+        if _migrations_done:        # double-checked after acquiring
+            return
+        mvp_ready()                 # raises on failure -> request 503
         _migrations_done = True
 
 
 @app.middleware("http")
 async def _lazy_migration_middleware(request, call_next):
-    _ensure_migrations()
+    try:
+        _ensure_migrations()
+    except Exception:
+        import logging
+        logging.getLogger("workcam").exception(
+            "business DB migration failed - serving STOPPED for this "
+            "request (503); no incomplete-state service is permitted")
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=503,
+            content={"detail": {
+                "code": "service_unavailable",
+                "message": "service unavailable: database "
+                           "initialization failed"}})
     return await call_next(request)

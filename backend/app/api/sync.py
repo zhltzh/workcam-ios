@@ -88,7 +88,12 @@ class PhotoRegisterOp(BaseModel):
 
 class SyncOp(BaseModel):
     """One queued client operation (discriminated by 'op')."""
-    op: Literal["project_create", "project_update", "photo_register"]
+    op: Literal[
+        "project_create", "project_update", "photo_register",
+        "annotation_create", "annotation_update", "annotation_delete",
+        "issue_create", "issue_update", "issue_transition",
+        "issue_photo_link", "issue_photo_unlink",
+    ]
     operation_id: str = Field(min_length=1, max_length=128)
     payload: dict = Field(default_factory=dict)
 
@@ -248,10 +253,376 @@ def _exec_photo_register(conn, owner: str, payload: dict) -> dict:
             "local_id": body.local_id}
 
 
+# ------------------------- W013-R1: annotation + issue sync executors
+
+
+class AnnotationCreateOp(BaseModel):
+    operation_id: str = Field(min_length=1, max_length=128)
+    local_id: str = Field(min_length=1, max_length=128)
+    server_photo_id: str = Field(min_length=1, max_length=64)
+    annotation_type: str = Field(pattern=
+        "^(arrow|rectangle|circle|freehand|text|number_marker)$")
+    norm_x1: float = Field(ge=0.0, le=1.0)
+    norm_y1: float = Field(ge=0.0, le=1.0)
+    norm_x2: float | None = Field(default=None, ge=0.0, le=1.0)
+    norm_y2: float | None = Field(default=None, ge=0.0, le=1.0)
+    color_hex: str = Field(default="#FF3B30",
+                           pattern="^#[0-9A-Fa-f]{6}$")
+    stroke_width: int = Field(default=4, ge=1, le=40)
+    text_content: str | None = Field(default=None, max_length=200)
+    marker_number: int | None = Field(default=None, ge=1, le=999)
+    z_order: int = Field(default=0, ge=0, le=999)
+
+
+class AnnotationUpdateOp(BaseModel):
+    operation_id: str = Field(min_length=1, max_length=128)
+    server_annotation_id: str = Field(min_length=1, max_length=64)
+    expected_revision: int = Field(ge=1)
+    norm_x1: float | None = Field(default=None, ge=0.0, le=1.0)
+    norm_y1: float | None = Field(default=None, ge=0.0, le=1.0)
+    norm_x2: float | None = Field(default=None, ge=0.0, le=1.0)
+    norm_y2: float | None = Field(default=None, ge=0.0, le=1.0)
+    color_hex: str | None = Field(default=None,
+                                  pattern="^#[0-9A-Fa-f]{6}$")
+    stroke_width: int | None = Field(default=None, ge=1, le=40)
+    text_content: str | None = Field(default=None, max_length=200)
+    marker_number: int | None = Field(default=None, ge=1, le=999)
+    z_order: int | None = Field(default=None, ge=0, le=999)
+
+
+class AnnotationDeleteOp(BaseModel):
+    operation_id: str = Field(min_length=1, max_length=128)
+    server_annotation_id: str = Field(min_length=1, max_length=64)
+
+
+class IssueCreateOp(BaseModel):
+    operation_id: str = Field(min_length=1, max_length=128)
+    local_id: str = Field(min_length=1, max_length=128)
+    server_project_id: str = Field(min_length=1, max_length=64)
+    title: str = Field(min_length=1, max_length=300)
+    description: str = Field(default="", max_length=5000)
+    severity: str = Field(pattern="^(low|medium|high|critical)$")
+    location_description: str = Field(default="", max_length=1000)
+    assigned_to: str = Field(default="", max_length=128)
+
+
+class IssueUpdateOp(BaseModel):
+    operation_id: str = Field(min_length=1, max_length=128)
+    server_issue_id: str = Field(min_length=1, max_length=64)
+    expected_revision: int = Field(ge=1)
+    title: str | None = Field(default=None, min_length=1, max_length=300)
+    description: str | None = Field(default=None, max_length=5000)
+    severity: str | None = Field(default=None,
+                                  pattern="^(low|medium|high|critical)$")
+    location_description: str | None = Field(default=None,
+                                              max_length=1000)
+    assigned_to: str | None = Field(default=None, max_length=128)
+
+
+class IssueTransitionOp(BaseModel):
+    operation_id: str = Field(min_length=1, max_length=128)
+    server_issue_id: str = Field(min_length=1, max_length=64)
+    expected_revision: int = Field(ge=1)
+    target_status: str = Field(
+        pattern="^(open|in_progress|resolved|closed)$")
+
+
+class IssuePhotoLinkOp(BaseModel):
+    operation_id: str = Field(min_length=1, max_length=128)
+    server_issue_id: str = Field(min_length=1, max_length=64)
+    server_photo_id: str = Field(min_length=1, max_length=64)
+    role: str = Field(pattern="^(before|progress|after)$")
+
+
+class IssuePhotoUnlinkOp(BaseModel):
+    operation_id: str = Field(min_length=1, max_length=128)
+    server_issue_id: str = Field(min_length=1, max_length=64)
+    server_photo_id: str = Field(min_length=1, max_length=64)
+    role: str = Field(pattern="^(before|progress|after)$")
+
+
+def _own_photo(conn, owner: str, photo_id: str) -> None:
+    row = conn.execute(
+        "SELECT p.owner_token FROM mvp_photos ph "
+        "JOIN mvp_projects p ON p.project_id = ph.project_id "
+        "WHERE ph.photo_id = ?", (photo_id,)).fetchone()
+    if row is None or row["owner_token"] != owner:
+        raise ApiError(404, "not_found", f"photo {photo_id} not found")
+
+
+def _own_issue(conn, owner: str, issue_id: str):
+    row = conn.execute(
+        "SELECT * FROM mvp_issues WHERE issue_id = ?",
+        (issue_id,)).fetchone()
+    if row is None or row["owner_token"] != owner:
+        raise ApiError(404, "not_found", f"issue {issue_id} not found")
+    return row
+
+
+def _exec_annotation_create(conn, owner: str, payload: dict) -> dict:
+    body = AnnotationCreateOp(**payload)
+    _own_photo(conn, owner, body.server_photo_id)
+    annotation_id = str(uuid.uuid4())
+    now = utc_now()
+    try:
+        conn.execute(
+            "INSERT INTO mvp_annotations (annotation_id, photo_id, "
+            "owner_token, annotation_type, norm_x1, norm_y1, norm_x2, "
+            "norm_y2, color_hex, stroke_width, text_content, "
+            "marker_number, z_order, revision, is_active, created_at, "
+            "updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,1,1,?,?)",
+            (annotation_id, body.server_photo_id, owner,
+             body.annotation_type, body.norm_x1, body.norm_y1,
+             body.norm_x2, body.norm_y2, body.color_hex,
+             body.stroke_width, body.text_content, body.marker_number,
+             body.z_order, now, now))
+    except Exception:
+        raise ApiError(400, "annotation_validation_failed",
+                       "annotation fields failed validation")
+    return {"server_annotation_id": annotation_id,
+            "local_id": body.local_id}
+
+
+def _exec_annotation_update(conn, owner: str, payload: dict) -> dict:
+    body = AnnotationUpdateOp(**payload)
+    row = conn.execute(
+        "SELECT a.*, ph.photo_id as ph_id FROM mvp_annotations a "
+        "JOIN mvp_photos ph ON ph.photo_id = a.photo_id "
+        "WHERE a.annotation_id = ?",
+        (body.server_annotation_id,)).fetchone()
+    if row is None:
+        raise ApiError(404, "not_found", "annotation not found")
+    _own_photo(conn, owner, row["ph_id"])
+    if not row["is_active"]:
+        raise ApiError(409, "annotation_deleted",
+                       "deleted annotations are immutable")
+    if row["revision"] != body.expected_revision:
+        raise ApiError(409, "revision_conflict",
+                       f"expected {body.expected_revision}, "
+                       f"current {row['revision']}",
+                       {"current_revision": row["revision"]})
+    updates, params = [], []
+    for f in ("norm_x1", "norm_y1", "norm_x2", "norm_y2",
+              "color_hex", "stroke_width", "text_content",
+              "marker_number", "z_order"):
+        v = getattr(body, f)
+        if v is not None:
+            updates.append(f"{f} = ?")
+            params.append(v)
+    if not updates:
+        raise ApiError(400, "empty_patch", "nothing to update")
+    updates.append("revision = revision + 1")
+    updates.append("updated_at = ?")
+    params.extend([utc_now(), body.server_annotation_id])
+    conn.execute(
+        f"UPDATE mvp_annotations SET {', '.join(updates)} "
+        "WHERE annotation_id = ?", params)
+    return {"server_annotation_id": body.server_annotation_id,
+            "revision": row["revision"] + 1}
+
+
+def _exec_annotation_delete(conn, owner: str, payload: dict) -> dict:
+    body = AnnotationDeleteOp(**payload)
+    row = conn.execute(
+        "SELECT a.*, ph.photo_id as ph_id FROM mvp_annotations a "
+        "JOIN mvp_photos ph ON ph.photo_id = a.photo_id "
+        "WHERE a.annotation_id = ?",
+        (body.server_annotation_id,)).fetchone()
+    if row is None:
+        raise ApiError(404, "not_found", "annotation not found")
+    _own_photo(conn, owner, row["ph_id"])
+    if row["is_active"]:
+        conn.execute(
+            "UPDATE mvp_annotations SET is_active = 0, "
+            "revision = revision + 1, updated_at = ? "
+            "WHERE annotation_id = ?",
+            (utc_now(), body.server_annotation_id))
+    return {"server_annotation_id": body.server_annotation_id,
+            "deleted": True}
+
+
+def _exec_issue_create(conn, owner: str, payload: dict) -> dict:
+    body = IssueCreateOp(**payload)
+    proj = conn.execute(
+        "SELECT * FROM mvp_projects WHERE project_id = ?",
+        (body.server_project_id,)).fetchone()
+    if proj is None or proj["owner_token"] != owner:
+        raise ApiError(404, "not_found", "project not found")
+    if proj["status"] == "archived":
+        raise ApiError(409, "project_archived",
+                       "cannot create issues in an archived project")
+    issue_id = str(uuid.uuid4())
+    now = utc_now()
+    conn.execute(
+        "INSERT INTO mvp_issues (issue_id, project_id, owner_token, "
+        "title, description, severity, status, "
+        "location_description, assigned_to, revision, created_at, "
+        "updated_at) VALUES (?,?,?,?,?,?,'open',?,?,1,?,?)",
+        (issue_id, body.server_project_id, owner, body.title,
+         body.description, body.severity, body.location_description,
+         body.assigned_to, now, now))
+    conn.execute(
+        "INSERT INTO mvp_issue_history (issue_id, actor_token, action, "
+        "from_value, to_value, detail, created_at) "
+        "VALUES (?,?,?,?,?,?,?)",
+        (issue_id, owner, "created", None, body.severity, body.title,
+         now))
+    return {"server_issue_id": issue_id, "local_id": body.local_id}
+
+
+_STATUS_TRANSITIONS = {
+    "open": {"open", "in_progress"},
+    "in_progress": {"in_progress", "resolved", "open"},
+    "resolved": {"resolved", "closed", "in_progress"},
+    "closed": {"closed"},
+}
+
+
+def _exec_issue_update(conn, owner: str, payload: dict) -> dict:
+    body = IssueUpdateOp(**payload)
+    row = _own_issue(conn, owner, body.server_issue_id)
+    if row["status"] == "closed":
+        raise ApiError(409, "issue_closed", "closed issues are immutable")
+    if row["revision"] != body.expected_revision:
+        raise ApiError(409, "revision_conflict",
+                       f"expected {body.expected_revision}, "
+                       f"current {row['revision']}",
+                       {"current_revision": row["revision"]})
+    updates, params = [], []
+    for f in ("title", "description", "location_description",
+              "assigned_to"):
+        v = getattr(body, f)
+        if v is not None:
+            updates.append(f"{f} = ?")
+            params.append(v)
+    if body.severity is not None and body.severity != row["severity"]:
+        updates.append("severity = ?")
+        params.append(body.severity)
+        conn.execute(
+            "INSERT INTO mvp_issue_history (issue_id, actor_token, "
+            "action, from_value, to_value, detail, created_at) "
+            "VALUES (?,?,?,?,?,?,?)",
+            (body.server_issue_id, owner, "severity_changed",
+             row["severity"], body.severity, "", utc_now()))
+    if not updates:
+        raise ApiError(400, "empty_patch", "nothing to update")
+    updates.append("revision = revision + 1")
+    updates.append("updated_at = ?")
+    params.extend([utc_now(), body.server_issue_id])
+    conn.execute(
+        f"UPDATE mvp_issues SET {', '.join(updates)} "
+        "WHERE issue_id = ?", params)
+    return {"server_issue_id": body.server_issue_id,
+            "revision": row["revision"] + 1}
+
+
+def _exec_issue_transition(conn, owner: str, payload: dict) -> dict:
+    body = IssueTransitionOp(**payload)
+    row = _own_issue(conn, owner, body.server_issue_id)
+    if row["revision"] != body.expected_revision:
+        raise ApiError(409, "revision_conflict",
+                       f"expected {body.expected_revision}, "
+                       f"current {row['revision']}",
+                       {"current_revision": row["revision"]})
+    if body.target_status == row["status"]:
+        return {"server_issue_id": body.server_issue_id,
+                "status": row["status"], "revision": row["revision"],
+                "idempotent": True}
+    allowed = _STATUS_TRANSITIONS.get(row["status"], set())
+    if body.target_status not in allowed:
+        raise ApiError(409, "invalid_status_transition",
+                       f"cannot move from '{row['status']}' to "
+                       f"'{body.target_status}'",
+                       {"allowed": sorted(allowed)})
+    now = utc_now()
+    extra = ""
+    params: list = [body.target_status]
+    if body.target_status == "resolved":
+        extra = ", resolved_at = ?"
+        params.append(now)
+    elif row["status"] == "resolved":
+        extra = ", resolved_at = NULL"
+    conn.execute(
+        f"UPDATE mvp_issues SET status = ?, revision = revision + 1, "
+        f"updated_at = ?{extra} WHERE issue_id = ?",
+        (*params, now, body.server_issue_id))
+    conn.execute(
+        "INSERT INTO mvp_issue_history (issue_id, actor_token, "
+        "action, from_value, to_value, detail, created_at) "
+        "VALUES (?,?,?,?,?,?,?)",
+        (body.server_issue_id, owner, "status_changed", row["status"],
+         body.target_status, "", now))
+    return {"server_issue_id": body.server_issue_id,
+            "status": body.target_status,
+            "revision": row["revision"] + 1}
+
+
+def _exec_issue_photo_link(conn, owner: str, payload: dict) -> dict:
+    body = IssuePhotoLinkOp(**payload)
+    issue = _own_issue(conn, owner, body.server_issue_id)
+    if issue["status"] == "closed":
+        raise ApiError(409, "issue_closed", "closed issues are immutable")
+    _own_photo(conn, owner, body.server_photo_id)
+    photo_proj = conn.execute(
+        "SELECT project_id FROM mvp_photos WHERE photo_id = ?",
+        (body.server_photo_id,)).fetchone()
+    if photo_proj["project_id"] != issue["project_id"]:
+        raise ApiError(400, "photo_project_mismatch",
+                       "photo belongs to a different project")
+    conn.execute(
+        "DELETE FROM mvp_issue_photos WHERE issue_id = ? AND role = ?",
+        (body.server_issue_id, body.role))
+    conn.execute(
+        "INSERT INTO mvp_issue_photos (issue_id, photo_id, role, "
+        "added_at) VALUES (?,?,?,?)",
+        (body.server_issue_id, body.server_photo_id, body.role,
+         utc_now()))
+    conn.execute(
+        "INSERT INTO mvp_issue_history (issue_id, actor_token, "
+        "action, from_value, to_value, detail, created_at) "
+        "VALUES (?,?,?,?,?,?,?)",
+        (body.server_issue_id, owner, "photo_linked", None, body.role,
+         body.server_photo_id, utc_now()))
+    return {"server_issue_id": body.server_issue_id,
+            "server_photo_id": body.server_photo_id,
+            "role": body.role}
+
+
+def _exec_issue_photo_unlink(conn, owner: str, payload: dict) -> dict:
+    body = IssuePhotoUnlinkOp(**payload)
+    issue = _own_issue(conn, owner, body.server_issue_id)
+    if issue["status"] == "closed":
+        raise ApiError(409, "issue_closed", "closed issues are immutable")
+    deleted = conn.execute(
+        "DELETE FROM mvp_issue_photos WHERE issue_id = ? "
+        "AND photo_id = ? AND role = ?",
+        (body.server_issue_id, body.server_photo_id,
+         body.role)).rowcount
+    if not deleted:
+        raise ApiError(404, "not_found", "link not found")
+    conn.execute(
+        "INSERT INTO mvp_issue_history (issue_id, actor_token, "
+        "action, from_value, to_value, detail, created_at) "
+        "VALUES (?,?,?,?,?,?,?)",
+        (body.server_issue_id, owner, "photo_unlinked", body.role, None,
+         body.server_photo_id, utc_now()))
+    return {"server_issue_id": body.server_issue_id,
+            "server_photo_id": body.server_photo_id,
+            "role": body.role, "unlinked": True}
+
+
 _EXECUTORS = {
     "project_create": _exec_project_create,
     "project_update": _exec_project_update,
     "photo_register": _exec_photo_register,
+    "annotation_create": _exec_annotation_create,
+    "annotation_update": _exec_annotation_update,
+    "annotation_delete": _exec_annotation_delete,
+    "issue_create": _exec_issue_create,
+    "issue_update": _exec_issue_update,
+    "issue_transition": _exec_issue_transition,
+    "issue_photo_link": _exec_issue_photo_link,
+    "issue_photo_unlink": _exec_issue_photo_unlink,
 }
 
 
@@ -337,12 +708,18 @@ async def sync_batch(body: SyncBatchRequest, request: Request):
             # photo results contain BOTH server_project_id and
             # server_photo_id - prefer the PHOTO id (the entity being
             # created); the project mapping came from the project op.
+            # W013-R1: annotation and issue results carry their own
+            # server IDs too.
             map_entry = {}
             if "local_id" in result:
                 if "server_photo_id" in result:
                     map_entry[result["local_id"]] = result["server_photo_id"]
                 elif "server_project_id" in result:
                     map_entry[result["local_id"]] = result["server_project_id"]
+                elif "server_annotation_id" in result:
+                    map_entry[result["local_id"]] = result["server_annotation_id"]
+                elif "server_issue_id" in result:
+                    map_entry[result["local_id"]] = result["server_issue_id"]
                 id_map.update(map_entry)
                 result["_id_map_entry"] = map_entry
 
