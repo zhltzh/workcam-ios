@@ -271,3 +271,20 @@ xcrun devicectl list devices --timeout 5
 设备枚举超时。无签名候选未安装，未产生本轮真机证据。详细状态见 WORKCAM-MAC-BATCH-02-REPORT.md。
 
 候选 Debug 与 Release 均 BUILD SUCCEEDED，日志为 /tmp/workcam-batch02-Debug-candidate.log 与 /tmp/workcam-batch02-Release-candidate.log。macOS 证据回归六组通过，包含暂存恢复、重复恢复及不完整原图保留。LiDAR 桌面回归三组通过，覆盖合成坐标几何、归档和 CSV、v1→v2 迁移。
+
+## 2026-11-25 Mac 研发统一调度回归
+
+当前 managed worktree 起始为 detached 4676a30，工作区干净。创建 codex/workcam-mvp-integration 并继承已审计的 97b0c84。命令与实测如下。
+
+```sh
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamUnified-Debug CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamUnified-Release CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamUnified-Signed build
+xcrun swiftc -module-cache-path /tmp/workcam-unified-module-cache Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/workcam-unified-evidence && /tmp/workcam-unified-evidence test-vectors/fixed-vectors.json
+xcrun swiftc -module-cache-path /tmp/workcam-unified-lidar-cache Features/TechLab/DepthGeometry.swift Features/TechLab/LabArchive.swift Tests/Lidar/main.swift -o /tmp/workcam-unified-lidar && /tmp/workcam-unified-lidar
+xcrun devicectl list devices --timeout 10
+```
+
+无签名 Debug/Release 和签名 Debug 均 BUILD SUCCEEDED。桌面证据回归 6 组及 LiDAR 回归 3 组通过。设备枚举识别到已配对物理 iPhone。以上结果对应 97b0c84 继承基线。
+
+配对设备连接复查命令为 `xcrun devicectl device info lockState --device "$wc_device" --timeout 10`，其中变量取自设备枚举的物理 iPhone 行。CoreDevice 4000，设备连接未建立。本轮未安装、启动候选或生成真机截图。已脱敏记录，设备标识仅留于本地临时日志。
