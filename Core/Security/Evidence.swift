@@ -153,12 +153,12 @@ struct EvidenceStore {
         return output
     }
 
-    static func capture(_ data: Data) throws -> URL {
+    static func capture(_ data: Data, recordID: UUID = UUID()) throws -> URL {
         writeLock.lock()
         defer { writeLock.unlock() }
         let root = try root()
         _ = try? promotePending(in: root)
-        let id = UUID().uuidString.lowercased()
+        let id = recordID.uuidString.lowercased()
         let stage = root.appendingPathComponent(".pending-" + id, isDirectory: true)
         try FileManager.default.createDirectory(at: stage, withIntermediateDirectories: false)
         let photo = stage.appendingPathComponent("photo.jpg")

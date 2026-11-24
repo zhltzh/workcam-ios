@@ -44,7 +44,7 @@ struct CameraView: View {
     var body: some View {
         VStack(spacing: 16) {
             CameraPreview(session: model.controller.session)
-                .overlay(alignment: .topLeading) { Text("Unsigned capture").padding(8).background(.black.opacity(0.7)).foregroundStyle(.white) }
+                .overlay(alignment: .topLeading) { Text("Evidence capture").padding(8).background(.black.opacity(0.7)).foregroundStyle(.white) }
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .accessibilityLabel("Live rear camera preview")
             Text(model.status).accessibilityIdentifier("cameraStatus")

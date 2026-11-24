@@ -349,3 +349,9 @@ xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -de
 
 Unsigned builds establish compilation only. Device capture, offline persistence
 after restart, rendered output and device share are pending coordinated testing.
+
+### 三组增量的集成回归
+
+纳入 QA 2af79cb、核心 b8f4b5a、界面 2536165。总控将项目拍摄连到统一证据存储，项目只保留事务引用。按上节四条基线命令中的无签名 Debug、Release、模拟器构建与证据回归原样复跑。三种构建均 BUILD SUCCEEDED（日志 /tmp/workcam-unified-integrated-{Debug,Release,Simulator}.log）。证据回归七组通过，包含完整签名、缺失/不匹配/孤立 DER、目标冲突和重试。App 功能验收仍需真机。测试开关符号扫描命令为 `nm "$wc_binary" | rg -c 'tamperReport|LidarLabView'`，扫描 Debug、Release App 内 WorkCam 开头的可执行文件及 dylib；基线 Debug 有匹配，Release 无匹配。
+
+候选在启动的 iPhone 18 Pro 模拟器执行 `xcrun simctl install "$wc_sim" /tmp/WorkCamUnified-Simulator/Build/Products/Debug-iphonesimulator/WorkCam.app` 与 `xcrun simctl launch --terminate-running-process "$wc_sim" com.example.workcam.dev` 成功。用 `xcrun simctl io "$wc_sim" screenshot "$wc_png"` 重拍启动后的首页，目视确认 Projects。路径见统一报告。

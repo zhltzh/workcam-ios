@@ -14,7 +14,9 @@ struct WorkProject: Codable, Identifiable, Sendable {
 struct WorkPhoto: Identifiable, Sendable {
     let url: URL
     let capturedAt: Date
-    var id: String { url.deletingPathExtension().lastPathComponent }
+    let localEntry: URL
+    var id: String { localEntry.deletingPathExtension().lastPathComponent }
+    var annotationURL: URL { localEntry.deletingPathExtension().appendingPathExtension("annotation.json") }
 }
 
 enum ProjectStore {
@@ -60,24 +62,39 @@ enum ProjectStore {
 
     static func capture(_ data: Data, in project: WorkProject) throws -> URL {
         let timestamp = Int64((Date().timeIntervalSince1970 * 1000).rounded())
-        let url = try directory(project.id).appendingPathComponent("\(timestamp)-\(UUID().uuidString).jpg")
-        try data.write(to: url, options: [.atomic, .completeFileProtection])
-        return url
+        let recordID = UUID()
+        let reference = try directory(project.id).appendingPathComponent("\(timestamp)-\(recordID.uuidString).evidence")
+        try Data().write(to: reference, options: [.atomic, .completeFileProtection])
+        return try EvidenceStore.capture(data, recordID: recordID)
     }
 
     static func photos(in project: WorkProject) throws -> [WorkPhoto] {
-        try FileManager.default.contentsOfDirectory(at: directory(project.id), includingPropertiesForKeys: nil)
-            .compactMap { url in
-                guard url.pathExtension == "jpg",
-                      let prefix = url.lastPathComponent.split(separator: "-", maxSplits: 1).first,
-                      let timestamp = Int64(prefix) else { return nil }
-                return WorkPhoto(url: url, capturedAt: Date(timeIntervalSince1970: Double(timestamp) / 1000))
+        let evidenceRoot = try EvidenceStore.root()
+        try EvidenceStore.recoverPending(in: evidenceRoot)
+        return try FileManager.default.contentsOfDirectory(at: directory(project.id), includingPropertiesForKeys: nil)
+            .compactMap { entry in
+                let components = entry.deletingPathExtension().lastPathComponent.split(separator: "-", maxSplits: 1)
+                guard components.count == 2, let timestamp = Int64(components[0]) else { return nil }
+                let original: URL
+                switch entry.pathExtension {
+                case "jpg":
+                    original = entry
+                case "evidence":
+                    guard let id = UUID(uuidString: String(components[1])) else { return nil }
+                    original = evidenceRoot.appendingPathComponent(id.uuidString.lowercased(), isDirectory: true)
+                        .appendingPathComponent("photo.jpg")
+                    guard FileManager.default.fileExists(atPath: original.path) else { return nil }
+                default:
+                    return nil
+                }
+                return WorkPhoto(url: original, capturedAt: Date(timeIntervalSince1970: Double(timestamp) / 1000),
+                                 localEntry: entry)
             }
             .sorted { ($0.capturedAt, $0.id) > ($1.capturedAt, $1.id) }
     }
 
     static func annotation(for photo: WorkPhoto) throws -> PhotoAnnotation? {
-        let url = photo.url.deletingPathExtension().appendingPathExtension("annotation.json")
+        let url = photo.annotationURL
         do {
             return try JSONDecoder().decode(PhotoAnnotation.self, from: Data(contentsOf: url))
         } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
@@ -86,7 +103,7 @@ enum ProjectStore {
     }
 
     static func save(_ annotation: PhotoAnnotation, for photo: WorkPhoto) throws {
-        let url = photo.url.deletingPathExtension().appendingPathExtension("annotation.json")
+        let url = photo.annotationURL
         try JSONEncoder().encode(annotation).write(to: url, options: [.atomic, .completeFileProtection])
     }
 }

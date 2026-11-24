@@ -39,10 +39,11 @@ inspection. The committed-record inspector applies the same consistency check.
 
 Projects use UUID directories under Application Support/WorkProjects. Project
 metadata is JSON. A new directory is staged then renamed into place. Project
-capture writes the camera JPEG atomically under a timestamp and UUID. The
-project list and photo list load from disk. The CameraController takes a
-save destination so the existing evidence capture entry point still uses
-CaptureStore. Project captures use their own destination and are unsigned.
+capture reserves a project reference and commits the original through the same
+evidence store used by standalone capture. The project list resolves each
+reference after evidence promotion. The original is stored once. A reference
+without a committed original stays out of the list and can resolve when
+recovery promotes a complete transaction. Older project JPEGs remain readable.
 The timestamp represents the device clock at the time of save.
 
 A human-added marker and note use a separate JSON sidecar. ImageIO applies

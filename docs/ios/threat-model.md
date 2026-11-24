@@ -38,8 +38,9 @@ Remote hardware provenance remains NOT_ATTESTED.
 ## Offline project artifacts
 
 Treat project names and annotation notes as user-provided content. Treat project
-timestamps as unverified device time. Project JPEGs, marker sidecars and
-delivery files are outside the signed evidence flow. The JPEG and PDF outputs
+timestamps as unverified device time. New originals use evidence capture.
+Project membership and marker sidecars are mutable local metadata outside
+the signature. Legacy project JPEGs and delivery files carry no signature claim. The JPEG and PDF outputs
 include fixed unverified labels. The original-share action sends the camera
 JPEG with its embedded metadata. The system share sheet can transfer data out
 of the app sandbox. Temporary export files can persist until system cleanup.
