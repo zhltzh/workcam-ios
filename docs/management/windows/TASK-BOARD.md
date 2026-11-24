@@ -27,17 +27,17 @@
 
 | 编号 | 研发组 | 优先级 | 状态 | 分支 | 交付 SHA | PR | 验收 |
 |---|---|---|---|---|---|---|---|
-| B02-W014 离线同步 | 01 后端 | P0 | NOT_STARTED | dev/windows-b02-w014-offline-sync | — | BLOCKED(gh) | — |
+| B02-W014 离线同步 | 01 后端 | P0 | DESKTOP_VERIFIED | dev/windows-b02-w014-offline-sync | `80b4bc1`+`e40792a` | BLOCKED(gh) | 全量 644 passed，总控复跑 12 passed |
 | B02-W015 报告增强 | 01 后端 | P1 | NOT_STARTED | dev/windows-b02-w015-report-enhance | — | BLOCKED(gh) | — |
-| B02-W016 LiDAR 分析 | 02 算法 | P0 | NOT_STARTED | dev/windows-b02-w016-lidar-stats | — | BLOCKED(gh) | — |
+| B02-W016 LiDAR 分析 | 02 算法 | P0 | DESKTOP_VERIFIED（真机 DEVICE_PENDING） | dev/windows-b02-w016-lidar-stats | `89f2f81`+`102b49b` | BLOCKED(gh) | 全量 654 passed，总控复跑 22 passed |
 | B02-W017 批量管理 | 01 后端 | P1 | NOT_STARTED | dev/windows-b02-w017-photo-batch | — | BLOCKED(gh) | — |
-| B02-W018 验证 CLI | 02 算法 | P0 | NOT_STARTED | dev/windows-b02-w018-evidence-verifier | — | BLOCKED(gh) | — |
+| B02-W018 验证 CLI | 02 算法 | P0 | DESKTOP_VERIFIED（真机包 DEVICE_PENDING） | dev/windows-b02-w018-evidence-verifier | `88d9e15`+`69f68e1` | BLOCKED(gh) | 全量 674 passed，总控复跑 42 passed |
 | B02-W019 C2PA 研究 | 02 算法 | P1 | NOT_STARTED | dev/windows-b02-w019-c2pa | — | BLOCKED(gh) | — |
 | B02-W020 性能压测 | 03 测试安全 | P1 | NOT_STARTED | dev/windows-b02-w020-perf | — | BLOCKED(gh) | — |
-| B02-W021 安全审计 | 03 测试安全 | P0 | NOT_STARTED | dev/windows-b02-w021-security | — | BLOCKED(gh) | — |
+| B02-W021 安全审计 | 03 测试安全 | P0 | IN_PROGRESS | dev/windows-b02-w021-security | — | BLOCKED(gh) | — |
 | B02-W022 RC2 集成候选 | 00 总控 | P0 | NOT_STARTED | dev/windows-b02-w022-rc2 | — | BLOCKED(gh) | — |
-| B02-W023 跨语言签名向量 | 02 算法 | P0 | NOT_STARTED | dev/windows-b02-w023-crosslang-sig | — | BLOCKED(gh) | — |
-| B02-W024 时间定位可信模型 | 02 算法 | P0 | NOT_STARTED | dev/windows-b02-w024-time-geo-trust | — | BLOCKED(gh) | — |
+| B02-W023 跨语言签名向量 | 02 算法 | P0 | IN_PROGRESS | dev/windows-b02-w023-crosslang-sig | — | BLOCKED(gh) | — |
+| B02-W024 时间定位可信模型 | 02 算法 | P0 | IN_PROGRESS | dev/windows-b02-w024-time-geo-trust | — | BLOCKED(gh) | — |
 | B02-W025 存储与空间优化 | 01 后端 | P1 | NOT_STARTED | dev/windows-b02-w025-storage | — | BLOCKED(gh) | — |
 | B02-W026 API 契约工具 | 01 后端 | P1 | NOT_STARTED | dev/windows-b02-w026-api-contract | — | BLOCKED(gh) | — |
 | B02-W027 部署与 CI | 03 测试安全 | P1 | NOT_STARTED | dev/windows-b02-w027-deploy-ci | — | BLOCKED(gh) | — |
