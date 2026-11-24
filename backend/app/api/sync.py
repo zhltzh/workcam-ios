@@ -379,6 +379,8 @@ def _exec_annotation_create(conn, owner: str, payload: dict) -> dict:
     except Exception:
         raise ApiError(400, "annotation_validation_failed",
                        "annotation fields failed validation")
+    _emit_event(conn, owner, "annotation", annotation_id, "created", 1,
+                body.local_id)
     return {"server_annotation_id": annotation_id,
             "local_id": body.local_id}
 
@@ -411,14 +413,17 @@ def _exec_annotation_update(conn, owner: str, payload: dict) -> dict:
             params.append(v)
     if not updates:
         raise ApiError(400, "empty_patch", "nothing to update")
-    updates.append("revision = revision + 1")
+    new_rev = row["revision"] + 1
+    updates.append("revision = ?")
     updates.append("updated_at = ?")
-    params.extend([utc_now(), body.server_annotation_id])
+    params.extend([new_rev, utc_now(), body.server_annotation_id])
     conn.execute(
         f"UPDATE mvp_annotations SET {', '.join(updates)} "
         "WHERE annotation_id = ?", params)
+    _emit_event(conn, owner, "annotation", body.server_annotation_id,
+                "updated", new_rev, body.server_annotation_id)
     return {"server_annotation_id": body.server_annotation_id,
-            "revision": row["revision"] + 1}
+            "revision": new_rev}
 
 
 def _exec_annotation_delete(conn, owner: str, payload: dict) -> dict:
@@ -432,11 +437,14 @@ def _exec_annotation_delete(conn, owner: str, payload: dict) -> dict:
         raise ApiError(404, "not_found", "annotation not found")
     _own_photo(conn, owner, row["ph_id"])
     if row["is_active"]:
+        new_rev = row["revision"] + 1
         conn.execute(
             "UPDATE mvp_annotations SET is_active = 0, "
-            "revision = revision + 1, updated_at = ? "
+            "revision = ?, updated_at = ? "
             "WHERE annotation_id = ?",
-            (utc_now(), body.server_annotation_id))
+            (new_rev, utc_now(), body.server_annotation_id))
+        _emit_event(conn, owner, "annotation", body.server_annotation_id,
+                    "soft_deleted", new_rev, body.server_annotation_id)
     return {"server_annotation_id": body.server_annotation_id,
             "deleted": True}
 
@@ -467,6 +475,8 @@ def _exec_issue_create(conn, owner: str, payload: dict) -> dict:
         "VALUES (?,?,?,?,?,?,?)",
         (issue_id, owner, "created", None, body.severity, body.title,
          now))
+    _emit_event(conn, owner, "issue", issue_id, "created", 1,
+                body.title)
     return {"server_issue_id": issue_id, "local_id": body.local_id}
 
 
@@ -506,14 +516,17 @@ def _exec_issue_update(conn, owner: str, payload: dict) -> dict:
              row["severity"], body.severity, "", utc_now()))
     if not updates:
         raise ApiError(400, "empty_patch", "nothing to update")
-    updates.append("revision = revision + 1")
+    new_rev = row["revision"] + 1
+    updates.append("revision = ?")
     updates.append("updated_at = ?")
-    params.extend([utc_now(), body.server_issue_id])
+    params.extend([new_rev, utc_now(), body.server_issue_id])
     conn.execute(
         f"UPDATE mvp_issues SET {', '.join(updates)} "
         "WHERE issue_id = ?", params)
+    _emit_event(conn, owner, "issue", body.server_issue_id, "updated",
+                new_rev, "")
     return {"server_issue_id": body.server_issue_id,
-            "revision": row["revision"] + 1}
+            "revision": new_rev}
 
 
 def _exec_issue_transition(conn, owner: str, payload: dict) -> dict:
@@ -552,6 +565,9 @@ def _exec_issue_transition(conn, owner: str, payload: dict) -> dict:
         "VALUES (?,?,?,?,?,?,?)",
         (body.server_issue_id, owner, "status_changed", row["status"],
          body.target_status, "", now))
+    _emit_event(conn, owner, "issue", body.server_issue_id,
+                "status_changed", row["revision"] + 1,
+                f"{row['status']}->{body.target_status}")
     return {"server_issue_id": body.server_issue_id,
             "status": body.target_status,
             "revision": row["revision"] + 1}
@@ -583,6 +599,9 @@ def _exec_issue_photo_link(conn, owner: str, payload: dict) -> dict:
         "VALUES (?,?,?,?,?,?,?)",
         (body.server_issue_id, owner, "photo_linked", None, body.role,
          body.server_photo_id, utc_now()))
+    _emit_event(conn, owner, "issue", body.server_issue_id,
+                "photo_linked", issue["revision"],
+                f"{body.role}:{body.server_photo_id}")
     return {"server_issue_id": body.server_issue_id,
             "server_photo_id": body.server_photo_id,
             "role": body.role}
@@ -606,6 +625,9 @@ def _exec_issue_photo_unlink(conn, owner: str, payload: dict) -> dict:
         "VALUES (?,?,?,?,?,?,?)",
         (body.server_issue_id, owner, "photo_unlinked", body.role, None,
          body.server_photo_id, utc_now()))
+    _emit_event(conn, owner, "issue", body.server_issue_id,
+                "photo_unlinked", issue["revision"],
+                f"{body.role}:{body.server_photo_id}")
     return {"server_issue_id": body.server_issue_id,
             "server_photo_id": body.server_photo_id,
             "role": body.role, "unlinked": True}
@@ -635,6 +657,38 @@ def _op_request_hash(op: SyncOp) -> str:
     return hashlib.sha256(json.dumps(
         {"op": op.op, "payload": op.payload},
         sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+# Payload keys that accept an intra-batch local reference. While
+# offline the client can only reference entities by the local ids it
+# generated itself, so the queue stores 'local:<local_id>' and the
+# server resolves it from THIS batch's id_map before execution (B02-W014
+# dependency ordering: only refs to EARLIER applied ops resolve).
+_LOCAL_REF_KEYS = ("server_project_id", "server_photo_id",
+                   "server_annotation_id", "server_issue_id")
+
+
+def _resolve_local_refs(payload: dict, id_map: dict[str, str]) -> dict:
+    """Return a payload copy with 'local:<id>' references substituted by
+    the server ids of EARLIER applied ops in the same batch. A ref that
+    was never applied (failed, later in the batch, or unknown) is a
+    typed rejection - the dependency order is validated, never
+    silently skipped."""
+    resolved = dict(payload)
+    for key in _LOCAL_REF_KEYS:
+        v = resolved.get(key)
+        if isinstance(v, str) and v.startswith("local:"):
+            local_id = v[len("local:"):]
+            if not local_id or local_id not in id_map:
+                raise ApiError(
+                    409, "unresolved_local_ref",
+                    f"{key} references '{v}' which has no applied op "
+                    f"in this batch (dependency order violated or "
+                    f"source op failed)",
+                    {"ref_key": key, "local_ref": v,
+                     "resolved_local_ids": sorted(id_map)})
+            resolved[key] = id_map[local_id]
+    return resolved
 
 
 @router.post("/batch")
@@ -687,7 +741,12 @@ async def sync_batch(body: SyncBatchRequest, request: Request):
                 continue
 
             try:
-                result = executor(conn, token, op.payload)
+                # B02-W014: resolve intra-batch local refs BEFORE the
+                # executor runs. The request hash stays computed on the
+                # ORIGINAL payload - a replay with the same queue entry
+                # is byte-identical and hits the ledger above.
+                resolved_payload = _resolve_local_refs(op.payload, id_map)
+                result = executor(conn, token, resolved_payload)
             except ApiError as e:
                 receipts.append(OpReceipt(
                     operation_id=op.operation_id, status="rejected",
@@ -745,10 +804,10 @@ async def pull_events(request: Request,
                       cursor: int = Query(0, ge=0),
                       limit: int = Query(100, gt=0,
                                          le=MAX_PULL_LIMIT),
-                      entity_type: str | None = Query(
-                          None,
-                          pattern="^(project|photo|evidence_link|"
-                                  "original)$")):
+                       entity_type: str | None = Query(
+                           None,
+                           pattern="^(project|photo|evidence_link|"
+                                   "original|annotation|issue)$")):
     """Incremental pull for the caller's OWN events only.
 
     The cursor is the last seq the client has seen. Restart-stable:
