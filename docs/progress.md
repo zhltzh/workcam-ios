@@ -317,3 +317,18 @@ xcrun swiftc -parse-as-library -module-cache-path /tmp/workcam-unified-module-ca
 ```
 
 `wc_sim` 取已启动的 iPhone 18 Pro 模拟器。Mock 队列在集成分支复跑通过，未接入 App target。Git CLI `git ls-remote --heads origin` 返回传输超时，远端分支与 PR 用 GitHub 连接器核验。
+
+## 2026-11-25 · M014–M016 core handoff
+
+```sh
+xcodebuild -version
+xcrun swiftc -module-cache-path /tmp/workcam-core-cache Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/workcam-core-evidence && /tmp/workcam-core-evidence test-vectors/fixed-vectors.json
+xcrun swiftc -module-cache-path /tmp/workcam-core-cache Features/TechLab/DepthGeometry.swift Features/TechLab/LabArchive.swift Tests/Lidar/main.swift -o /tmp/workcam-core-lidar && /tmp/workcam-core-lidar
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamCore-Debug CODE_SIGNING_ALLOWED=NO build > /tmp/workcam-core-Debug.log 2>&1
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamCore-Release CODE_SIGNING_ALLOWED=NO build > /tmp/workcam-core-Release.log 2>&1
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamCore-Debug CODE_SIGNING_ALLOWED=NO build > /tmp/workcam-core-Debug-retry.log 2>&1
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamCore-Release CODE_SIGNING_ALLOWED=NO build > /tmp/workcam-core-Release-retry.log 2>&1
+git diff --check
+```
+
+Xcode 27.2 (27B52). Both macOS fixture suites passed. Evidence tests cover signed recovery, missing/mismatched/orphan DER, collision preservation and repeat recovery. Initial sandboxed iOS builds exited 65 with a malformed SwiftUI macro plugin response. Both unsigned retry builds outside the sandbox exited 0. Signed deployment and iPhone execution pending coordination with WorkCam 00. W016 analyzer SHA and invocation unavailable in local refs. Device and CSV steps are in [M014–M016 acceptance](ios/m014-m016-acceptance.md).

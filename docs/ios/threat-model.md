@@ -30,3 +30,7 @@ The standalone outbox file contains operation IDs and caller-provided bodies.
 Callers must keep credentials out of those bodies and control where the file is
 stored. Local acknowledgments do not establish server acceptance or evidence
 verification. Network authentication and credential lifecycle are Not Implemented.
+
+A detached DER file alongside unsigned pending metadata is inconsistent.
+Recovery retains the original and the conflicting artifact in staging.
+Remote hardware provenance remains NOT_ATTESTED.

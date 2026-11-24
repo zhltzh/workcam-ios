@@ -31,3 +31,6 @@ bodies. One actor owns each file. A caller supplies the stable ID and removes an
 operation only after an accepted or already-applied acknowledgment. The desktop
 fixture uses Mock bodies. App wiring, network transport, and event cursors are
 Not Implemented.
+
+An unsigned pending record with a detached DER file stays isolated for
+inspection. The committed-record inspector applies the same consistency check.

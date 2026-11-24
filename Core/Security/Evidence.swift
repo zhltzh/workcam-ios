@@ -98,9 +98,12 @@ struct EvidenceStore {
                   record.photoID == id,
                   let photo = try? Data(contentsOf: stage.appendingPathComponent("photo.jpg")),
                   (try? verify(record, photo: photo)) != nil else { continue }
+            let signatureFile = stage.appendingPathComponent("signature.der")
             if let manifest = record.manifest {
                 guard let signature = Data(base64Encoded: manifest.signature),
-                      (try? Data(contentsOf: stage.appendingPathComponent("signature.der"))) == signature else { continue }
+                      (try? Data(contentsOf: signatureFile)) == signature else { continue }
+            } else if files.fileExists(atPath: signatureFile.path) {
+                continue
             }
             // moveItem rejects an existing destination. A failed move leaves the
             // stage available for a future attempt.
