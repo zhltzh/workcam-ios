@@ -23,3 +23,11 @@ Evidence capture, re-verification and export retry promotion of complete pending
 transactions. Promotion checks the directory identifier, original hash, and
 signed record plus detached DER when present. Write and promotion are serialized
 within the app process. Incomplete pending originals remain isolated for inspection.
+
+### WC-M023 local sync outbox
+
+The standalone Swift outbox atomically persists ordered operation IDs and opaque
+bodies. One actor owns each file. A caller supplies the stable ID and removes an
+operation only after an accepted or already-applied acknowledgment. The desktop
+fixture uses Mock bodies. App wiring, network transport, and event cursors are
+Not Implemented.

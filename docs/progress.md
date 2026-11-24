@@ -288,3 +288,19 @@ xcrun devicectl list devices --timeout 10
 无签名 Debug/Release 和签名 Debug 均 BUILD SUCCEEDED。桌面证据回归 6 组及 LiDAR 回归 3 组通过。设备枚举识别到已配对物理 iPhone。以上结果对应 97b0c84 继承基线。
 
 配对设备连接复查命令为 `xcrun devicectl device info lockState --device "$wc_device" --timeout 10`，其中变量取自设备枚举的物理 iPhone 行。CoreDevice 4000，设备连接未建立。本轮未安装、启动候选或生成真机截图。已脱敏记录，设备标识仅留于本地临时日志。
+## 2026-11-25 · WC-M023–M024 QA
+
+从 97b0c8445793f2ed4110db84d80c540468a4b5d5 创建 codex/workcam-batch02-qa。实际命令如下。
+
+```sh
+git ls-remote origin refs/heads/dev/windows-prototype-w014
+for c in Debug Release; do
+  xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration "$c" -destination 'generic/platform=iOS' -derivedDataPath "/tmp/workcam-batch02-qa-$c" CODE_SIGNING_ALLOWED=NO build
+done
+xcrun swiftc -parse-as-library -module-cache-path /tmp/workcam-batch02-qa-modules Core/Sync/SyncOutbox.swift Tests/Sync/main.swift -o /tmp/workcam-batch02-qa-sync && /tmp/workcam-batch02-qa-sync
+```
+
+- Debug、Release 首次受限构建因 SwiftUI StateMacro 插件失败。解除沙箱限制重跑后均为 BUILD SUCCEEDED，日志 /tmp/workcam-batch02-qa-{Debug,Release}-retry.log。两份为 generic iOS 无签名构建。真机安装、权限、稳定性、性能与异常场景待 00 协调。
+- Git CLI 无法解析 github.com。GitHub 连接器可读取 [Windows W013 分支头](https://github.com/zhltzh/workcam-ios/commit/31917e34dd45df095853db31faf242de3adac914) 和 [W014 同名分支头](https://github.com/zhltzh/workcam-ios/commit/23ca20af715735bb8730d0bfbd793cf6d1dcfb36)。后者提交主题为设计色板更新，部署候选 SHA 仍需交接。GitHub compare 本地基线与 W014 返回 404，联合冲突尚未验证。
+- [W013 PR #19](https://github.com/zhltzh/workcam-ios/pull/19) 描述旧推导 token 拒绝、同公钥重注册保持身份及数据归属、SQLite 吊销与挑战路径收敛。该描述需在部署的固定 SHA 复验。验收需比较重新注册前后资源归属，验证旧凭据和已吊销凭据拒绝、重启后状态保持，以及 [W008 PR #14](https://github.com/zhltzh/workcam-ios/pull/14) 所述相同操作 ID 重传、不同内容冲突和批次部分确认。缺已审查部署和私网地址。
+- 本地 Mock 队列桌面测试退出 0，覆盖重读、重复入队、ID 冲突和部分确认。队列独立编译验证，尚未接入 App target。Windows 网络同步、认证、事件游标和业务写入 Not Implemented。

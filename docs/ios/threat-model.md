@@ -23,3 +23,10 @@ Pending transaction recovery preserves incomplete or unreadable originals and
 never replaces an existing committed destination. Recovery verifies record
 integrity. A recovered unsigned record has no signing claim, and signature
 verification alone does not establish remote hardware provenance.
+
+### WC-M023 local sync outbox
+
+The standalone outbox file contains operation IDs and caller-provided bodies.
+Callers must keep credentials out of those bodies and control where the file is
+stored. Local acknowledgments do not establish server acceptance or evidence
+verification. Network authentication and credential lifecycle are Not Implemented.
