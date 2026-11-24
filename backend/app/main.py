@@ -11,6 +11,7 @@ from app.api.mvp import router as mvp_router, ensure_ready as mvp_ready
 from app.api.originals import router as originals_router
 from app.api.sync import router as sync_router
 from app.api.device_admin import router as device_admin_router
+from app.api.derivatives import router as derivatives_router
 from app.services.security_config import check_startup_security
 
 logging.basicConfig(level=logging.INFO)
@@ -48,6 +49,7 @@ app.include_router(mvp_router)      # /api/v1 business surface (W006)
 app.include_router(originals_router)  # /api/v1 originals (W007)
 app.include_router(sync_router)     # /api/v1/sync (W008)
 app.include_router(device_admin_router)  # /api/v1/devices (W009)
+app.include_router(derivatives_router)  # /api/v1 derivatives (W011)
 
 # W009: startup security guards - dangerous configurations abort boot
 # (fail_fast=True) or print warnings; prints go to stderr.

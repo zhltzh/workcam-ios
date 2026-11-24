@@ -219,6 +219,29 @@ CREATE TABLE IF NOT EXISTS mvp_audit_log (
 CREATE INDEX IF NOT EXISTS idx_audit_ts
     ON mvp_audit_log(ts DESC);
 """,
+    # v6 (W011): watermark derivatives. Immutable-original rule: the
+    # derivative is a SEPARATE artifact; the original's bytes are never
+    # touched. Idempotency: (photo, template, render_params_hash, locked
+    # original hash) is unique - re-rendering the same request returns
+    # the same derivative row.
+    6: """
+CREATE TABLE IF NOT EXISTS mvp_derivatives (
+    derivative_id      TEXT PRIMARY KEY,
+    photo_id           TEXT NOT NULL REFERENCES mvp_photos(photo_id),
+    owner_token        TEXT NOT NULL,
+    template_name      TEXT NOT NULL,
+    template_version   TEXT NOT NULL,
+    render_params_hash TEXT NOT NULL,
+    original_sha256    TEXT NOT NULL,
+    derivative_sha256  TEXT NOT NULL,
+    image_width        INTEGER NOT NULL,
+    image_height       INTEGER NOT NULL,
+    created_at         TEXT NOT NULL,
+    UNIQUE (photo_id, template_name, render_params_hash, original_sha256)
+);
+CREATE INDEX IF NOT EXISTS idx_derivatives_photo
+    ON mvp_derivatives(photo_id, created_at DESC);
+""",
 }
 
 _write_lock = threading.Lock()
