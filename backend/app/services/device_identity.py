@@ -107,9 +107,18 @@ def prune_audit(max_age_days: int = 90) -> int:
 
 def enroll_device(public_key_b64: str, device_id: str,
                   enrollment_code: str | None = None) -> str:
-    """Register a device (CONTROLLED - see _enrollment_code). The token
-    is the sha256 of the public key (one identity, no second
-    credential)."""
+    """Register a device (CONTROLLED - see _enrollment_code).
+
+    W012 SECURITY CHANGE: the issued token is a RANDOM server-side
+    secret (secrets.token_hex) - NOT derived from the public key. In
+    the pre-W012 design token = sha256(public_key), but the public key
+    is embedded in every evidence manifest, so anyone holding a captured
+    evidence package could compute a valid credential. Tokens are now
+    opaque secrets that must be protected like passwords; the public
+    key remains stored ONLY for challenge-verify.
+
+    Pre-W012 (derived) tokens keep working through the legacy-file
+    read-compat path."""
     code = _enrollment_code()
     if code is None:
         raise ApiError(403, "enrollment_closed",
@@ -132,23 +141,28 @@ def enroll_device(public_key_b64: str, device_id: str,
                        "public_key_b64 must be a valid P-256 X9.63 "
                        "uncompressed point")
 
-    token = hashlib.sha256(public_key_b64.encode("ascii")).hexdigest()
+    token = secrets.token_hex(32)     # random opaque secret (W012)
     fingerprint = token_fingerprint(token)
     now = utc_now()
     with db() as conn:
+        # same-key re-enrollment: return the EXISTING token (idempotent)
         existing = conn.execute(
-            "SELECT * FROM mvp_devices WHERE device_token = ?",
-            (token,)).fetchone()
+            "SELECT * FROM mvp_devices WHERE public_key_b64 = ? "
+            "AND status = 'active'",
+            (public_key_b64,)).fetchone()
         if existing is not None:
-            if existing["status"] == "revoked":
-                raise ApiError(409, "device_revoked",
-                               "this device was previously enrolled and "
-                               "revoked; re-enrollment requires manual "
-                               "intervention")
-            # idempotent re-enroll of the SAME key -> same token
-            audit("device_enroll_replay", token,
+            audit("device_enroll_replay", existing["device_token"],
                   {"device_id": device_id})
-            return token
+            return existing["device_token"]
+        revoked_key = conn.execute(
+            "SELECT 1 FROM mvp_devices WHERE public_key_b64 = ? "
+            "AND status = 'revoked'",
+            (public_key_b64,)).fetchone()
+        if revoked_key is not None:
+            raise ApiError(409, "device_revoked",
+                           "this device was previously enrolled and "
+                           "revoked; re-enrollment requires manual "
+                           "intervention")
         conn.execute(
             "INSERT INTO mvp_devices (device_token, device_id, "
             "public_key_b64, key_fingerprint, status, enrolled_at) "
