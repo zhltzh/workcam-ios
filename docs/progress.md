@@ -241,3 +241,17 @@ DESKTOP_VERIFIED export feedback core regression suite PASS:
 xcrun swiftc -module-cache-path /tmp/workcam-clock-module-cache Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/workcam-r1-tests && /tmp/workcam-r1-tests test-vectors/fixed-vectors.json
 ```
 UI progress/success/error/repeated tap acceptance remains DEVICE_PENDING. Empty-source explicit error test PASS; no historical data removed to manufacture empty-device state. P2 real photo OpenSSL verification from prior stage remains DESKTOP_VERIFIED, not hardware provenance proof. P3 known-reference measurement and P4 confirmed offline + restart remain DEVICE_PENDING. P0 launch currently BLOCKED by lock screen. M007 planning not started.
+
+## WC-M006-R1 actual device export acceptance — 2026-11-24
+User screenshot shows Export ready, Share Public Evidence Folder and native share sheet with ~4.4MB folder. DEVICE_VERIFIED: successful UI feedback and native share sheet presentation (progress transient not independently observed). Device tmp listing shows two complete export folders at21:20/21:21, each containing same two record UUIDs and five public files. Repeated preparation produces distinct folders. No need for user to repeat click.
+
+Actual device-generated package copied successfully:
+```sh
+xcrun devicectl device info files --device 00008150-001251D23482401C --domain-type appDataContainer --domain-identifier com.example.workcam.dev --subdirectory tmp --recurse --timeout 20
+xcrun devicectl device copy from --device 00008150-001251D23482401C --domain-type appDataContainer --domain-identifier com.example.workcam.dev --source tmp/WorkCam-Evidence-ABA3611A-65B4-416C-8B1F-DA5F4ADABC53 --destination /tmp/workcam-r1-device-export --timeout 30
+```
+Local files /tmp/workcam-r1-device-export; directory enumeration /tmp/workcam-r1-export-ready.log. No raw photo/package committed or uploaded.
+
+DESKTOP_VERIFIED on BOTH actual exported records: exact allowlist photo.jpg,record.json,payload.bin,public-key.x963,signature.der; device payload.bin byte-for-byte equals independently reconstructed v1.1 canonical payload; SHA256 matches photo/manifest/record; X9.63 key and DER match manifest; key hash equals publicKeyID/device_id; OpenSSL SHA256 P256 verifies both signatures. XOR first byte on photo copy fails hash; substituting modified hash into payload fails original signature. Original evidence untouched. Report /tmp/workcam-r1-export-verification.json. OpenSSL public-key conversion and dgst commands are as documented in prior section; ran against device payload.bin this time, not reconstructed file. Only five explicit public files present; record schema contains no private-key reference/token. Not Windows W005-R1 executable; verifier is independent OpenSSL.
+
+P0 deployment/real photo/export/math verification chain now has actual evidence. Remaining P2 hardware origin is DEVICE_PENDING: source uses SecureEnclave.P256.Signing.PrivateKey with no software fallback, and prior phone screenshot verifies matches installation key; no recorded first-key-creation telemetry/attestation. Cannot equate public signature validity to proven hardware origin. P3 LiDAR real known1m×5, orientation, recovery and P4 verified flight mode/new capture/kill-relaunch still pending. UI failure/empty-export behavior desktop-tested, not induced destructively on device. P0-P4 not all complete; M007 plan not started.
