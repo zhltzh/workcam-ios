@@ -29,7 +29,7 @@ struct EvidenceManifest: Codable {
     }
 }
 
-enum EvidenceError: Error { case invalid, unavailable, keychain(OSStatus) }
+enum EvidenceError: Error { case noExportableRecords, invalid, unavailable, keychain(OSStatus) }
 
 func evidenceHash(_ data: Data) -> String {
     SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
@@ -79,6 +79,34 @@ struct EvidenceStore {
         values.isExcludedFromBackup = true
         try url.setResourceValues(values)
         return url
+    }
+
+    /// Exports copies of public evidence only; never reads or exports private-key references.
+    static func exportPackages(sourceRoot: URL? = nil) throws -> URL {
+        let source = try sourceRoot ?? root()
+        let output = FileManager.default.temporaryDirectory.appendingPathComponent("WorkCam-Evidence-" + UUID().uuidString)
+        try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
+        var exportedCount = 0
+        for item in try FileManager.default.contentsOfDirectory(at: source, includingPropertiesForKeys: nil) {
+            guard UUID(uuidString: item.lastPathComponent) != nil else { continue }
+            let record = try JSONDecoder().decode(EvidenceRecord.self, from: Data(contentsOf: item.appendingPathComponent("record.json")))
+            let photo = try Data(contentsOf: item.appendingPathComponent("photo.jpg"))
+            _ = try verify(record, photo: photo)
+            exportedCount += 1
+            let destination = output.appendingPathComponent(item.lastPathComponent)
+            try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+            try photo.write(to: destination.appendingPathComponent("photo.jpg"), options: .atomic)
+            try JSONEncoder().encode(record).write(to: destination.appendingPathComponent("record.json"), options: .atomic)
+            if let manifest = record.manifest {
+                guard let key = Data(base64Encoded: manifest.public_key),
+                      let signature = Data(base64Encoded: manifest.signature) else { throw EvidenceError.invalid }
+                try manifest.payload().write(to: destination.appendingPathComponent("payload.bin"), options: .atomic)
+                try key.write(to: destination.appendingPathComponent("public-key.x963"), options: .atomic)
+                try signature.write(to: destination.appendingPathComponent("signature.der"), options: .atomic)
+            }
+        }
+        guard exportedCount > 0 else { throw EvidenceError.noExportableRecords }
+        return output
     }
 
     static func capture(_ data: Data) throws -> URL {

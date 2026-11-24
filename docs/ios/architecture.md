@@ -9,3 +9,12 @@ Only entering Camera requests permission. Page disappearance or inactive scene s
 Reserved modules: CaptureHistory, Verification, Security, Location, Sync, Models, Resources and Tests. No third-party dependencies. Device acceptance steps: task-002-validation.md. Unit/UI automated tests are not yet configured; physical capture remains unvalidated.
 
 M003 routes new JPEG captures to EvidenceStore. Protected pending directories become committed records after photo, JSON and optional DER writes. Evidence Debug reloads and verifies hashes/signatures on demand. Keychain persists the Secure Enclave opaque reference. See m003.md for independent-genesis scope and supported null location.
+
+## Experimental clock diagnostics (2026-11-19)
+Standalone Core/TechLab/ClockObservation.swift has no app integration or network dependencies. Session-scoped uptime comparisons diagnose wall-clock divergence; session boundaries prohibit continuity claims. Internal Codable is not a negotiated Windows schema.
+
+Debug-only LiDAR Lab uses an isolated ARSCNView session, explicit user Start, scene-depth support gating, estimated-plane raycasts and world-space point markers. Stops session on leaving screen. Existing capture/evidence pipeline unchanged. CSV uses a provisional internal schema, not yet Windows-compatible; sharing is user initiated.
+
+M1-R1 partial: depth modes unproject display-mapped depth pixel centers with scaled intrinsics and camera transform; high-confidence depth only, no fallback. Experimental rows are atomically archived separately from evidence. Schema and matrix compatibility concerns recorded in progress.md.
+
+WC-M-006 public evidence export creates explicit copies of JPEG, EvidenceRecord, exact canonical payload, X9.63 public key and DER signature. Export verifies source mathematics first; no private key access in export path. Dedicated fixed-vector allowlist/byte/tamper tests added.
