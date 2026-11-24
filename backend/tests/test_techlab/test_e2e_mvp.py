@@ -48,8 +48,10 @@ def e2e_env(tmp_path, monkeypatch):
     monkeypatch.setenv("WORKCAM_DEVICE_REGISTRY",
                        str(tmp_path / "devices.jsonl"))
     monkeypatch.setenv("WORKCAM_UPLOAD_AUDIT", str(tmp_path / "audit.jsonl"))
+    monkeypatch.setenv("WORKCAM_ENROLLMENT_CODE", "test-code-123")
     import app.api.upload as up
     import app.api.upload_auth as ua
+    from app.services import device_identity
     monkeypatch.setattr(up, "_STORAGE_ROOT", tmp_path / "uploads")
     ua._batch_owners.clear(); ua._buckets.clear(); ua._challenges.clear()
 
@@ -62,8 +64,7 @@ def e2e_env(tmp_path, monkeypatch):
 
     key = ec.generate_private_key(ec.SECP256R1())       # TEST key
     pub_b64 = base64.b64encode(_encode_pub(key.public_key())).decode()
-    registry = ua.DeviceRegistry(tmp_path / "devices.jsonl")
-    token = registry.enroll(pub_b64, "e2e-desktop-device")
+    token = device_identity.enroll_device(pub_b64, "e2e-desktop-device", "test-code-123")
     hdr = {"X-Device-Token": token}
     return type("E", (), {"tmp": tmp_path, "photo": photo,
                           "key": key, "pub": pub_b64,

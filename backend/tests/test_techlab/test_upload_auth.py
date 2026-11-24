@@ -11,6 +11,13 @@ import base64
 import hashlib
 import json
 import os
+
+import pytest
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.serialization import (
+    Encoding, PublicFormat)
+
+from tests.conftest import _encode_pub
 from pathlib import Path
 
 import pytest
@@ -36,6 +43,7 @@ def auth_env(tmp_path, monkeypatch):
     monkeypatch.setenv("WORKCAM_UPLOAD_DIR", str(tmp_path / "uploads"))
     monkeypatch.setenv("WORKCAM_UPLOAD_EXPERIMENTAL", "1")
     monkeypatch.setenv("WORKCAM_UPLOAD_AUTH", "1")
+    monkeypatch.setenv("WORKCAM_ENROLLMENT_CODE", "pwd")
     monkeypatch.setenv("WORKCAM_DEVICE_REGISTRY",
                        str(tmp_path / "devices.jsonl"))
     monkeypatch.setenv("WORKCAM_UPLOAD_AUDIT",
@@ -51,17 +59,13 @@ def auth_env(tmp_path, monkeypatch):
     # enroll device A and device B with software TEST keys (clearly
     # marked: this is the AUTH layer; the same slot is where a real
     # device's evidence-signing key registers in production)
-    key_a = ec.generate_private_key(ec.SECP256R1())
+    from app.services import device_identity
+    key_a = ec.generate_private_key(ec.SECP256R1())       # TEST key
     key_b = ec.generate_private_key(ec.SECP256R1())
-
-    def _pub_b64(key):
-        return base64.b64encode(key.public_key().public_bytes(
-            Encoding.X962, PublicFormat.UncompressedPoint)).decode()
-
-    pub_a, pub_b = _pub_b64(key_a), _pub_b64(key_b)
-    registry = ua.DeviceRegistry(Path(tmp_path / "devices.jsonl"))
-    token_a = registry.enroll(pub_a, "device-AAA")
-    token_b = registry.enroll(pub_b, "device-BBB")
+    pub_a = base64.b64encode(_encode_pub(key_a.public_key())).decode()
+    pub_b = base64.b64encode(_encode_pub(key_b.public_key())).decode()
+    token_a = device_identity.enroll_device(pub_a, "device-AAA", "pwd")
+    token_b = device_identity.enroll_device(pub_b, "device-BBB", "pwd")
 
     class H:
         A = {"X-Device-Token": token_a}
@@ -234,12 +238,11 @@ def test_audit_log_written(auth_env):
 
 
 def test_no_real_key_claims(auth_env):
-    """Red line: the layer NEVER claims Secure Enclave. The registry
-    stores a public key; the test key here is software - documented in
-    the fixture, and no output of this layer asserts hardware origin."""
-    import app.api.upload_auth as ua
-    registry = ua.DeviceRegistry(Path(auth_env.tmp_path / "devices.jsonl"))
-    assert registry.device_id_for_token(auth_env.token_a) == "device-AAA"
+    """Red line: the layer NEVER claims Secure Enclave. The identity
+    store holds a public key; the test key here is software - documented
+    in the fixture, and no output of this layer asserts hardware origin."""
+    from app.services.device_identity import resolve_device
+    assert resolve_device(auth_env.token_a) == "device-AAA"
     # the layer asserts IDENTITY PROOF ONLY; device-attestation is out
     # of scope (the /verify evidence path's unknown attestation status
     # remains the single source of truth for that question)

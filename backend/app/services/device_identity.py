@@ -258,11 +258,29 @@ def _legacy_lookup(token: str) -> dict | None:
     return None
 
 
+def _is_derived_token(token: str, rec: dict) -> bool:
+    """True if this legacy record's token was the pre-W012
+    sha256(public_key) design - i.e., a credential computable from
+    material inside every evidence manifest."""
+    import hashlib as _h
+    return token == _h.sha256(rec.get("public_key_b64", "").encode(
+        "ascii")).hexdigest()
+
+
 def resolve_device(token: str) -> str:
     """THE identity gate for every protected API. Returns device_id or
-    raises. Revoked devices are refused - on BOTH the SQLite store and
-    the legacy file (legacy check last: a device present in both that
-    was revoked in SQLite stays revoked)."""
+    raises.
+
+    W013 SECURITY (P0 acceptance): legacy tokens that are DERIVED from
+    the public key (sha256(pubkey) design) are NO LONGER accepted as
+    bearer credentials on their own - the public key is embedded in
+    every evidence manifest, so derived tokens are computable by anyone
+    holding a captured package. Legacy devices must now go through
+    re-enrollment (same public key -> new random token, idempotent) or
+    a challenge-response proof of private-key possession.
+
+    Non-derived legacy tokens (already random, pre-W012 joint-debug
+    exceptions) remain valid. Revocation is enforced on both stores."""
     with db() as conn:
         row = conn.execute(
             "SELECT * FROM mvp_devices WHERE device_token = ?",
@@ -274,6 +292,24 @@ def resolve_device(token: str) -> str:
         return row["device_id"]
     legacy = _legacy_lookup(token)
     if legacy is not None:
+        # revoked check on the SQLite store by PUBLIC KEY (a legacy
+        # device revoked before migration must not resurrect)
+        with db() as conn:
+            revoked = conn.execute(
+                "SELECT 1 FROM mvp_devices WHERE public_key_b64 = ? "
+                "AND status = 'revoked'",
+                (legacy.get("public_key_b64", ""),)).fetchone()
+        if revoked is not None:
+            raise ApiError(401, "unauthorized",
+                           "device token is revoked")
+        if _is_derived_token(token, legacy):
+            # derived credential from public material -> refused as a
+            # bearer secret; the device must re-enroll (idempotent by
+            # public key) to obtain a random token
+            raise ApiError(401, "legacy_token_must_re_enroll",
+                           "this is a legacy token derived from the "
+                           "public key; re-enroll with the enrollment "
+                           "code to receive a modern random token")
         return legacy["device_id"]
     raise ApiError(401, "unauthorized", "device token is not enrolled")
 

@@ -28,6 +28,7 @@ def isolated_upload_dir(tmp_path, monkeypatch):
     semantics = state read from disk again."""
     monkeypatch.setenv("WORKCAM_UPLOAD_DIR", str(tmp_path / "uploads"))
     monkeypatch.setenv("WORKCAM_UPLOAD_EXPERIMENTAL", "1")
+    monkeypatch.setenv("WORKCAM_ENROLLMENT_CODE", "test-code-123")
     # import-time binding workaround: the module reads the env lazily via
     # helper, but _STORAGE_ROOT was captured at import. Re-import trick:
     import app.api.upload as up

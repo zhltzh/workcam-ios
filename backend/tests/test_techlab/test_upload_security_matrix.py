@@ -78,6 +78,7 @@ _REG_BODY = {"total_bytes": 100, "chunk_size": 50,
 
 @pytest.fixture()
 def isolated(tmp_path, monkeypatch):
+    monkeypatch.setenv("WORKCAM_ENROLLMENT_CODE", "pwd")
     monkeypatch.setenv("WORKCAM_UPLOAD_DIR", str(tmp_path / "uploads"))
     monkeypatch.delenv("WORKCAM_UPLOAD_EXPERIMENTAL", raising=False)
     monkeypatch.delenv("WORKCAM_UPLOAD_AUTH", raising=False)
@@ -157,12 +158,11 @@ def test_remote_refusal_covers_private_ranges_loopback_maps_allowed(
 
 
 def _enroll(isolated) -> str:
-    import app.api.upload_auth as ua
+    from app.services import device_identity
     key = ec.generate_private_key(ec.SECP256R1())       # TEST key
     pub_b64 = base64.b64encode(key.public_key().public_bytes(
         Encoding.X962, PublicFormat.UncompressedPoint)).decode()
-    registry = ua.DeviceRegistry(isolated / "devices.jsonl")
-    return registry.enroll(pub_b64, "matrix-device")
+    return device_identity.enroll_device(pub_b64, "matrix-device", "pwd")
 
 
 def test_auth_on_remote_requires_token(isolated, monkeypatch):

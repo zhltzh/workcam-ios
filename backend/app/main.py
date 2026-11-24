@@ -63,10 +63,30 @@ except SystemExit:
     raise
 check_startup_security(fail_fast=False)  # warnings for the non-fatal set
 
-# run business-DB migrations at startup (idempotent)
-try:
-    mvp_ready()
-except Exception:  # startup must not crash when the DB path is read-only
-    import logging
-    logging.getLogger("workcam").exception("business DB migration failed at "
-                                           "startup - /api/v1 may be unavailable")
+# W013: business-DB migrations run LAZILY on first request instead of
+# at module import. Module-level migrate() captured whatever
+# WORKCAM_BUSINESS_DB happened to be set when tests imported app.main -
+# pytest's hash-randomized collection order then made later fixtures hit
+# a stale/removed tmp DB path (the 'only fails on full-suite runs'
+# class of flake, root-caused by setting PYTHONHASHSEED=0 -> all green).
+# Lazy migration keeps uvicorn behavior identical (first request does
+# the same idempotent migrate) while removing the import-order hazard.
+_migrations_done = False
+
+
+def _ensure_migrations() -> None:
+    global _migrations_done
+    if not _migrations_done:
+        try:
+            mvp_ready()
+        except Exception:
+            import logging
+            logging.getLogger("workcam").exception(
+                "business DB migration failed - /api/v1 may be unavailable")
+        _migrations_done = True
+
+
+@app.middleware("http")
+async def _lazy_migration_middleware(request, call_next):
+    _ensure_migrations()
+    return await call_next(request)

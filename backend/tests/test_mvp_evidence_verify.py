@@ -33,6 +33,7 @@ from cryptography.hazmat.primitives.serialization import (
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.services import device_identity
 from app.services.key_registry import get_registry, reset_registry
 from tests.conftest import make_manifest, make_test_photo, _encode_pub
 
@@ -42,6 +43,7 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setenv("WORKCAM_BUSINESS_DB", str(tmp_path / "biz.db"))
     monkeypatch.setenv("WORKCAM_DEVICE_REGISTRY",
                        str(tmp_path / "devices.jsonl"))
+    monkeypatch.setenv("WORKCAM_ENROLLMENT_CODE", "test-code-123")
     monkeypatch.delenv("WORKCAM_UPLOAD_EXPERIMENTAL", raising=False)
     monkeypatch.delenv("WORKCAM_UPLOAD_AUTH", raising=False)
     import app.db as dbm
@@ -51,8 +53,7 @@ def env(tmp_path, monkeypatch):
 
     key = ec.generate_private_key(ec.SECP256R1())       # TEST key
     pub_b64 = base64.b64encode(_encode_pub(key.public_key())).decode()
-    registry = ua.DeviceRegistry(tmp_path / "devices.jsonl")
-    token = registry.enroll(pub_b64, "device-AAA")
+    token = device_identity.enroll_device(pub_b64, "device-AAA", "test-code-123")
     ua._batch_owners.clear(); ua._buckets.clear(); ua._challenges.clear()
     return type("E", (), {
         "tmp": tmp_path, "key": key, "pub_b64": pub_b64,
@@ -356,12 +357,11 @@ def test_verify_requires_auth_and_ownership(env, tmp_path, monkeypatch):
         json={"manifest": manifest.model_dump()})
     assert r.status_code == 401
 
-    # second enrolled device
-    import app.api.upload_auth as ua
+    # second enrolled device (W013: SQLite random token)
+    from app.services import device_identity as _di
     key_b = ec.generate_private_key(ec.SECP256R1())
     pub_b = base64.b64encode(_encode_pub(key_b.public_key())).decode()
-    reg_b = ua.DeviceRegistry(tmp_path / "devices.jsonl")
-    token_b = reg_b.enroll(pub_b, "device-BBB")
+    token_b = _di.enroll_device(pub_b, "device-BBB", "test-code-123")
     r2 = env.client.post(
         f"/api/v1/photos/{photo_id}/evidence-links/{link_id}/verify",
         json={"manifest": manifest.model_dump()},

@@ -32,9 +32,11 @@ def biz_env(tmp_path, monkeypatch):
     monkeypatch.setenv("WORKCAM_BUSINESS_DB", str(tmp_path / "biz.db"))
     monkeypatch.setenv("WORKCAM_DEVICE_REGISTRY",
                        str(tmp_path / "devices.jsonl"))
+    monkeypatch.setenv("WORKCAM_ENROLLMENT_CODE", "test-code-123")
     import app.db as dbm
     import app.api.identity as ident
     import app.api.upload_auth as ua
+    from app.services import device_identity
     dbm.migrate(tmp_path / "biz.db")
 
     key_a = ec.generate_private_key(ec.SECP256R1())       # TEST key
@@ -43,9 +45,8 @@ def biz_env(tmp_path, monkeypatch):
         Encoding.X962, PublicFormat.UncompressedPoint)).decode()
     pub_b = base64.b64encode(key_b.public_key().public_bytes(
         Encoding.X962, PublicFormat.UncompressedPoint)).decode()
-    registry = ua.DeviceRegistry(tmp_path / "devices.jsonl")
-    token_a = registry.enroll(pub_a, "device-AAA")
-    token_b = registry.enroll(pub_b, "device-BBB")
+    token_a = device_identity.enroll_device(pub_a, "device-AAA", "test-code-123")
+    token_b = device_identity.enroll_device(pub_b, "device-BBB", "test-code-123")
     ua._batch_owners.clear(); ua._buckets.clear(); ua._challenges.clear()
     return type("E", (), {
         "tmp": tmp_path, "A": {"X-Device-Token": token_a},
