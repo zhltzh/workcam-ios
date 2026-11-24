@@ -1,0 +1,119 @@
+{
+  "version": "w014-rc2",
+  "source": "design/prototype/index.html",
+  "audit": "design/tools/contrast_check.py (WCAG 2.1, AA). Every color that renders text has been verified against the surface it renders on; see design/specs/ui-spec.md for the full report and the advisory-only items.",
+  "note": "Single source of truth for visual tokens. direction themes override the 'shared' defaults. Colors are 6-digit hex. Reference strings ('primary', 'accent_strong', 'evidence_status.light.<x>') are resolved per direction+theme by consumers.",
+  "shared": {
+    "space": { "xs": 4, "sm": 8, "md": 16, "lg": 24, "xl": 32 },
+    "radius": { "sm": 6, "md": 10, "lg": 16 },
+    "shadow": {
+      "card": "0 1px 3px rgba(0,0,0,0.08)",
+      "pop": "0 4px 16px rgba(0,0,0,0.12)"
+    },
+    "font": {
+      "base_size_px": 15,
+      "sans_stack": "-apple-system, BlinkMacSystemFont, SF Pro Text, Segoe UI, Roboto, sans-serif",
+      "mono_stack": "SF Mono, Fira Code, Consolas, monospace",
+      "mono_usage": "photo ids, sha-256 fingerprints, sync op details, device token"
+    },
+    "evidence_status": {
+      "order": ["none", "unverified", "signature_valid", "verified", "failed", "anchored"],
+      "light": {
+        "none": "#5b6470",
+        "unverified": "#8a5f00",
+        "signature_valid": "#3b5bdb",
+        "verified": "#1e6f38",
+        "failed": "#c92a2a",
+        "anchored": "#5f3dc4"
+      },
+      "dark": {
+        "none": "#a3abb5",
+        "unverified": "#ffc94d",
+        "signature_valid": "#7a95ff",
+        "verified": "#51cf66",
+        "failed": "#ff6b6b",
+        "anchored": "#a58af9"
+      },
+      "badge_alpha": 0.15,
+      "badge_alpha_failed": 0.12
+    },
+    "annotation_palette": ["#FF3B30", "#FF9500", "#FFCC00", "#34C759", "#007AFF", "#AF52DE"],
+    "issue_severity": {
+      "low": "evidence_status.none",
+      "medium": "evidence_status.unverified",
+      "high": "accent_strong",
+      "critical": "evidence_status.failed"
+    },
+    "issue_status_chip": {
+      "open": { "color": "primary_ink", "alpha": 0.15 },
+      "in_progress": { "color": "evidence_status.unverified", "alpha": 0.15 },
+      "resolved": { "color": "evidence_status.verified", "alpha": 0.15 },
+      "closed": { "color": "text_3", "background": "bg" }
+    },
+    "hover_rule": "Light themes darken the CTA on hover; dark themes lighten it. Both stay WCAG AA for the label color.",
+    "fixed_surfaces": {
+      "report_preview_paper": "#ffffff",
+      "report_preview_text": "#1b1e23",
+      "camera_stage": "#1a1a1a",
+      "photo_badge_bg": "rgba(0,0,0,0.6)",
+      "camera_hud_bg": "rgba(0,0,0,0.6)",
+      "shutter_button": "#ffffff"
+    }
+  },
+  "directions": {
+    "a": {
+      "name": "Field Pro",
+      "intent": "High-contrast industrial field tool. Deep blue authority + safety-orange action color. Optimized for outdoor readability.",
+      "themes": {
+        "light": {
+          "primary": "#1a355e", "primary_hover": "#244a7c", "primary_subtle": "#e8eef7", "primary_ink": "#1a355e",
+          "accent": "#e8590c", "accent_strong": "#c2410c", "accent_strong_hover": "#ad3b09", "on_accent": "#ffffff",
+          "bg": "#f8f9fa", "surface": "#ffffff", "border": "#dee2e6",
+          "text_1": "#1b1e23", "text_2": "#5a6472", "text_3": "#66707d"
+        },
+        "dark": {
+          "primary": "#5c9dff", "primary_hover": "#7ab5ff", "primary_subtle": "#1a2a3a", "primary_ink": "#5c9dff",
+          "accent": "#ff8c42", "accent_strong": "#ff8c42", "accent_strong_hover": "#ffa05c", "on_accent": "#0e1113",
+          "bg": "#0e1113", "surface": "#1a1e23", "border": "#2a3038",
+          "text_1": "#e9ecef", "text_2": "#909aa3", "text_3": "#8b95a1"
+        }
+      }
+    },
+    "b": {
+      "name": "Trust Slate",
+      "intent": "Documentation-first, compliance tone. Cool slate blues with teal accent; reads like a signed engineering record.",
+      "themes": {
+        "light": {
+          "primary": "#0c4a6e", "primary_hover": "#155e8a", "primary_subtle": "#e0f2fe", "primary_ink": "#0c4a6e",
+          "accent": "#0d9488", "accent_strong": "#0f766e", "accent_strong_hover": "#0c635c", "on_accent": "#ffffff",
+          "bg": "#f1f5f9", "surface": "#ffffff", "border": "#cbd5e1",
+          "text_1": "#0f172a", "text_2": "#475569", "text_3": "#5c6a7e"
+        },
+        "dark": {
+          "primary": "#38bdf8", "primary_hover": "#7dd3fc", "primary_subtle": "#0c2638", "primary_ink": "#38bdf8",
+          "accent": "#2dd4bf", "accent_strong": "#2dd4bf", "accent_strong_hover": "#55e0cc", "on_accent": "#02120f",
+          "bg": "#020617", "surface": "#0f172a", "border": "#1e293b",
+          "text_1": "#f1f5f9", "text_2": "#b6c2d2", "text_3": "#94a3b8"
+        }
+      }
+    },
+    "c": {
+      "name": "Signal Clean",
+      "intent": "Native iOS-aligned minimalism. System blue/green palette, maximum familiarity, zero learning cost on iPhone. Note: system green cannot carry white labels, so the CTA uses a darkened green.",
+      "themes": {
+        "light": {
+          "primary": "#007AFF", "primary_hover": "#0056b3", "primary_subtle": "#e3f0ff", "primary_ink": "#0056b3",
+          "accent": "#34C759", "accent_strong": "#1e7a34", "accent_strong_hover": "#186a2e", "on_accent": "#ffffff",
+          "bg": "#F2F2F7", "surface": "#FFFFFF", "border": "#C6C6C8",
+          "text_1": "#000000", "text_2": "#3c3c43", "text_3": "#6d6d72"
+        },
+        "dark": {
+          "primary": "#0A84FF", "primary_hover": "#409cff", "primary_subtle": "#0a1a2a", "primary_ink": "#409cff",
+          "accent": "#30D158", "accent_strong": "#30D158", "accent_strong_hover": "#45e06d", "on_accent": "#00140a",
+          "bg": "#000000", "surface": "#1C1C1E", "border": "#38383A",
+          "text_1": "#FFFFFF", "text_2": "#ebebf5", "text_3": "#8e8e93"
+        }
+      }
+    }
+  }
+}

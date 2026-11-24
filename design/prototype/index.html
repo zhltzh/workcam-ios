@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-direction="a">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorkCam — Interactive Prototype</title>
+<style>
+/* ================================================================
+   WORKCAM HIGH-FIDELITY PROTOTYPE
+   Direction A: Field Pro  |  Direction B: Trust Slate  |  Direction C: Signal Clean
+   Light + Dark modes.
+   All UI copy in ENGLISH.
+   ================================================================ */
+
+/* ---------- Direction A: Field Pro ---------- */
+[data-direction="a"] {
+  --primary: #1a355e; --primary-h: #244a7c; --primary-subtle: #e8eef7;
+  --accent: #e8590c; --accent-h: #f06c1a;
+  --bg: #f8f9fa; --surface: #ffffff; --border: #dee2e6;
+  --text-1: #1b1e23; --text-2: #5a6472; --text-3: #66707d;
+  --accent-strong: #c2410c; --accent-strong-h: #ad3b09; --on-accent: #ffffff;
+  --primary-ink: #1a355e;
+}
+[data-direction="a"][data-theme="dark"] {
+  --primary: #5c9dff; --primary-h: #7ab5ff; --primary-subtle: #1a2a3a;
+  --accent: #ff8c42;
+  --bg: #0e1113; --surface: #1a1e23; --border: #2a3038;
+  --text-1: #e9ecef; --text-2: #909aa3; --text-3: #8b95a1;
+  --accent-strong: #ff8c42; --accent-strong-h: #ffa05c; --on-accent: #0e1113;
+  --primary-ink: #5c9dff;
+}
+
+/* ---------- Direction B: Trust Slate ---------- */
+[data-direction="b"] {
+  --primary: #0c4a6e; --primary-h: #155e8a; --primary-subtle: #e0f2fe;
+  --accent: #0d9488; --accent-h: #14b8a6;
+  --bg: #f1f5f9; --surface: #ffffff; --border: #cbd5e1;
+  --text-1: #0f172a; --text-2: #475569; --text-3: #5c6a7e;
+  --accent-strong: #0f766e; --accent-strong-h: #0c635c; --on-accent: #ffffff;
+  --primary-ink: #0c4a6e;
+}
+[data-direction="b"][data-theme="dark"] {
+  --primary: #38bdf8; --primary-h: #7dd3fc; --primary-subtle: #0c2638;
+  --accent: #2dd4bf;
+  --bg: #020617; --surface: #0f172a; --border: #1e293b;
+  --text-1: #f1f5f9; --text-2: #b6c2d2; --text-3: #94a3b8;
+  --accent-strong: #2dd4bf; --accent-strong-h: #55e0cc; --on-accent: #02120f;
+  --primary-ink: #38bdf8;
+}
+
+/* ---------- Direction C: Signal Clean ---------- */
+[data-direction="c"] {
+  --primary: #007AFF; --primary-h: #0056b3; --primary-subtle: #e3f0ff;
+  --accent: #34C759; --accent-h: #248a3e;
+  --bg: #F2F2F7; --surface: #FFFFFF; --border: #C6C6C8;
+  --text-1: #000000; --text-2: #3c3c43; --text-3: #6d6d72;
+  --accent-strong: #1e7a34; --accent-strong-h: #186a2e; --on-accent: #ffffff;
+  --primary-ink: #0056b3;
+}
+[data-direction="c"][data-theme="dark"] {
+  --primary: #0A84FF; --primary-h: #409cff; --primary-subtle: #0a1a2a;
+  --accent: #30D158;
+  --bg: #000000; --surface: #1C1C1E; --border: #38383A;
+  --text-1: #FFFFFF; --text-2: #ebebf5; --text-3: #8e8e93;
+  --accent-strong: #30D158; --accent-strong-h: #45e06d; --on-accent: #00140a;
+  --primary-ink: #409cff;
+}
+
+/* ---------- Shared Tokens ---------- */
+:root {
+  --space-xs:4px; --space-sm:8px; --space-md:16px; --space-lg:24px; --space-xl:32px;
+  --radius-sm:6px; --radius-md:10px; --radius-lg:16px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-pop: 0 4px 16px rgba(0,0,0,0.12);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", Consolas, monospace;
+  /* Evidence status colors (light variants; dark overrides below) */
+  --ev-none: #5b6470; --ev-unverified: #8a5f00; --ev-sigvalid: #3b5bdb;
+  --ev-verified: #1e6f38; --ev-failed: #c92a2a; --ev-anchored: #5f3dc4;
+  --annotation-colors: #FF3B30, #FF9500, #FFCC00, #34C759, #007AFF, #AF52DE;
+}
+[data-theme="dark"] {
+  --ev-none: #a3abb5; --ev-unverified: #ffc94d; --ev-sigvalid: #7a95ff;
+  --ev-verified: #51cf66; --ev-failed: #ff6b6b; --ev-anchored: #a58af9;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  font-family: var(--font); background: var(--bg); color: var(--text-1);
+  -webkit-font-smoothing: antialiased; min-height: 100vh;
+}
+
+/* ---------- Layout ---------- */
+.app-shell { display: flex; min-height: 100vh; }
+.sidebar { width: 240px; background: var(--surface); border-right: 1px solid var(--border); padding: var(--space-md); display: flex; flex-direction: column; gap: var(--space-sm); position: sticky; top: 0; height: 100vh; }
+.main { flex: 1; padding: var(--space-lg) var(--space-xl); max-width: 1200px; }
+
+/* ---------- Sidebar ---------- */
+.logo { font-size: 20px; font-weight: 700; color: var(--primary); padding: var(--space-md) var(--space-sm); display: flex; align-items: center; gap: var(--space-sm); }
+.logo-icon { width: 32px; height: 32px; background: var(--primary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: 800; }
+.nav-section { margin-top: var(--space-md); }
+.nav-label { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; padding: var(--space-sm); }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); font-size: 14px; color: var(--text-2); cursor: pointer; text-decoration: none; transition: background .15s, color .15s; }
+.nav-item:hover { background: var(--primary-subtle); color: var(--primary); }
+.nav-item.active { background: var(--primary-subtle); color: var(--primary-ink); font-weight: 600; }
+.nav-badge { margin-left: auto; background: var(--accent); color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+.sync-indicator { margin-top: auto; padding: var(--space-md); border-radius: var(--radius-md); background: var(--bg); font-size: 12px; color: var(--text-2); display: flex; align-items: center; gap: 8px; }
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ev-verified); }
+
+/* ---------- Top Bar ---------- */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-xl); }
+.page-title { font-size: 24px; font-weight: 700; }
+.page-subtitle { font-size: 13px; color: var(--text-2); margin-top: 4px; }
+.header-actions { display: flex; gap: var(--space-sm); }
+
+/* ---------- Buttons ---------- */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: background-color .15s; text-decoration: none; }
+.btn-primary { background: var(--accent-strong); color: var(--on-accent); }
+.btn-primary:hover { background: var(--accent-strong-h); }
+.btn-secondary { background: var(--surface); color: var(--text-1); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--bg); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-danger { background: var(--ev-failed); color: white; }
+
+/* ---------- Cards ---------- */
+.card { background: var(--surface); border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-card); padding: var(--space-md); }
+
+/* ---------- Project Grid ---------- */
+.project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-md); }
+.project-card { cursor: pointer; transition: box-shadow .2s; }
+.project-card:hover { box-shadow: var(--shadow-pop); }
+.project-thumb { width: 100%; height: 140px; border-radius: var(--radius-sm) var(--radius-sm) 0 0; object-fit: cover; background: linear-gradient(135deg, var(--primary-subtle), var(--bg)); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 36px; }
+.project-info { padding: var(--space-md); }
+.project-name { font-size: 16px; font-weight: 600; }
+.project-meta { font-size: 12px; color: var(--text-2); margin-top: 4px; display: flex; gap: 12px; }
+.project-meta-item { display: flex; align-items: center; gap: 4px; }
+
+/* ---------- Evidence Status Badge ---------- */
+.ev-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 12px; }
+.ev-badge svg { width: 12px; height: 12px; }
+.ev-none { background: color-mix(in srgb, var(--ev-none) 15%, var(--surface)); color: var(--ev-none); }
+.ev-unverified { background: color-mix(in srgb, var(--ev-unverified) 15%, var(--surface)); color: var(--ev-unverified); }
+.ev-sigvalid { background: color-mix(in srgb, var(--ev-sigvalid) 15%, var(--surface)); color: var(--ev-sigvalid); }
+.ev-verified { background: color-mix(in srgb, var(--ev-verified) 15%, var(--surface)); color: var(--ev-verified); }
+.ev-failed { background: color-mix(in srgb, var(--ev-failed) 12%, var(--surface)); color: var(--ev-failed); }
+.ev-anchored { background: color-mix(in srgb, var(--ev-anchored) 15%, var(--surface)); color: var(--ev-anchored); }
+
+/* ---------- Photo Grid ---------- */
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--space-sm); }
+.photo-card { background: var(--surface); border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); cursor: pointer; }
+.photo-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--text-3); font-size: 28px; position: relative; }
+.photo-overlay { position: absolute; top: 6px; right: 6px; display: flex; gap: 4px; }
+.photo-badge { background: rgba(0,0,0,.6); color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; display: flex; align-items: center; gap: 3px; }
+.photo-info { padding: 8px 12px; }
+.photo-id { font-size: 12px; font-family: var(--font-mono); color: var(--text-2); }
+.photo-time { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+/* ---------- Issue List ---------- */
+.issue-card { display: flex; align-items: flex-start; gap: var(--space-md); padding: var(--space-md); border-bottom: 1px solid var(--border); }
+.issue-card:last-child { border-bottom: none; }
+.sev-indicator { width: 4px; min-height: 100%; border-radius: 2px; }
+.sev-low { background: var(--ev-none); }
+.sev-medium { background: var(--ev-unverified); }
+.sev-high { background: var(--accent-strong); }
+.sev-critical { background: var(--ev-failed); }
+.issue-title { font-size: 15px; font-weight: 600; }
+.issue-desc { font-size: 13px; color: var(--text-2); margin-top: 4px; line-height: 1.4; }
+.issue-meta { display: flex; gap: 12px; margin-top: 8px; font-size: 11px; color: var(--text-3); align-items: center; }
+.issue-status-chip { font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 10px; }
+.status-open { background: color-mix(in srgb, var(--primary-ink) 15%, var(--surface)); color: var(--primary-ink); }
+.status-in-progress { background: color-mix(in srgb, var(--ev-unverified) 15%, var(--surface)); color: var(--ev-unverified); }
+.status-resolved { background: color-mix(in srgb, var(--ev-verified) 15%, var(--surface)); color: var(--ev-verified); }
+.status-closed { background: var(--bg); color: var(--text-3); }
+
+/* ---------- Camera Screen ---------- */
+.camera-viewfinder { width: 100%; max-width: 640px; aspect-ratio: 3/4; background: #1a1a1a; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; color: #666; font-size: 48px; margin: 0 auto; position: relative; overflow: hidden; }
+.camera-hud { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; }
+.camera-hud-item { background: rgba(0,0,0,.6); color: white; font-size: 11px; padding: 4px 10px; border-radius: 6px; backdrop-filter: blur(4px); display: flex; align-items: center; gap: 4px; }
+.camera-controls { display: flex; justify-content: space-around; margin-top: var(--space-lg); padding: 0 var(--space-xl); }
+.shutter-btn { width: 72px; height: 72px; border-radius: 50%; background: white; border: 4px solid var(--border); cursor: pointer; transition: transform .1s; }
+.shutter-btn:active { transform: scale(0.92); }
+
+/* ---------- Sync Screen ---------- */
+.sync-queue { display: flex; flex-direction: column; gap: var(--space-sm); }
+.sync-item { display: flex; align-items: center; gap: var(--space-md); padding: 12px 16px; background: var(--surface); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.sync-op-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--primary-subtle); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.sync-op-name { font-size: 13px; font-weight: 600; }
+.sync-op-detail { font-size: 11px; color: var(--text-3); font-family: var(--font-mono); }
+.sync-status { margin-left: auto; font-size: 11px; }
+
+/* ---------- Settings ---------- */
+.settings-section { margin-bottom: var(--space-xl); }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: var(--space-md); border-bottom: 1px solid var(--border); }
+.settings-label { font-size: 14px; font-weight: 500; }
+.settings-value { font-size: 13px; color: var(--text-2); }
+
+/* ---------- Annotation Preview ---------- */
+.annotation-canvas { width: 100%; aspect-ratio: 4/3; background: var(--bg); border-radius: var(--radius-md); position: relative; display: flex; align-items: center; justify-content: center; color: var(--text-3); overflow: hidden; }
+.annotation-shape { position: absolute; }
+
+/* ---------- Theme/Direction Switcher (prototype-only) ---------- */
+.proto-switcher { position: fixed; bottom: 16px; right: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px; box-shadow: var(--shadow-pop); z-index: 999; font-size: 12px; }
+.proto-switcher label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-2); }
+.proto-switcher select, .proto-switcher button { padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg); color: var(--text-1); font-size: 12px; cursor: pointer; margin-right: 6px; }
+
+/* ---------- Report Preview ---------- */
+.report-preview { background: white; color: #1b1e23; padding: 40px; border-radius: var(--radius-md); box-shadow: var(--shadow-pop); max-width: 800px; margin: 0 auto; }
+.report-header { border-bottom: 2px solid #1a355e; padding-bottom: 12px; margin-bottom: 24px; }
+.report-title { font-size: 22px; font-weight: 700; color: #1a355e; }
+.report-meta { font-size: 12px; color: #5a6472; margin-top: 8px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 24px; }
+
+/* ---------- Error / Empty State ---------- */
+.empty-state { text-align: center; padding: var(--space-xl) var(--space-lg); color: var(--text-3); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-title { font-size: 16px; font-weight: 600; color: var(--text-2); }
+.empty-desc { font-size: 13px; margin-top: 4px; }
+.error-banner { background: color-mix(in srgb, var(--ev-failed) 10%, var(--surface)); border: 1px solid color-mix(in srgb, var(--ev-failed) 30%, var(--surface)); color: var(--ev-failed); padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: var(--space-md); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { padding: var(--space-md); }
+  .project-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== PROTOTYPE SWITCHER ==================== -->
+<div class="proto-switcher">
+  <label>Visual Direction</label>
+  <select id="dirSel" onchange="setDir(this.value)">
+    <option value="a">A: Field Pro</option>
+    <option value="b">B: Trust Slate</option>
+    <option value="c">C: Signal Clean</option>
+  </select>
+  <label>Theme</label>
+  <button onclick="toggleTheme()">Toggle Light/Dark</button>
+</div>
+
+<!-- ==================== APP SHELL ==================== -->
+<div class="app-shell">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">WC</div>
+      <span>WorkCam</span>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Projects</div>
+      <a class="nav-item active" data-page="projects" href="#" onclick="showPage('projects');return false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+        All Projects
+      </a>
+      <a class="nav-item" data-page="camera" href="#" onclick="showPage('camera');return false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Capture Photo
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Inspection</div>
+      <a class="nav-item" data-page="issues" href="#" onclick="showPage('issues');return false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Issues <span class="nav-badge">4</span>
+      </a>
+      <a class="nav-item" data-page="reports" href="#" onclick="showPage('reports');return false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Reports
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Evidence</div>
+      <a class="nav-item" data-page="sync" href="#" onclick="showPage('sync');return false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+        Sync Status
+      </a>
+      <a class="nav-item" data-page="settings" href="#" onclick="showPage('settings');return false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Settings
+      </a>
+    </div>
+    <div class="sync-indicator">
+      <div class="sync-dot"></div>
+      <span>Synced · 2 min ago</span>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- ============ PAGE: PROJECTS ============ -->
+    <div id="page-projects" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Projects</div>
+          <div class="page-subtitle">3 active · 1 archived</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-secondary">Import</button>
+          <button class="btn btn-primary" onclick="showPage('camera')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Project
+          </button>
+        </div>
+      </div>
+
+      <div class="project-grid">
+        <div class="card project-card" onclick="showPage('photo-detail','projects')">
+          <div class="project-thumb">🏗️</div>
+          <div class="project-info">
+            <div class="project-name">Highway N-12 Widening</div>
+            <div class="project-meta">
+              <span class="project-meta-item">📍 Km 34+200, Jiangsu</span>
+            </div>
+            <div class="project-meta" style="margin-top:8px">
+              <span class="ev-badge ev-verified">● 42 verified</span>
+              <span class="ev-badge ev-unverified">◐ 8 unverified</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card project-card">
+          <div class="project-thumb">🏢</div>
+          <div class="project-info">
+            <div class="project-name">Riverside Tower A</div>
+            <div class="project-meta">
+              <span class="project-meta-item">📍 88 Nanjing Rd</span>
+            </div>
+            <div class="project-meta" style="margin-top:8px">
+              <span class="ev-badge ev-verified">● 156 verified</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card project-card">
+          <div class="project-thumb">🌉</div>
+          <div class="project-info">
+            <div class="project-name">Metro Line 7 — Phase 2</div>
+            <div class="project-meta">
+              <span class="project-meta-item">📍 Underground sec. 3-4</span>
+            </div>
+            <div class="project-meta" style="margin-top:8px">
+              <span class="ev-badge ev-none">○ No evidence yet</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: CAMERA ============ -->
+    <div id="page-camera" class="page" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Capture</div>
+          <div class="page-subtitle">Project: Highway N-12 Widening</div>
+        </div>
+        <button class="btn btn-secondary" onclick="showPage('projects')">Done</button>
+      </div>
+
+      <div class="camera-viewfinder">
+        <div class="camera-hud">
+          <span class="camera-hud-item">📶 GPS ±4m</span>
+          <span class="camera-hud-item" style="display:none"></span>
+          <span class="camera-hud-item">🕐 14:32</span>
+        </div>
+        <div style="color:#444;font-size:64px;opacity:.3">📷</div>
+        <div style="color:#555;font-size:13px;margin-top:12px">Viewfinder</div>
+      </div>
+
+      <div class="camera-controls">
+        <button class="btn btn-secondary btn-sm">Gallery</button>
+        <button class="shutter-btn" onclick="simulateCapture()" title="Capture"></button>
+        <button class="btn btn-secondary btn-sm" onclick="showPage('settings')">Settings</button>
+      </div>
+
+      <div id="capture-result" style="display:none;margin-top:16px">
+        <div class="error-banner" style="background:color-mix(in srgb, var(--ev-verified) 10%, var(--surface));border-color:color-mix(in srgb, var(--ev-verified) 30%, var(--surface));color:var(--ev-verified)">
+          ✓ Photo captured — SHA-256 computed, evidence manifest generated.
+          <span class="ev-badge ev-unverified" style="margin-left:auto">◐ Awaiting verification</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: PHOTO DETAIL ============ -->
+    <div id="page-photo-detail" class="page" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">IMG_0123</div>
+          <div class="page-subtitle">Highway N-12 Widening · Nov 24, 2026 14:32</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-secondary" onclick="showPage('projects')">Back</button>
+          <button class="btn btn-primary">Watermark</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg)">
+        <!-- Photo with annotation -->
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="annotation-canvas" style="aspect-ratio:4/3">
+            <div style="font-size:48px;opacity:.2">🏗️</div>
+            <!-- Simulated annotations -->
+            <div style="position:absolute;top:20%;left:30%;width:80px;height:2px;background:#FF3B30;transform:rotate(-5deg)"></div>
+            <div style="position:absolute;top:20%;left:22%;width:0;height:0;border-left:12px solid #FF3B30;border-top:6px solid transparent;border-bottom:6px solid transparent;transform:rotate(-5deg)"></div>
+            <div style="position:absolute;top:15%;left:12%;background:#FF3B30;color:white;font-size:10px;padding:2px 8px;border-radius:4px">Crack at pier 2</div>
+            <div style="position:absolute;top:55%;left:60%;width:100px;height:60px;border:2px solid #FF9500;border-radius:4px"></div>
+            <div style="position:absolute;top:45%;left:62%;background:#FF9500;color:white;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">3</div>
+          </div>
+          <div style="padding:12px">
+            <div style="font-size:11px;color:var(--text-3);font-family:var(--font-mono)">Original SHA-256: e3b0c44298fc…2b855</div>
+          </div>
+        </div>
+
+        <!-- Evidence & Info -->
+        <div style="display:flex;flex-direction:column;gap:var(--space-md)">
+          <div class="card">
+            <div style="font-size:13px;font-weight:700;margin-bottom:8px">Evidence Status</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <span class="ev-badge ev-verified">● Cryptographically Valid</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:8px;line-height:1.5">
+              File integrity: verified — bytes match SHA-256.<br>
+              Signature: verified with registered device key.<br>
+              Device attestation: unknown (App Attest not implemented).<br>
+              <em>Signature valid ≠ capture scene authentic.</em>
+            </div>
+          </div>
+          <div class="card">
+            <div style="font-size:13px;font-weight:700;margin-bottom:8px">Location</div>
+            <div style="font-size:13px;color:var(--text-1)">32.060300, 118.796900</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:4px">GPS ±4m · [device time] Nov 24, 2026 14:32</div>
+          </div>
+          <div class="card">
+            <div style="font-size:13px;font-weight:700;margin-bottom:8px">Annotations (2)</div>
+            <div style="font-size:12px;color:var(--text-2)">
+              <div style="display:flex;align-items:center;gap:6px;padding:4px 0">
+                <div style="width:12px;height:12px;background:#FF3B30;border-radius:2px"></div>
+                Arrow — "Crack at pier 2"
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;padding:4px 0">
+                <div style="width:12px;height:12px;background:#FF9500;border-radius:2px"></div>
+                Rectangle — Marker #3
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: ISSUES ============ -->
+    <div id="page-issues" class="page" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Inspection Issues</div>
+          <div class="page-subtitle">4 open · 2 resolved this week</div>
+        </div>
+        <button class="btn btn-primary">New Issue</button>
+      </div>
+
+      <div class="card" style="padding:0">
+        <div class="issue-card">
+          <div class="sev-indicator sev-critical"></div>
+          <div style="flex:1">
+            <div class="issue-title">Rebar exposure on girder B-3 bottom flange</div>
+            <div class="issue-desc">Surface spalling with exposed rebar, approximately 15cm × 10cm area. Requires immediate remediation per structural spec.</div>
+            <div class="issue-meta">
+              <span class="issue-status-chip status-in-progress">In Progress</span>
+              <span>👤 L. Chen</span>
+              <span>📷 3 photos (before/after)</span>
+              <span>🕐 2h ago</span>
+            </div>
+          </div>
+        </div>
+        <div class="issue-card">
+          <div class="sev-indicator sev-high"></div>
+          <div style="flex:1">
+            <div class="issue-title">Hairline crack at pier 2 west face</div>
+            <div class="issue-desc">Vertical hairline crack approximately 30cm long, starting 1m below the deck joint. Monitor per spec.</div>
+            <div class="issue-meta">
+              <span class="issue-status-chip status-open">Open</span>
+              <span>👤 J. Wang</span>
+              <span>📷 1 photo (before)</span>
+              <span>🕐 6h ago</span>
+            </div>
+          </div>
+        </div>
+        <div class="issue-card">
+          <div class="sev-indicator sev-low"></div>
+          <div style="flex:1">
+            <div class="issue-title">Surface water pooling near drainage outlet</div>
+            <div class="issue-desc">Minor pooling observed after rainfall. Check drainage slope.</div>
+            <div class="issue-meta">
+              <span class="issue-status-chip status-resolved">Resolved</span>
+              <span>👤 M. Liu</span>
+              <span>🕐 2d ago</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: REPORTS ============ -->
+    <div id="page-reports" class="page" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Reports</div>
+          <div class="page-subtitle">Immutable snapshots · Exportable evidence packages</div>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('report-preview','reports')">Generate Report</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:var(--space-md)">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-weight:700;font-size:14px">WC-20261124-E001</span>
+            <span class="ev-badge ev-verified">● Verified</span>
+          </div>
+          <div style="font-size:12px;color:var(--text-2)">Evidence Report · 8 photos · 2 issues</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:4px">Generated Nov 24, 14:00 · 6 pages</div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn btn-secondary btn-sm">Download PDF</button>
+            <button class="btn btn-secondary btn-sm">Export Package</button>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-weight:700;font-size:14px">WC-20261123-I002</span>
+            <span class="ev-badge ev-unverified">◐ Unverified</span>
+          </div>
+          <div style="font-size:12px;color:var(--text-2)">Inspection Report · 12 photos · 3 issues</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:4px">Generated Nov 23, 16:30 · 4 pages</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: REPORT PREVIEW ============ -->
+    <div id="page-report-preview" class="page" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Report Preview</div>
+          <div class="page-subtitle">Immutable snapshot — generated Nov 24, 2026</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-secondary" onclick="showPage('reports')">Back</button>
+          <button class="btn btn-primary">Download PDF</button>
+        </div>
+      </div>
+
+      <div class="report-preview">
+        <div class="report-header">
+          <div class="report-title">Inspection Report</div>
+          <div class="report-meta">
+            <span><strong>Report No:</strong> WC-20261124-E001</span>
+            <span><strong>Project:</strong> Highway N-12 Widening</span>
+            <span><strong>Operator:</strong> J. Wang</span>
+            <span><strong>Generated:</strong> Nov 24, 2026 14:00 UTC</span>
+          </div>
+        </div>
+        <p style="font-size:11px;color:#868e96;margin-bottom:16px">
+          Generated by WorkCam — reference document, not a legal certification.
+        </p>
+        <div style="border-top:1px solid #dee2e6;padding-top:16px">
+          <div style="font-weight:700;font-size:14px;color:#1a355e;margin-bottom:8px">Inspection Issues</div>
+          <table style="width:100%;font-size:11px;border-collapse:collapse">
+            <tr style="background:#f8f9fa">
+              <th style="padding:6px;text-align:left">Title</th>
+              <th style="padding:6px">Severity</th>
+              <th style="padding:6px">Status</th>
+            </tr>
+            <tr style="border-bottom:1px solid #e9ecef">
+              <td style="padding:6px">Hairline crack at pier 2</td>
+              <td style="padding:6px;text-align:center;color:#c92a2a;font-weight:600">High</td>
+              <td style="padding:6px;text-align:center">Open</td>
+            </tr>
+            <tr>
+              <td style="padding:6px">Rebar exposure on B-3</td>
+              <td style="padding:6px;text-align:center;color:#c92a2a;font-weight:600">Critical</td>
+              <td style="padding:6px;text-align:center">In Progress</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: SYNC ============ -->
+    <div id="page-sync" class="page" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Sync Status</div>
+          <div class="page-subtitle">12 pending operations · last sync 2 min ago</div>
+        </div>
+        <button class="btn btn-primary">Sync Now</button>
+      </div>
+
+      <div class="sync-queue">
+        <div class="sync-item">
+          <div class="sync-op-icon">📸</div>
+          <div>
+            <div class="sync-op-name">photo_register</div>
+            <div class="sync-op-detail">IMG_0124 · 2.1 MB</div>
+          </div>
+          <span class="sync-status ev-badge ev-unverified">◐ Queued</span>
+        </div>
+        <div class="sync-item">
+          <div class="sync-op-icon">✏️</div>
+          <div>
+            <div class="sync-op-name">annotation_create</div>
+            <div class="sync-op-detail">arrow on IMG_0123</div>
+          </div>
+          <span class="sync-status ev-badge ev-unverified">◐ Queued</span>
+        </div>
+        <div class="sync-item">
+          <div class="sync-op-icon">⚠️</div>
+          <div>
+            <div class="sync-op-name">issue_create</div>
+            <div class="sync-op-detail">"Drainage outlet blockage"</div>
+          </div>
+          <span class="sync-status ev-badge ev-unverified">◐ Queued</span>
+        </div>
+        <div class="sync-item">
+          <div class="sync-op-icon">🔄</div>
+          <div>
+            <div class="sync-op-name">issue_transition</div>
+            <div class="sync-op-detail">ISS-002: open → in_progress</div>
+          </div>
+          <span class="sync-status ev-badge ev-sigvalid">◐ Conflict</span>
+        </div>
+        <div class="sync-item">
+          <div class="sync-op-icon">📄</div>
+          <div>
+            <div class="sync-op-name">report_generate</div>
+            <div class="sync-op-detail">Evidence Report · 8 photos</div>
+          </div>
+          <span class="sync-status ev-badge ev-verified">● Complete</span>
+        </div>
+      </div>
+
+      <div style="margin-top:16px">
+        <div class="error-banner">
+          ⚠ 1 operation has a revision conflict — fetch latest data and retry.
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: SETTINGS ============ -->
+    <div id="page-settings" class="page" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Settings</div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="card">
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Device</div>
+              <div class="settings-value" style="font-family:var(--font-mono);font-size:11px">token: r8xk…f3a2</div>
+            </div>
+            <span class="ev-badge ev-verified">● Active</span>
+          </div>
+          <div class="settings-row">
+            <div class="settings-label">Default Watermark Template</div>
+            <div class="settings-value">Evidence</div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-label">GPS Source Preference</div>
+            <div class="settings-value">Device GPS (automatic)</div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-label">Auto-sync Interval</div>
+            <div class="settings-value">When network available</div>
+          </div>
+          <div class="settings-row" style="border-bottom:none">
+            <div>
+              <div class="settings-label">Offline Storage</div>
+              <div class="settings-value">247 photos · 1.2 GB used</div>
+            </div>
+            <button class="btn btn-secondary btn-sm">Manage</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function showPage(id, navId) {
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.getElementById('page-' + id).style.display = 'block';
+  const target = navId || id;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === target));
+}
+
+function setDir(d) {
+  document.documentElement.dataset.direction = d;
+}
+
+function toggleTheme() {
+  const cur = document.documentElement.dataset.theme;
+  document.documentElement.dataset.theme = cur === 'light' ? 'dark' : 'light';
+}
+
+function simulateCapture() {
+  document.getElementById('capture-result').style.display = 'block';
+}
+</script>
+</body>
+</html>
