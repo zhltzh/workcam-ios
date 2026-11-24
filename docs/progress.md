@@ -304,3 +304,16 @@ xcrun swiftc -parse-as-library -module-cache-path /tmp/workcam-batch02-qa-module
 - Git CLI 无法解析 github.com。GitHub 连接器可读取 [Windows W013 分支头](https://github.com/zhltzh/workcam-ios/commit/31917e34dd45df095853db31faf242de3adac914) 和 [W014 同名分支头](https://github.com/zhltzh/workcam-ios/commit/23ca20af715735bb8730d0bfbd793cf6d1dcfb36)。后者提交主题为设计色板更新，部署候选 SHA 仍需交接。GitHub compare 本地基线与 W014 返回 404，联合冲突尚未验证。
 - [W013 PR #19](https://github.com/zhltzh/workcam-ios/pull/19) 描述旧推导 token 拒绝、同公钥重注册保持身份及数据归属、SQLite 吊销与挑战路径收敛。该描述需在部署的固定 SHA 复验。验收需比较重新注册前后资源归属，验证旧凭据和已吊销凭据拒绝、重启后状态保持，以及 [W008 PR #14](https://github.com/zhltzh/workcam-ios/pull/14) 所述相同操作 ID 重传、不同内容冲突和批次部分确认。缺已审查部署和私网地址。
 - 本地 Mock 队列桌面测试退出 0，覆盖重读、重复入队、ID 冲突和部分确认。队列独立编译验证，尚未接入 App target。Windows 网络同步、认证、事件游标和业务写入 Not Implemented。
+
+总控复核 `xcrun xctrace list devices`，物理 iPhone 位于 Devices Offline。模拟器用以下命令通过 Debug 构建、安装和启动。截图在启动过渡后重新拍摄并目视核对首页。
+
+```sh
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/WorkCamUnified-Simulator CODE_SIGNING_ALLOWED=NO build
+xcrun simctl list devices booted
+xcrun simctl install "$wc_sim" /tmp/WorkCamUnified-Simulator/Build/Products/Debug-iphonesimulator/WorkCam.app
+xcrun simctl launch "$wc_sim" com.example.workcam.dev
+xcrun simctl io "$wc_sim" screenshot /Users/zhaohui/.codex/visualizations/2026/11/24/01a20f8b-b70f-7793-b626-b9e0f03bf6b2/workcam-baseline-simulator.png
+xcrun swiftc -parse-as-library -module-cache-path /tmp/workcam-unified-module-cache Core/Sync/SyncOutbox.swift Tests/Sync/main.swift -o /tmp/workcam-unified-sync && /tmp/workcam-unified-sync
+```
+
+`wc_sim` 取已启动的 iPhone 18 Pro 模拟器。Mock 队列在集成分支复跑通过，未接入 App target。Git CLI `git ls-remote --heads origin` 返回传输超时，远端分支与 PR 用 GitHub 连接器核验。
