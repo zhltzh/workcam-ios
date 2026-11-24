@@ -19,6 +19,7 @@ struct ContentView: View {
                 #if DEBUG
                 NavigationLink("LiDAR Lab") { LidarLabView() }
                 #endif
+                NavigationLink("Projects") { ProjectsView() }
                 NavigationLink("Open Camera") { CameraView() }
                 NavigationLink("Evidence") {
                     ScrollView {

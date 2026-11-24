@@ -34,3 +34,18 @@ Not Implemented.
 
 An unsigned pending record with a detached DER file stays isolated for
 inspection. The committed-record inspector applies the same consistency check.
+
+## Offline project capture
+
+Projects use UUID directories under Application Support/WorkProjects. Project
+metadata is JSON. A new directory is staged then renamed into place. Project
+capture writes the camera JPEG atomically under a timestamp and UUID. The
+project list and photo list load from disk. The CameraController takes a
+save destination so the existing evidence capture entry point still uses
+CaptureStore. Project captures use their own destination and are unsigned.
+The timestamp represents the device clock at the time of save.
+
+A human-added marker and note use a separate JSON sidecar. ImageIO applies
+orientation before resolving normalized coordinates. The watermark and A4
+site-photo PDF render from the originals and sidecars into separate temporary
+share files. Exported originals retain the camera JPEG bytes.

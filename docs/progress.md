@@ -332,3 +332,20 @@ git diff --check
 ```
 
 Xcode 27.2 (27B52). Both macOS fixture suites passed. Evidence tests cover signed recovery, missing/mismatched/orphan DER, collision preservation and repeat recovery. Initial sandboxed iOS builds exited 65 with a malformed SwiftUI macro plugin response. Both unsigned retry builds outside the sandbox exited 0. Signed deployment and iPhone execution pending coordination with WorkCam 00. W016 analyzer SHA and invocation unavailable in local refs. Device and CSV steps are in [M014–M016 acceptance](ios/m014-m016-acceptance.md).
+
+## 2026-11-25 · M018–M022 offline project candidate
+
+- M018/M020: English project creation, rename, gallery, photo detail, original share and project camera save. Uses the existing AVFoundation permission flow. Project capture is local and unsigned. W017 retention and bulk operations: Not Implemented.
+- M019: single project/date/unverified JPEG derivative. W011 device-time wording and original preservation applied. W011 template/field parity, content-addressed derivative records and geometry comparison: Not Implemented.
+- M021: one editable human-added numbered marker and note per photo, with normalized coordinates after orientation correction. Remaining W013 shapes, issue history, before/after and W014 sync: Not Implemented.
+- M022: site photo A4 PDF, one photo per page, marker and note, page count and unverified footer. Other W012 layouts and evidence appendix, W015 delivery ZIP and six samples: Not Implemented.
+
+Builds used a clean writable staging copy of the requested baseline and these changes. The first sandboxed Debug run failed because the SwiftUI macro plugin server produced a malformed response. With escalated execution, both commands succeeded:
+
+```sh
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /private/tmp/wc-ui-Debug CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -destination 'generic/platform=iOS' -derivedDataPath /private/tmp/wc-ui-Release CODE_SIGNING_ALLOWED=NO build
+```
+
+Unsigned builds establish compilation only. Device capture, offline persistence
+after restart, rendered output and device share are pending coordinated testing.

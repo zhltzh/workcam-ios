@@ -34,3 +34,12 @@ verification. Network authentication and credential lifecycle are Not Implemente
 A detached DER file alongside unsigned pending metadata is inconsistent.
 Recovery retains the original and the conflicting artifact in staging.
 Remote hardware provenance remains NOT_ATTESTED.
+
+## Offline project artifacts
+
+Treat project names and annotation notes as user-provided content. Treat project
+timestamps as unverified device time. Project JPEGs, marker sidecars and
+delivery files are outside the signed evidence flow. The JPEG and PDF outputs
+include fixed unverified labels. The original-share action sends the camera
+JPEG with its embedded metadata. The system share sheet can transfer data out
+of the app sandbox. Temporary export files can persist until system cleanup.

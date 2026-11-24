@@ -13,7 +13,10 @@ final class CameraController: NSObject, @unchecked Sendable, AVCapturePhotoCaptu
     var onStatus: (@Sendable (String, Bool) -> Void)?
     var onSaved: (@Sendable (String) -> Void)?
 
-    override init() {
+    private let savePhoto: @Sendable (Data) throws -> URL
+
+    init(savePhoto: @escaping @Sendable (Data) throws -> URL = CaptureStore.save) {
+        self.savePhoto = savePhoto
         super.init()
         for name in [AVCaptureSession.wasInterruptedNotification, AVCaptureSession.interruptionEndedNotification, AVCaptureSession.runtimeErrorNotification] {
             observers.append(NotificationCenter.default.addObserver(forName: name, object: session, queue: nil) { [weak self] note in
@@ -103,7 +106,7 @@ final class CameraController: NSObject, @unchecked Sendable, AVCapturePhotoCaptu
             do {
                 if let message { throw NSError(domain: "WorkCam", code: 3, userInfo: [NSLocalizedDescriptionKey: message]) }
                 guard let data else { throw self.cameraError() }
-                let url = try CaptureStore.save(data)
+                let url = try self.savePhoto(data)
                 self.onSaved?(url.lastPathComponent)
             } catch { self.onSaved?("Save failed: \(error.localizedDescription)") }
         }
