@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "workcam://evidence/protocol/1.1",
+  "title": "WorkCam Evidence Record Schema v1.x (machine-readable contract)",
+  "meta": {
+    "protocol_versions": {
+      "1.0": "stable; float repr formatting (Python-side risk documented in B02-W023 F2)",
+      "1.1": "stable; %.10g float formatting with decimal point guarantee"
+    },
+    "domain_separators": {
+      "1.0": "WorkCam-Sig-v1",
+      "1.1": "WorkCam-Sig-v1.1"
+    },
+    "canonical_payload": {
+      "format": "UTF-8 text, key=value lines, fixed field order, trailing newline",
+      "field_order": [
+        "version", "record_id", "sequence_number",
+        "previous_record_hash", "photo_hash",
+        "capture_timestamp", "device_reported_time",
+        "device_id", "location"
+      ],
+      "rules": [
+        "strings must not contain 0x0a or 0x0d",
+        "timestamps are ISO 8601 with explicit offset or Z",
+        "hex fields are lowercase, 64 chars",
+        "v1.1 floats: finite only, %.10g, must contain '.' or 'e'",
+        "null previous_record_hash -> literal 'none'",
+        "null location -> literal 'none'",
+        "location present -> '{lat},{lon},{accuracy},{altitude}', altitude may be 'none'"
+      ]
+    },
+    "unknown_version_policy": {
+      "rule": "A record with an unrecognized version string MUST NOT be marked trusted at ANY level. Verifiers report protocol_version=unknown and signature checks are skipped (nothing to verify against); file-integrity checks still apply.",
+      "rational": "forward compat requires explicit opt-in after review, never silent acceptance",
+      "test_vector": "test-vectors/protocol/unknown-version-reject.json"
+    }
+  },
+  "type": "object",
+  "required": [
+    "protocol_version", "record_id", "sequence_number",
+    "photo_hash", "capture_timestamp", "device_id",
+    "signature", "public_key_b64"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "protocol_version": {
+      "type": "string",
+      "enum": ["1.0", "1.1"],
+      "known_versions_note": "verifiers treat anything else per unknown_version_policy"
+    },
+    "record_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{16,64}$",
+      "description": "evidence unique id; uuid-hex or record hash prefix"
+    },
+    "sequence_number": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "monotonic per-device record counter; 0 allowed for first record"
+    },
+    "previous_record_hash": {
+      "oneOf": [
+        {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        {"type": "null"}
+      ],
+      "description": "hash-chain link to prior record; null ONLY for chain origin"
+    },
+    "photo_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "SHA-256 of the immutable original bytes"
+    },
+    "capture_timestamp": {
+      "type": "string",
+      "description": "device-claimed capture time, ISO 8601; UNTRUSTED client input",
+      "trusted": false
+    },
+    "device_reported_time": {
+      "type": "string",
+      "description": "device wall clock at signing; UNTRUSTED client input",
+      "trusted": false
+    },
+    "device_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "client-claimed device label; binding strength comes from the registered public key, not this string",
+      "trusted": false
+    },
+    "location": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": ["latitude", "longitude", "accuracy"],
+          "additionalProperties": false,
+          "properties": {
+            "latitude": {"type": "number", "minimum": -90, "maximum": 90},
+            "longitude": {"type": "number", "minimum": -180, "maximum": 180},
+            "accuracy": {"type": "number", "minimum": 0},
+            "altitude": {"oneOf": [{"type": "null"}, {"type": "number"}]}
+          }
+        }
+      ],
+      "description": "client-claimed GNSS/other fix; UNTRUSTED client input",
+      "trusted": false
+    },
+    "signature": {
+      "type": "string",
+      "description": "Base64 DER ECDSA-P256-SHA256 over the canonical payload",
+      "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+    },
+    "public_key_b64": {
+      "type": "string",
+      "description": "Base64 X9.63 uncompressed P-256 point (65 bytes)",
+      "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+    },
+    "anchor_reference": {
+      "type": ["string", "null"],
+      "description": "OPTIONAL v1.x extension slot: server time-anchor receipt id bound at sync time. Not part of the signed payload in v1.x; carried beside it. Future v2 may fold it into the signed field set (REVIEW REQUIRED before that change).",
+      "signed_in_payload": false
+    },
+    "derivative_refs": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+      "maxItems": 64,
+      "description": "OPTIONAL: hashes of derivative images derived from this original; derivatives are NEVER trusted originals",
+      "signed_in_payload": false
+    },
+    "extensions": {
+      "type": "object",
+      "description": "OPTIONAL forward-compat bag; verifiers MUST ignore unknown keys here (unlike unknown protocol_version)",
+      "signed_in_payload": false,
+      "additionalProperties": true
+    }
+  },
+  "trust_rules": {
+    "server_resolved_only": [
+      "evidence_link verified state",
+      "device enrollment status",
+      "time anchor receipts"
+    ],
+    "client_claimed_untrusted": [
+      "capture_timestamp", "device_reported_time", "device_id", "location"
+    ],
+    "invariants": [
+      "original photo bytes are immutable after upload; any re-write invalidates photo_hash",
+      "signature validity != content authenticity != hardware attestation",
+      "math validity alone never promotes a record past signature_valid=true"
+    ]
+  }
+}
