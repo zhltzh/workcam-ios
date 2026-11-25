@@ -196,7 +196,13 @@ def test_rc2_v1_to_latest_sequential_migration(tmp_path, monkeypatch):
     """P2: v1 -> ... -> latest STEP BY STEP (migrate() applies ALL
     pending at once by design; stepwise verification executes one
     migration script per step to prove each level is self-contained).
-    Updated in W011: 'latest' is now v6 (derivatives)."""
+    Updated in W011: 'latest' is now v6 (derivatives).
+    Updated in B02-W025: migration NUMBERS may have GAPS - v9/v10 are
+    reserved for B02-W014/B02-W017 branches (migrate() applies by
+    sorted key, gaps are legal per the W017 delivery doc). The step
+    walk skips reserved numbers; user_version still lands on every
+    APPLIED level, matching migrate()'s own behaviour on a gapped
+    dictionary."""
     import app.db as dbm
     import sqlite3
     db = tmp_path / "seq.db"
@@ -213,6 +219,8 @@ def test_rc2_v1_to_latest_sequential_migration(tmp_path, monkeypatch):
     monkeypatch.setenv("WORKCAM_BUSINESS_DB", str(db))
     latest = max(dbm.MIGRATIONS)
     for version in range(2, latest + 1):
+        if version not in dbm.MIGRATIONS:
+            continue        # reserved for a parallel branch; gap OK
         conn = sqlite3.connect(str(db))
         conn.execute("BEGIN IMMEDIATE")
         for stmt in dbm._split_statements(dbm.MIGRATIONS[version]):
