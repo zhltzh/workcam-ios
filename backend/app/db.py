@@ -349,6 +349,40 @@ CREATE TABLE IF NOT EXISTS mvp_issue_links (
     PRIMARY KEY (issue_id, annotation_id)
 );
 """,
+    # v9 (B02-W014): extend the sync event stream to annotations and
+    # issues. SQLite cannot ALTER a CHECK constraint, so the table is
+    # REBUILT (same approach as the v3 evidence_links rebuild):
+    #  - entity_type gains 'annotation' and 'issue'
+    #  - action gains 'soft_deleted', 'photo_linked', 'photo_unlinked'
+    # Existing rows AND the AUTOINCREMENT seq counter are carried
+    # across: a client's saved cursor stays valid and the seq keeps
+    # moving forward after the migration.
+    9: """
+CREATE TABLE mvp_sync_events_v9 (
+    seq             INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner_token     TEXT NOT NULL,
+    entity_type     TEXT NOT NULL CHECK (entity_type IN
+                      ('project', 'photo', 'evidence_link', 'original',
+                       'annotation', 'issue')),
+    entity_id       TEXT NOT NULL,
+    action          TEXT NOT NULL CHECK (action IN
+                      ('created', 'updated', 'archived', 'bound',
+                       'status_changed', 'soft_deleted',
+                       'photo_linked', 'photo_unlinked')),
+    revision        INTEGER,
+    payload_hint    TEXT NOT NULL DEFAULT '',
+    created_at      TEXT NOT NULL
+);
+INSERT INTO mvp_sync_events_v9 (seq, owner_token, entity_type,
+    entity_id, action, revision, payload_hint, created_at)
+    SELECT seq, owner_token, entity_type, entity_id, action,
+           revision, payload_hint, created_at
+    FROM mvp_sync_events;
+DROP TABLE mvp_sync_events;
+ALTER TABLE mvp_sync_events_v9 RENAME TO mvp_sync_events;
+CREATE INDEX IF NOT EXISTS idx_sync_events_owner
+    ON mvp_sync_events(owner_token, seq ASC);
+""",
 }
 
 _write_lock = threading.Lock()
