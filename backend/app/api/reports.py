@@ -41,12 +41,51 @@ _MAX_ZIP_ITEMS = 2000
 # content-addressed store; their full SHA-256 is recorded in the
 # appendix). Keeps 500-photo batches within a bounded memory envelope.
 _EMBED_MAX_EDGE = 1800
+# B02-W015: issue comparison figures embed at a tighter bound than the
+# main photo grid (before/after pairs are small on purpose): at most 3
+# photos per issue x 500 issues, bounded bytes each.
+_ISSUE_FIG_MAX_EDGE = 900
+
+
+def _load_photo_image_bounded(orig_sha: str,
+                              max_edge: int) -> tuple[bytes | None, int, int]:
+    """Load the original downscaled to max_edge (longest edge)."""
+    from app.services.original_store import read_original
+    try:
+        data = read_original(orig_sha)
+    except Exception:
+        return None, 0, 0
+    try:
+        import io
+        from PIL import Image as PILImage
+        with PILImage.open(io.BytesIO(data)) as im:
+            w, h = im.size
+            longest = max(w, h)
+            if longest <= max_edge:
+                return data, w, h
+            scale = max_edge / longest
+            nw, nh = int(w * scale), int(h * scale)
+            resized = im.convert("RGB").resize((nw, nh), PILImage.LANCZOS)
+            buf = io.BytesIO()
+            resized.save(buf, format="JPEG", quality=85)
+            return buf.getvalue(), nw, nh
+    except Exception:
+        return None, 0, 0
+
+
+def _load_photo_image(orig_sha: str) -> tuple[bytes | None, int, int]:
+    """Load the original for embedding; downscale if beyond the embed
+    bound. Returns (jpeg_bytes_for_report, width, height)."""
+    return _load_photo_image_bounded(orig_sha, _EMBED_MAX_EDGE)
 
 
 def _snapshot_issues(conn, token: str, issue_ids: list[str],
                      project_id: str) -> list:
     """Collect per-issue state AT GENERATION TIME: title, severity,
-    status, history, linked photos by role, and their SHAs."""
+    status, remediation note, history, linked photos by role, and
+    their SHAs. Issue photos additionally carry downscaled image bytes
+    for the before/after comparison figure (memory bounded by
+    _ISSUE_FIG_MAX_EDGE; one photo per role, at most 3 per issue)."""
     ordered = issue_ids
     seen = set()
     for iid in ordered:
@@ -74,48 +113,55 @@ def _snapshot_issues(conn, token: str, issue_ids: list[str],
             "FROM mvp_issue_photos ip "
             "JOIN mvp_photos ph ON ph.photo_id = ip.photo_id "
             "WHERE ip.issue_id = ? ORDER BY ip.role", (iid,)).fetchall()
+        photo_rows = []
+        for p in photos:
+            data, w, h = _load_photo_image_bounded(
+                p["original_sha256"], _ISSUE_FIG_MAX_EDGE)
+            photo_rows.append({
+                "photo_id": p["photo_id"], "role": p["role"],
+                "original_sha256": p["original_sha256"],
+                "image_bytes": data,
+                "image_width": w, "image_height": h,
+            })
         issues.append({
             "issue_id": iid, "title": row["title"],
             "description": row["description"],
             "severity": row["severity"], "status": row["status"],
             "location_description": row["location_description"],
             "assigned_to": row["assigned_to"],
+            "remediation_note": row["remediation_note"],
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],
             "resolved_at": row["resolved_at"],
             "history": [dict(h) for h in history],
-            "photos": [{"photo_id": p["photo_id"], "role": p["role"],
-                         "original_sha256": p["original_sha256"]}
-                        for p in photos],
+            "photos": photo_rows,
         })
     return issues
 
 
-def _load_photo_image(orig_sha: str) -> tuple[bytes | None, int, int]:
-    """Load the original for embedding; downscale if beyond the embed
-    bound. Returns (jpeg_bytes_for_report, width, height)."""
-    from app.services.original_store import read_original
-    try:
-        data = read_original(orig_sha)
-    except Exception:
-        return None, 0, 0
-    try:
-        import io
-        from PIL import Image as PILImage
-        with PILImage.open(io.BytesIO(data)) as im:
-            w, h = im.size
-            longest = max(w, h)
-            if longest <= _EMBED_MAX_EDGE:
-                return data, w, h
-            scale = _EMBED_MAX_EDGE / longest
-            nw, nh = int(w * scale), int(h * scale)
-            resized = im.convert("RGB").resize((nw, nh),
-                                              PILImage.LANCZOS)
-            buf = io.BytesIO()
-            resized.save(buf, format="JPEG", quality=88)
-            return buf.getvalue(), nw, nh
-    except Exception:
-        return None, 0, 0
+def _issues_json_view(issues: list) -> list:
+    """Storage/delivery view of the issue snapshot: strip embedded
+    image bytes (they would bloat the JSON; originals stay in the
+    content-addressed store and the ZIP carries them)."""
+    out = []
+    for iss in issues:
+        clean = {k: v for k, v in iss.items() if k != "photos"}
+        clean["photos"] = [
+            {k: v for k, v in p.items()
+             if k not in ("image_bytes", "image_width", "image_height")}
+            for p in iss["photos"]]
+        out.append(clean)
+    return out
+
+
+class LidarMeasurementRef(BaseModel):
+    """Reference to a B02-W016 LiDAR analyzer record. The report only
+    cites the record id and its device-data status - it never renders a
+    measurement value as verified or certified."""
+    record_id: str = Field(min_length=1, max_length=128)
+    description: str = Field(default="", max_length=500)
+    related_issue_id: str | None = Field(default=None, max_length=64)
+    data_status: str = Field(default="DEVICE_PENDING", max_length=32)
 
 
 class ReportCreateRequest(BaseModel):
@@ -130,6 +176,14 @@ class ReportCreateRequest(BaseModel):
     company_name: str = Field(default="", max_length=200)
     company_logo_b64: str | None = None
     include_evidence_appendix: bool | None = None
+    # B02-W015: inspector + project metadata (MANUAL INPUT block)
+    inspector_name: str = Field(default="", max_length=128)
+    inspector_title: str = Field(default="", max_length=128)
+    project_metadata: dict[str, str] = Field(default_factory=dict)
+    # B02-W015: LiDAR measurement record references (EXPERIMENTAL
+    # MEASUREMENT class; real-device data is DEVICE_PENDING)
+    lidar_measurements: list[LidarMeasurementRef] = Field(
+        default_factory=list, max_length=50)
 
     @field_validator("per_page")
     @classmethod
@@ -137,6 +191,19 @@ class ReportCreateRequest(BaseModel):
         if v not in (1, 2, 4):
             raise ValueError(
                 f"per_page must be 1, 2 or 4 (grid layouts); got {v}")
+        return v
+
+    @field_validator("project_metadata")
+    @classmethod
+    def _metadata_bound(cls, v: dict) -> dict:
+        if len(v) > 10:
+            raise ValueError("project_metadata accepts at most 10 entries")
+        for k, val in v.items():
+            if not k or len(k) > 64:
+                raise ValueError("project_metadata keys must be 1-64 chars")
+            if len(val) > 300:
+                raise ValueError(
+                    "project_metadata values must be at most 300 chars")
         return v
 
 
@@ -263,13 +330,22 @@ async def create_report(project_id: str, body: ReportCreateRequest,
     report_number = (
         f"WC-{datetime_prefix()}-{report_id[:8].upper()}")
 
+    # LiDAR references must point at issues included in this report
+    for ref in body.lidar_measurements:
+        if ref.related_issue_id and \
+                ref.related_issue_id not in body.issue_ids:
+            raise ApiError(400, "lidar_ref_issue_mismatch",
+                           f"lidar reference {ref.record_id} points at "
+                           f"issue {ref.related_issue_id} which is not "
+                           f"included in this report")
+
     # ---- snapshot under one transaction -------------------------------
     with db() as conn:
         project = _get_owned_project(conn, project_id, token)
         snapshot = _snapshot_photos(conn, token, body.photo_ids,
                                    project_id)
         issue_snapshot = _snapshot_issues(conn, token, body.issue_ids,
-                                           project_id)
+                                         project_id)
 
     # ---- build photo entries with embedded images ---------------------
     # Images are loaded ONE AT A TIME and downscaled to the embed bound
@@ -288,7 +364,12 @@ async def create_report(project_id: str, body: ReportCreateRequest,
         operator=body.operator, company_name=body.company_name,
         logo_bytes=logo_bytes,
         include_evidence_appendix=body.include_evidence_appendix,
-        issue_snapshot=issue_snapshot if issue_snapshot else None)
+        issue_snapshot=issue_snapshot if issue_snapshot else None,
+        inspector_name=body.inspector_name,
+        inspector_title=body.inspector_title,
+        project_metadata=body.project_metadata,
+        lidar_measurements=[r.model_dump() for r in
+                            body.lidar_measurements] or None)
 
     try:
         result = generate_report_pdf(
@@ -313,6 +394,14 @@ async def create_report(project_id: str, body: ReportCreateRequest,
             pass
         raise
 
+    report_meta_snapshot = {
+        "inspector_name": body.inspector_name,
+        "inspector_title": body.inspector_title,
+        "project_metadata": body.project_metadata,
+        "lidar_measurements": [r.model_dump() for r in
+                               body.lidar_measurements],
+        "issue_summary": result["issue_summary"],
+    }
     with db() as conn:
         _get_owned_project(conn, project_id, token)
         conn.execute(
@@ -324,7 +413,9 @@ async def create_report(project_id: str, body: ReportCreateRequest,
             (report_id, project_id, token, report_number,
              body.report_type, result["version"], body.page_size,
              body.per_page, json.dumps(body.photo_ids),
-             json.dumps({"photos": snapshot, "issues": issue_snapshot}),
+             json.dumps({"photos": snapshot,
+                         "issues": _issues_json_view(issue_snapshot),
+                         "report_meta": report_meta_snapshot}),
              result["sha256"], result["page_count"], now))
 
     # release embedded images (bytes referenced by the built flowables
@@ -338,6 +429,9 @@ async def create_report(project_id: str, body: ReportCreateRequest,
         "template_version": result["version"],
         "page_size": body.page_size, "per_page": body.per_page,
         "photo_count": len(body.photo_ids),
+        "issue_count": len(body.issue_ids),
+        "issue_summary": result["issue_summary"],
+        "source_classes": result["source_classes"],
         "pdf_sha256": result["sha256"],
         "page_count": result["page_count"],
         "created_at": now,

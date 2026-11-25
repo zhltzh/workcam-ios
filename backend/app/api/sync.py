@@ -304,6 +304,7 @@ class IssueCreateOp(BaseModel):
     severity: str = Field(pattern="^(low|medium|high|critical)$")
     location_description: str = Field(default="", max_length=1000)
     assigned_to: str = Field(default="", max_length=128)
+    remediation_note: str = Field(default="", max_length=5000)
 
 
 class IssueUpdateOp(BaseModel):
@@ -317,6 +318,7 @@ class IssueUpdateOp(BaseModel):
     location_description: str | None = Field(default=None,
                                               max_length=1000)
     assigned_to: str | None = Field(default=None, max_length=128)
+    remediation_note: str | None = Field(default=None, max_length=5000)
 
 
 class IssueTransitionOp(BaseModel):
@@ -464,11 +466,12 @@ def _exec_issue_create(conn, owner: str, payload: dict) -> dict:
     conn.execute(
         "INSERT INTO mvp_issues (issue_id, project_id, owner_token, "
         "title, description, severity, status, "
-        "location_description, assigned_to, revision, created_at, "
-        "updated_at) VALUES (?,?,?,?,?,?,'open',?,?,1,?,?)",
+        "location_description, assigned_to, remediation_note, "
+        "revision, created_at, updated_at) "
+        "VALUES (?,?,?,?,?,?,'open',?,?,?,1,?,?)",
         (issue_id, body.server_project_id, owner, body.title,
          body.description, body.severity, body.location_description,
-         body.assigned_to, now, now))
+         body.assigned_to, body.remediation_note, now, now))
     conn.execute(
         "INSERT INTO mvp_issue_history (issue_id, actor_token, action, "
         "from_value, to_value, detail, created_at) "
@@ -500,7 +503,7 @@ def _exec_issue_update(conn, owner: str, payload: dict) -> dict:
                        {"current_revision": row["revision"]})
     updates, params = [], []
     for f in ("title", "description", "location_description",
-              "assigned_to"):
+              "assigned_to", "remediation_note"):
         v = getattr(body, f)
         if v is not None:
             updates.append(f"{f} = ?")

@@ -383,6 +383,15 @@ ALTER TABLE mvp_sync_events_v9 RENAME TO mvp_sync_events;
 CREATE INDEX IF NOT EXISTS idx_sync_events_owner
     ON mvp_sync_events(owner_token, seq ASC);
 """,
+    # v12 (B02-W015): manual remediation recommendations on issues.
+    # remediation_note is HUMAN-ENTERED content - rendered in reports
+    # under an explicit MANUAL INPUT label; never an AI or measured
+    # claim, never a certification.
+    # (Authored as v9 on the W015 branch; renumbered to v12 during the
+    # W022 RC2 premerge: v9 is taken by W014, v10 is W017, v11 is W025.)
+    12: """
+    ALTER TABLE mvp_issues ADD COLUMN remediation_note TEXT NOT NULL DEFAULT '';
+""",
 }
 
 _write_lock = threading.Lock()

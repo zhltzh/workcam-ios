@@ -265,6 +265,10 @@ class IssueCreate(BaseModel):
     severity: str = Field(pattern="^(low|medium|high|critical)$")
     location_description: str = Field(default="", max_length=1000)
     assigned_to: str = Field(default="", max_length=128)
+    remediation_note: str = Field(
+        default="", max_length=5000,
+        description="HUMAN-entered remediation recommendation; "
+                    "rendered as MANUAL INPUT in reports")
 
 
 class IssuePatch(BaseModel):
@@ -277,6 +281,7 @@ class IssuePatch(BaseModel):
     location_description: str | None = Field(default=None,
                                               max_length=1000)
     assigned_to: str | None = Field(default=None, max_length=128)
+    remediation_note: str | None = Field(default=None, max_length=5000)
     expected_revision: int = Field(ge=1)
 
 
@@ -292,10 +297,12 @@ def _row_to_issue(row) -> dict:
         "severity": row["severity"], "status": row["status"],
         "location_description": row["location_description"],
         "assigned_to": row["assigned_to"],
+        "remediation_note": row["remediation_note"],
         "revision": row["revision"],
         "created_at": row["created_at"], "updated_at": row["updated_at"],
         "resolved_at": row["resolved_at"],
-        "note": "severity/status are HUMAN records; no AI assessment implied",
+        "note": "severity/status/remediation_note are HUMAN records; "
+                "no AI assessment implied",
     }
 
 
@@ -328,11 +335,12 @@ async def create_issue(project_id: str, body: IssueCreate,
         conn.execute(
             "INSERT INTO mvp_issues (issue_id, project_id, owner_token, "
             "title, description, severity, status, "
-            "location_description, assigned_to, revision, created_at, "
-            "updated_at) VALUES (?,?,?,?,?,?,'open',?,?,1,?,?)",
+            "location_description, assigned_to, remediation_note, "
+            "revision, created_at, updated_at) "
+            "VALUES (?,?,?,?,?,?,'open',?,?,?,1,?,?)",
             (issue_id, project_id, token, body.title, body.description,
              body.severity, body.location_description, body.assigned_to,
-             now, now))
+             body.remediation_note, now, now))
         _append_history(conn, issue_id, token, "created", None,
                         body.severity, body.title)
         row = conn.execute("SELECT * FROM mvp_issues WHERE issue_id = ?",
@@ -403,7 +411,7 @@ async def patch_issue(issue_id: str, body: IssuePatch, request: Request):
                            {"current_revision": row["revision"]})
         updates, params = [], []
         for f in ("title", "description", "location_description",
-                  "assigned_to"):
+                  "assigned_to", "remediation_note"):
             v = getattr(body, f)
             if v is not None:
                 updates.append(f"{f} = ?")
