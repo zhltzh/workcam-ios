@@ -1,0 +1,2828 @@
+{
+  "_meta": {
+    "task": "WORKCAM-WINDOWS-BATCH-02 / B02-W023",
+    "description": "Cross-language (Python/Swift) signature and serialization compatibility vectors for the WorkCam signature protocol.",
+    "generated_by": "backend/generate_w023_vectors.py",
+    "determinism": "All signatures are RFC 6979 deterministic ECDSA (P-256 + SHA-256); re-running the generator reproduces this file byte-identically.",
+    "generation_environment": {
+      "python": "3.12.10 (Windows)",
+      "cryptography": "cryptography-50.0.2"
+    },
+    "byte_contract_reference": "test-vectors/fixed-vectors.json (W018 canonical payload byte contract); w023 case v11-minimal-no-location follows the same layout with the w023 test key",
+    "warning": "TEST KEYS ONLY - Never use in production.",
+    "swift_status": "NOT VERIFIED on any Mac yet. Swift-side expected results are derived from this file; see test-vectors/crosslang/W023CrosslangVectorTests.swift and MacIntegrationGuide.md. Windows does not claim Swift verification."
+  },
+  "test_key": {
+    "seed": "workcam-w023-crosslang-test-key-v1",
+    "derivation": "scalar = int(sha256(seed), 16), enforced < P-256 order; private key = scalar * G. TEST KEY ONLY.",
+    "public_key_hex": "04ac446865f487e1e0cf9cb169127c236cf75ba473f6f7c43e28962123347857c707f77af486dec98e02a5b27dfcd0380abcbfc2e880bed0339e655a746fde917b",
+    "public_key_b64": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs=",
+    "rfc6979_official_selfcheck": [
+      {
+        "message": "sample",
+        "expected_k_hex": "a6e3c57dd01abe90086538398355dd4c3b17aa873382b0f24d6129493d8aad60",
+        "expected_r_hex": "efd48b2aacb6a8fd1140dd9cd45e81d69d2c877b56aaf991c34d0ea84eaf3716",
+        "expected_s_hex": "f7cb1c942d657c41d436c7a1b6e29f65f3e900dbb9aff4064dc4ab2f843acda8",
+        "match": true
+      },
+      {
+        "message": "test",
+        "expected_k_hex": "d16b6ae827f17175e040871a1c7ec3500192c4c92677336ec2537acaee0008e0",
+        "expected_r_hex": "f1abb023518351cd71d881567b1ea663ed3efcf6c5132b354f28d3b0b7d38367",
+        "expected_s_hex": "19f4113742a2b14bd25926b49c649155f267e60d3814b4c0cc84250e46f0083",
+        "match": true
+      }
+    ]
+  },
+  "sha256_cases": {
+    "description": "SHA-256 vectors. Every value recomputed at generation time.",
+    "cases": [
+      {
+        "id": "s1-empty",
+        "input_hex": "",
+        "input_text_utf8": null,
+        "length_bytes": 0,
+        "expected_sha256_hex": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "known_answer_reference": "FIPS 180-4 / RFC 6234 known answer"
+      },
+      {
+        "id": "s2-abc",
+        "input_hex": "616263",
+        "input_text_utf8": "abc",
+        "length_bytes": 3,
+        "expected_sha256_hex": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+        "known_answer_reference": "FIPS 180-4 / RFC 6234 known answer"
+      },
+      {
+        "id": "s3-fips-two-block",
+        "input_hex": "6162636462636465636465666465666765666768666768696768696a68696a6b696a6b6c6a6b6c6d6b6c6d6e6c6d6e6f6d6e6f706e6f7071",
+        "input_text_utf8": "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+        "length_bytes": 56,
+        "expected_sha256_hex": "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1",
+        "known_answer_reference": "FIPS 180-4 / RFC 6234 known answer (two-block message)"
+      },
+      {
+        "id": "s4-domain-separator",
+        "input_hex": "576f726b43616d2d5369672d76312e310a",
+        "input_text_utf8": "WorkCam-Sig-v1.1\\n",
+        "length_bytes": 17,
+        "expected_sha256_hex": "788e83bdeba72b1f2e4cee2dbdf6bdd5e9040fcc21e687559c44b632cf690f3d",
+        "known_answer_reference": "Protocol domain separator line as signed bytes"
+      },
+      {
+        "id": "s5-multibyte-utf8",
+        "input_hex": "e58c97e4baac4265696a696e67313233",
+        "input_text_utf8": "北京Beijing123",
+        "length_bytes": 16,
+        "expected_sha256_hex": "0668efd6a924f484f586ba36f10321b6e8cde41146518262fa21b11ca8bf1a41",
+        "known_answer_reference": "Multibyte UTF-8 text"
+      },
+      {
+        "id": "s6-ff-pattern",
+        "input_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff",
+        "input_text_utf8": null,
+        "length_bytes": 256,
+        "expected_sha256_hex": "40aff2e9d2d8922e47afd4648e6967497158785fbd1da870e7110266bf944880",
+        "known_answer_reference": "All byte values 0x00-0xff in order"
+      },
+      {
+        "id": "s7-w023-test-photo",
+        "input_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff",
+        "input_text_utf8": null,
+        "length_bytes": 1024,
+        "expected_sha256_hex": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+        "known_answer_reference": "The fixed photo used by every w023 manifest case"
+      }
+    ]
+  },
+  "base64_cases": {
+    "description": "Standard base64 (RFC 4648 section 4, with padding). Protocol rule: decode strictly (reject URL-safe alphabet, embedded whitespace, wrong padding). Python b64decode(validate=True) and Swift Data(base64Encoded:) both validated at generation time on the Python side.",
+    "cases": [
+      {
+        "id": "b1-empty",
+        "input_hex": "",
+        "expected_base64": "",
+        "reference": "RFC 4648 section 10 test vectors"
+      },
+      {
+        "id": "b2-f",
+        "input_hex": "66",
+        "expected_base64": "Zg==",
+        "reference": "RFC 4648 section 10 test vectors"
+      },
+      {
+        "id": "b3-fo",
+        "input_hex": "666f",
+        "expected_base64": "Zm8=",
+        "reference": "RFC 4648 section 10 test vectors"
+      },
+      {
+        "id": "b4-foo",
+        "input_hex": "666f6f",
+        "expected_base64": "Zm9v",
+        "reference": "RFC 4648 section 10 test vectors"
+      },
+      {
+        "id": "b5-foob",
+        "input_hex": "666f6f62",
+        "expected_base64": "Zm9vYg==",
+        "reference": "RFC 4648 section 10 test vectors"
+      },
+      {
+        "id": "b6-fooba",
+        "input_hex": "666f6f6261",
+        "expected_base64": "Zm9vYmE=",
+        "reference": "RFC 4648 section 10 test vectors"
+      },
+      {
+        "id": "b7-foobar",
+        "input_hex": "666f6f626172",
+        "expected_base64": "Zm9vYmFy",
+        "reference": "RFC 4648 section 10 test vectors"
+      },
+      {
+        "id": "b8-w023-public-key",
+        "input_hex": "04ac446865f487e1e0cf9cb169127c236cf75ba473f6f7c43e28962123347857c707f77af486dec98e02a5b27dfcd0380abcbfc2e880bed0339e655a746fde917b",
+        "expected_base64": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs=",
+        "reference": "w023 fixed test public key (65-byte uncompressed point)"
+      },
+      {
+        "id": "r1-urlsafe-minus",
+        "input_base64": "Zm9v-Y==",
+        "expected": "rejected_by_strict_base64_decode",
+        "note": "URL-safe alphabet '-' is outside the standard alphabet"
+      },
+      {
+        "id": "r2-urlsafe-underscore",
+        "input_base64": "Zm9v_Y==",
+        "expected": "rejected_by_strict_base64_decode",
+        "note": "URL-safe alphabet '_' is outside the standard alphabet"
+      },
+      {
+        "id": "r3-embedded-space",
+        "input_base64": "Zm 9v",
+        "expected": "rejected_by_strict_base64_decode",
+        "note": "Whitespace inside the string must be rejected by strict decoding"
+      },
+      {
+        "id": "r4-illegal-character",
+        "input_base64": "Zm!v",
+        "expected": "rejected_by_strict_base64_decode",
+        "note": "'!' is not part of any base64 alphabet"
+      },
+      {
+        "id": "r5-wrong-padding",
+        "input_base64": "Zm9vYg",
+        "expected": "rejected_by_strict_base64_decode",
+        "note": "Length not a multiple of 4 (missing '=') must be rejected"
+      },
+      {
+        "id": "r6-embedded-newline",
+        "input_base64": "Zm9v\nYg==",
+        "expected": "rejected_by_strict_base64_decode",
+        "note": "MIME folded base64 (embedded LF) must be rejected by strict decoding"
+      }
+    ],
+    "signature_base64_reference": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gb"
+  },
+  "public_key_cases": {
+    "description": "Protocol v1.x public key wire format: base64 of the 65-byte SEC1 uncompressed point. Format check on BOTH ends: length must be 65 AND first byte must be 0x04, BEFORE any curve math. Compressed points, SPKI/PKCS#8 DER and PEM containers are known encoding variants of the same key and MUST be rejected.",
+    "valid": {
+      "id": "pk-valid-uncompressed",
+      "hex": "04ac446865f487e1e0cf9cb169127c236cf75ba473f6f7c43e28962123347857c707f77af486dec98e02a5b27dfcd0380abcbfc2e880bed0339e655a746fde917b",
+      "base64": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs=",
+      "length_bytes": 65,
+      "prefix_byte": "04",
+      "expected": "accepted",
+      "format": "SEC1 uncompressed point 0x04 || x || y (65 bytes)"
+    },
+    "known_variants": [
+      {
+        "id": "pkv-sec1-compressed",
+        "hex": "03ac446865f487e1e0cf9cb169127c236cf75ba473f6f7c43e28962123347857c7",
+        "length_bytes": 33,
+        "note": "SEC1 compressed point (0x02/0x03 || x, 33 bytes). A valid curve point, but the v1.x protocol accepts ONLY the uncompressed form. Backend _decode_public_key rejects it (length != 65); Swift P256 x963Representation also rejects it.",
+        "protocol_expected": "rejected_by_public_key_format_check"
+      },
+      {
+        "id": "pkv-spki-der",
+        "hex": "3059301306072a8648ce3d020106082a8648ce3d03010703420004ac446865f487e1e0cf9cb169127c236cf75ba473f6f7c43e28962123347857c707f77af486dec98e02a5b27dfcd0380abcbfc2e880bed0339e655a746fde917b",
+        "length_bytes": 91,
+        "note": "X.509 SubjectPublicKeyInfo (PKCS#8 public key envelope), DER-encoded. Same key material, different container. The v1.x protocol does not accept SPKI: it is rejected by the 65-byte/0x04 format check. Recorded for future protocol evolution only.",
+        "protocol_expected": "rejected_by_public_key_format_check"
+      },
+      {
+        "id": "pkv-spki-pem",
+        "pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAErERoZfSH4eDPnLFpEnwjbPdbpHP2\n98Q+KJYhIzR4V8cH93r0ht7JjgKlsn380DgKvL/C6IC+0DOeZVp0b96Rew==\n-----END PUBLIC KEY-----",
+        "note": "PEM armor of the same SPKI key ('-----BEGIN PUBLIC KEY-----'). A text container, not the protocol wire format. Rejected by base64 strict decode (embedded newlines) and by the length check. Recorded for reference only.",
+        "protocol_expected": "rejected_by_public_key_format_check"
+      }
+    ],
+    "reject_cases": [
+      {
+        "id": "pkr-64-bytes-no-prefix",
+        "hex": "ac446865f487e1e0cf9cb169127c236cf75ba473f6f7c43e28962123347857c707f77af486dec98e02a5b27dfcd0380abcbfc2e880bed0339e655a746fde917b",
+        "base64": "rERoZfSH4eDPnLFpEnwjbPdbpHP298Q+KJYhIzR4V8cH93r0ht7JjgKlsn380DgKvL/C6IC+0DOeZVp0b96Rew==",
+        "length_bytes": 64,
+        "expected": "rejected_by_public_key_format_check",
+        "note": "64 bytes: raw x||y without the 0x04 prefix"
+      },
+      {
+        "id": "pkr-66-bytes",
+        "hex": "04ac446865f487e1e0cf9cb169127c236cf75ba473f6f7c43e28962123347857c707f77af486dec98e02a5b27dfcd0380abcbfc2e880bed0339e655a746fde917b00",
+        "base64": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXsA",
+        "length_bytes": 66,
+        "expected": "rejected_by_public_key_format_check",
+        "note": "66 bytes: right length + one trailing byte"
+      },
+      {
+        "id": "pkr-prefix-05",
+        "hex": "05ac446865f487e1e0cf9cb169127c236cf75ba473f6f7c43e28962123347857c707f77af486dec98e02a5b27dfcd0380abcbfc2e880bed0339e655a746fde917b",
+        "base64": "BaxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs=",
+        "length_bytes": 65,
+        "expected": "rejected_by_public_key_format_check",
+        "note": "65 bytes but prefix 0x05 (invalid point form)"
+      },
+      {
+        "id": "pkr-prefix-03",
+        "hex": "03ac446865f487e1e0cf9cb169127c236cf75ba473f6f7c43e28962123347857c7",
+        "base64": "A6xEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfH",
+        "length_bytes": 33,
+        "expected": "rejected_by_public_key_format_check",
+        "note": "33 bytes SEC1 compressed form with 0x03 prefix"
+      },
+      {
+        "id": "pkr-empty",
+        "hex": "",
+        "base64": "",
+        "length_bytes": 0,
+        "expected": "rejected_by_public_key_format_check",
+        "note": "Empty value"
+      },
+      {
+        "id": "pkr-not-base64",
+        "base64": "!!!not-base64!!!",
+        "expected": "rejected_by_base64_decode",
+        "note": "Not valid base64 at all"
+      }
+    ]
+  },
+  "der_cases": {
+    "description": "DER-encoded ECDSA signatures (RFC 3279). Structure check before crypto: SEQUENCE tag 0x30, declared length matches, exactly two INTEGERs, no trailing data. NOTE (review finding): the current production checker does NOT enforce INTEGER minimality/padding (see der-r6) and does NOT enforce low-s. Recorded as-is; tightening is proposed in docs/crosslang-serialization-proposal.md, not implemented here.",
+    "valid_signature": {
+      "der_hex": "3046022100f373849c1cc59d0a54bf2bedb949815afa76c6ffd28e31160276b19afe153687022100aec922adb345ef39a689a61238187d3fdd6454148a9a65a3a3a0e3b2c47fc81b",
+      "base64": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gb",
+      "length_bytes": 72,
+      "r_hex": "f373849c1cc59d0a54bf2bedb949815afa76c6ffd28e31160276b19afe153687",
+      "s_hex": "aec922adb345ef39a689a61238187d3fdd6454148a9a65a3a3a0e3b2c47fc81b"
+    },
+    "reject_cases": [
+      {
+        "id": "der-r1-wrong-sequence-tag",
+        "hex": "3146022100f373849c1cc59d0a54bf2bedb949815afa76c6ffd28e31160276b19afe153687022100aec922adb345ef39a689a61238187d3fdd6454148a9a65a3a3a0e3b2c47fc81b",
+        "expected": "rejected_by_der_structure_check",
+        "note": "0x31 (SET) instead of 0x30 (SEQUENCE)"
+      },
+      {
+        "id": "der-r2-truncated",
+        "hex": "3046022100f373",
+        "expected": "rejected_by_der_structure_check",
+        "note": "Truncated below the 8-byte minimum"
+      },
+      {
+        "id": "der-r3-trailing-garbage",
+        "hex": "3046022100f373849c1cc59d0a54bf2bedb949815afa76c6ffd28e31160276b19afe153687022100aec922adb345ef39a689a61238187d3fdd6454148a9a65a3a3a0e3b2c47fc81bdead",
+        "expected": "rejected_by_der_structure_check",
+        "note": "Two extra bytes appended after the SEQUENCE"
+      },
+      {
+        "id": "der-r4-single-integer",
+        "hex": "3023022100f373849c1cc59d0a54bf2bedb949815afa76c6ffd28e31160276b19afe153687",
+        "expected": "rejected_by_der_structure_check",
+        "note": "SEQUENCE containing only one INTEGER (missing s)"
+      },
+      {
+        "id": "der-r5-length-mismatch",
+        "hex": "3045022100f373849c1cc59d0a54bf2bedb949815afa76c6ffd28e31160276b19afe153687022100aec922adb345ef39a689a61238187d3fdd6454148a9a65a3a3a0e3b2c47fc81b",
+        "expected": "rejected_by_der_structure_check",
+        "note": "Declared SEQUENCE length is one byte shorter than actual data"
+      },
+      {
+        "id": "der-r6-ber-nonminimal-r",
+        "hex": "30450220efd48b2aacb6a8fd1140dd9cd45e81d69d2c877b56aaf991c34d0ea84eaf3716022100f7cb1c942d657c41d436c7a1b6e29f65f3e900dbb9aff4064dc4ab2f843acda8",
+        "minimal_der_hex": "3046022100efd48b2aacb6a8fd1140dd9cd45e81d69d2c877b56aaf991c34d0ea84eaf3716022100f7cb1c942d657c41d436c7a1b6e29f65f3e900dbb9aff4064dc4ab2f843acda8",
+        "expected_structure_check": "accepted_by_production_der_structure_check",
+        "crypto_verify_with_ber_form": false,
+        "note": "Same (r,s) as the official RFC 6979 'sample' signature but r encoded WITHOUT the required leading 0x00 (non-minimal BER). Empirical production behaviors recorded above exactly as measured. RFC 3279 strict DER would reject this encoding."
+      }
+    ]
+  },
+  "payload_contract": {
+    "description": "EXACT signed payload byte contract. The signature covers precisely these bytes - nothing more, nothing less. Both ends must be able to rebuild them deterministically from the manifest fields.",
+    "rules": [
+      "P1: UTF-8 encoding, no BOM",
+      "P2: first line is the domain separator ('WorkCam-Sig-v1.1' or 'WorkCam-Sig-v1' depending on the version field)",
+      "P3: then one line per field in the fixed order: version, record_id, sequence_number, previous_record_hash, photo_hash, capture_timestamp, device_reported_time, device_id, location",
+      "P4: every line is 'key=value' with a single '=' separator",
+      "P5: null field values serialize as the literal token 'none' (previous_record_hash, location); a present location serializes as 'lat,lon,accuracy,altitude' with altitude 'none' when null",
+      "P6: line separator is a single 0x0a (LF); CR (0x0d) is never emitted; field values must not contain LF or CR",
+      "P7: the payload ends with exactly one trailing LF",
+      "P8: the signature/public_key fields are NOT part of the payload"
+    ],
+    "reference_case": "v11-minimal-no-location",
+    "reference_payload_hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a",
+    "reference_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00+00:00\ndevice_reported_time=2026-11-09T12:00:00+00:00\ndevice_id=w023-device-001\nlocation=none\n",
+    "reference_line_map": [
+      {
+        "line": 1,
+        "key": "(domain)",
+        "content_utf8": "WorkCam-Sig-v1.1",
+        "byte_offset": 0,
+        "byte_length_including_lf": 17
+      },
+      {
+        "line": 2,
+        "key": "version",
+        "content_utf8": "version=1.1",
+        "byte_offset": 17,
+        "byte_length_including_lf": 12
+      },
+      {
+        "line": 3,
+        "key": "record_id",
+        "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+        "byte_offset": 29,
+        "byte_length_including_lf": 47
+      },
+      {
+        "line": 4,
+        "key": "sequence_number",
+        "content_utf8": "sequence_number=0",
+        "byte_offset": 76,
+        "byte_length_including_lf": 18
+      },
+      {
+        "line": 5,
+        "key": "previous_record_hash",
+        "content_utf8": "previous_record_hash=none",
+        "byte_offset": 94,
+        "byte_length_including_lf": 26
+      },
+      {
+        "line": 6,
+        "key": "photo_hash",
+        "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+        "byte_offset": 120,
+        "byte_length_including_lf": 76
+      },
+      {
+        "line": 7,
+        "key": "capture_timestamp",
+        "content_utf8": "capture_timestamp=2026-11-09T12:00:00+00:00",
+        "byte_offset": 196,
+        "byte_length_including_lf": 44
+      },
+      {
+        "line": 8,
+        "key": "device_reported_time",
+        "content_utf8": "device_reported_time=2026-11-09T12:00:00+00:00",
+        "byte_offset": 240,
+        "byte_length_including_lf": 47
+      },
+      {
+        "line": 9,
+        "key": "device_id",
+        "content_utf8": "device_id=w023-device-001",
+        "byte_offset": 287,
+        "byte_length_including_lf": 26
+      },
+      {
+        "line": 10,
+        "key": "location",
+        "content_utf8": "location=none",
+        "byte_offset": 313,
+        "byte_length_including_lf": 14
+      }
+    ],
+    "reference_payload_sha256": "3f8edecf2d95b2daaa6b497258df21894973e16c17e0942781bc4c15c6759153",
+    "record_hash_rule": "record_hash = SHA-256(canonical_payload || signature_base64_ascii)"
+  },
+  "signed_manifest_cases": {
+    "description": "Signed manifest cases: each case is a complete manifest whose canonical payload is rebuilt by BOTH ends and verified against the frozen RFC 6979 signature. Together they cover versions 1.0/1.1, location present/absent, altitude null, Unicode fields, timestamp variants, chain links, GPS boundaries and float precision.",
+    "cases": [
+      {
+        "id": "v11-minimal-no-location",
+        "description": "Baseline v1.1 record, location absent (signs as 'location=none')",
+        "manifest_json": {
+          "version": "1.1",
+          "record_id": "023a1b2c-1111-4222-8333-444455556666",
+          "sequence_number": 0,
+          "previous_record_hash": null,
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T12:00:00+00:00",
+          "device_reported_time": "2026-11-09T12:00:00+00:00",
+          "device_id": "w023-device-001",
+          "location": null,
+          "signature": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gb",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00+00:00\ndevice_reported_time=2026-11-09T12:00:00+00:00\ndevice_id=w023-device-001\nlocation=none\n",
+          "hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a",
+          "sha256_hex": "3f8edecf2d95b2daaa6b497258df21894973e16c17e0942781bc4c15c6759153",
+          "length_bytes": 327,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1.1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 17
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.1",
+            "byte_offset": 17,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+            "byte_offset": 29,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=0",
+            "byte_offset": 76,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=none",
+            "byte_offset": 94,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 120,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T12:00:00+00:00",
+            "byte_offset": 196,
+            "byte_length_including_lf": 44
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T12:00:00+00:00",
+            "byte_offset": 240,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=w023-device-001",
+            "byte_offset": 287,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=none",
+            "byte_offset": 313,
+            "byte_length_including_lf": 14
+          }
+        ],
+        "location_bits_hex": null,
+        "signature": {
+          "der_hex": "3046022100f373849c1cc59d0a54bf2bedb949815afa76c6ffd28e31160276b19afe153687022100aec922adb345ef39a689a61238187d3fdd6454148a9a65a3a3a0e3b2c47fc81b",
+          "base64": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gb",
+          "length_bytes": 72,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "d3cb34df59834796a587e221253088d1adf4911645d167cae7b49aa82043ad09",
+        "expected_verify": true
+      },
+      {
+        "id": "v11-location-full",
+        "description": "v1.1 with full location including altitude",
+        "manifest_json": {
+          "version": "1.1",
+          "record_id": "023a1b2c-1111-4222-8333-444455556666",
+          "sequence_number": 0,
+          "previous_record_hash": null,
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T12:00:00+00:00",
+          "device_reported_time": "2026-11-09T12:00:00+00:00",
+          "device_id": "w023-device-001",
+          "location": {
+            "latitude": 39.9042,
+            "longitude": 116.4074,
+            "horizontal_accuracy": 5.0,
+            "altitude": 43.5
+          },
+          "signature": "MEUCIQDwyWA+JR4+H9eOgllmbthMMxiByEJLfl+ajGc3FOFAUgIgJTtCNpYsJRb4LcXWJqSuDb7YJAhhjQIEhNLKBxeMoeg=",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00+00:00\ndevice_reported_time=2026-11-09T12:00:00+00:00\ndevice_id=w023-device-001\nlocation=39.9042,116.4074,5.0,43.5\n",
+          "hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d33392e393034322c3131362e343037342c352e302c34332e350a",
+          "sha256_hex": "3ad1127e659540bad3dc89974af76d5b2813b1f9e68cbac74348abb7ea6ca7e7",
+          "length_bytes": 348,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1.1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 17
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.1",
+            "byte_offset": 17,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+            "byte_offset": 29,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=0",
+            "byte_offset": 76,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=none",
+            "byte_offset": 94,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 120,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T12:00:00+00:00",
+            "byte_offset": 196,
+            "byte_length_including_lf": 44
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T12:00:00+00:00",
+            "byte_offset": 240,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=w023-device-001",
+            "byte_offset": 287,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=39.9042,116.4074,5.0,43.5",
+            "byte_offset": 313,
+            "byte_length_including_lf": 35
+          }
+        ],
+        "location_bits_hex": {
+          "latitude": "4043f3bcd35a8588",
+          "longitude": "405d1a12d77318fc",
+          "horizontal_accuracy": "4014000000000000",
+          "altitude": "4045c00000000000"
+        },
+        "signature": {
+          "der_hex": "3045022100f0c9603e251e3e1fd78e8259666ed84c331881c8424b7e5f9a8c673714e140520220253b4236962c2516f82dc5d626a4ae0dbed82408618d020484d2ca07178ca1e8",
+          "base64": "MEUCIQDwyWA+JR4+H9eOgllmbthMMxiByEJLfl+ajGc3FOFAUgIgJTtCNpYsJRb4LcXWJqSuDb7YJAhhjQIEhNLKBxeMoeg=",
+          "length_bytes": 71,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "16987d444b24324ee735c3e4de494613af7f58af68392895e7be6a58daa58500",
+        "expected_verify": true
+      },
+      {
+        "id": "v11-location-altitude-none",
+        "description": "v1.1 with location but altitude null (signs as trailing 'none')",
+        "manifest_json": {
+          "version": "1.1",
+          "record_id": "023a1b2c-1111-4222-8333-444455556666",
+          "sequence_number": 0,
+          "previous_record_hash": null,
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T12:00:00+00:00",
+          "device_reported_time": "2026-11-09T12:00:00+00:00",
+          "device_id": "w023-device-001",
+          "location": {
+            "latitude": 39.9042,
+            "longitude": 116.4074,
+            "horizontal_accuracy": 5.0,
+            "altitude": null
+          },
+          "signature": "MEUCIFOff57YRxQvBXYfQvoo4HXFwIeEa6wiMPMkRsJiV/erAiEAofNePB7vQjuLNiYs49QQ7XhrwV7cbvA3Ke/1NT4RphA=",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00+00:00\ndevice_reported_time=2026-11-09T12:00:00+00:00\ndevice_id=w023-device-001\nlocation=39.9042,116.4074,5.0,none\n",
+          "hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d33392e393034322c3131362e343037342c352e302c6e6f6e650a",
+          "sha256_hex": "7b462d6027f201885315f74d200712e816394267b7ba65aadf72c9d7356aa92b",
+          "length_bytes": 348,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1.1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 17
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.1",
+            "byte_offset": 17,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+            "byte_offset": 29,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=0",
+            "byte_offset": 76,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=none",
+            "byte_offset": 94,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 120,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T12:00:00+00:00",
+            "byte_offset": 196,
+            "byte_length_including_lf": 44
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T12:00:00+00:00",
+            "byte_offset": 240,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=w023-device-001",
+            "byte_offset": 287,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=39.9042,116.4074,5.0,none",
+            "byte_offset": 313,
+            "byte_length_including_lf": 35
+          }
+        ],
+        "location_bits_hex": {
+          "latitude": "4043f3bcd35a8588",
+          "longitude": "405d1a12d77318fc",
+          "horizontal_accuracy": "4014000000000000"
+        },
+        "signature": {
+          "der_hex": "30450220539f7f9ed847142f05761f42fa28e075c5c087846bac2230f32446c26257f7ab022100a1f35e3c1eef423b8b36262ce3d410ed786bc15edc6ef03729eff5353e11a610",
+          "base64": "MEUCIFOff57YRxQvBXYfQvoo4HXFwIeEa6wiMPMkRsJiV/erAiEAofNePB7vQjuLNiYs49QQ7XhrwV7cbvA3Ke/1NT4RphA=",
+          "length_bytes": 71,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "7628292dd4dbbe8e5915fb0d4c413a40a327d5836a978fc8cc57fa48d9b20a6c",
+        "expected_verify": true
+      },
+      {
+        "id": "v10-minimal-no-location",
+        "description": "Baseline v1.0 record: domain separator is 'WorkCam-Sig-v1'",
+        "manifest_json": {
+          "version": "1.0",
+          "record_id": "023a1b2c-1111-4222-8333-444455556666",
+          "sequence_number": 0,
+          "previous_record_hash": null,
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T12:00:00+00:00",
+          "device_reported_time": "2026-11-09T12:00:00+00:00",
+          "device_id": "w023-device-001",
+          "location": null,
+          "signature": "MEUCIQD1nkWIjGTRtxn4FESR0CEIEYmZrueAhXicOTLj68SeIgIgfKqPfn+/ftUvkR1avy2ur8SxzZ1cwryIHZYMjX8j2tY=",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00+00:00\ndevice_reported_time=2026-11-09T12:00:00+00:00\ndevice_id=w023-device-001\nlocation=none\n",
+          "hex": "576f726b43616d2d5369672d76310a76657273696f6e3d312e300a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a",
+          "sha256_hex": "459c21de80ab0fc57ee4dbed4aac6dbf49e62c6e0cc5668ea80c1991510b6f62",
+          "length_bytes": 325,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 15
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.0",
+            "byte_offset": 15,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+            "byte_offset": 27,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=0",
+            "byte_offset": 74,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=none",
+            "byte_offset": 92,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 118,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T12:00:00+00:00",
+            "byte_offset": 194,
+            "byte_length_including_lf": 44
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T12:00:00+00:00",
+            "byte_offset": 238,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=w023-device-001",
+            "byte_offset": 285,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=none",
+            "byte_offset": 311,
+            "byte_length_including_lf": 14
+          }
+        ],
+        "location_bits_hex": null,
+        "signature": {
+          "der_hex": "3045022100f59e45888c64d1b719f8144491d02108118999aee78085789c3932e3ebc49e2202207caa8f7e7fbf7ed52f911d5abf2daeafc4b1cd9d5cc2bc881d960c8d7f23dad6",
+          "base64": "MEUCIQD1nkWIjGTRtxn4FESR0CEIEYmZrueAhXicOTLj68SeIgIgfKqPfn+/ftUvkR1avy2ur8SxzZ1cwryIHZYMjX8j2tY=",
+          "length_bytes": 71,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "fad426be67ade2d5afab938cdd3bb1898847381cbb0f1c68dc1e6d20f2efce76",
+        "expected_verify": true
+      },
+      {
+        "id": "v10-location-repr-floats",
+        "description": "v1.0 with location. Location floats are embedded with Python str() (repr) semantics in v1.0 - the cross-language drift risk documented in the proposal. 0.1/0.2/-0.0 chosen deliberately.",
+        "manifest_json": {
+          "version": "1.0",
+          "record_id": "023a1b2c-1111-4222-8333-444455556666",
+          "sequence_number": 0,
+          "previous_record_hash": null,
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T12:00:00+00:00",
+          "device_reported_time": "2026-11-09T12:00:00+00:00",
+          "device_id": "w023-device-001",
+          "location": {
+            "latitude": 0.1,
+            "longitude": 0.2,
+            "horizontal_accuracy": 1.5,
+            "altitude": -0.0
+          },
+          "signature": "MEQCIDPzcwWsl8qRKgKKqsP/Vyk8mUJSLYIG5Kqma0jxWSCqAiAKz7V1WtFDx+689b13e/adxMGhEM//xFhnO0HwCQr3Dg==",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00+00:00\ndevice_reported_time=2026-11-09T12:00:00+00:00\ndevice_id=w023-device-001\nlocation=0.1,0.2,1.5,-0.0\n",
+          "hex": "576f726b43616d2d5369672d76310a76657273696f6e3d312e300a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d302e312c302e322c312e352c2d302e300a",
+          "sha256_hex": "3f575841ea9875c847598c0cf94859dd9ea4247c4383a1a36a2353d6a2ff3702",
+          "length_bytes": 337,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 15
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.0",
+            "byte_offset": 15,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+            "byte_offset": 27,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=0",
+            "byte_offset": 74,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=none",
+            "byte_offset": 92,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 118,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T12:00:00+00:00",
+            "byte_offset": 194,
+            "byte_length_including_lf": 44
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T12:00:00+00:00",
+            "byte_offset": 238,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=w023-device-001",
+            "byte_offset": 285,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=0.1,0.2,1.5,-0.0",
+            "byte_offset": 311,
+            "byte_length_including_lf": 26
+          }
+        ],
+        "location_bits_hex": {
+          "latitude": "3fb999999999999a",
+          "longitude": "3fc999999999999a",
+          "horizontal_accuracy": "3ff8000000000000",
+          "altitude": "8000000000000000"
+        },
+        "signature": {
+          "der_hex": "3044022033f37305ac97ca912a028aaac3ff57293c9942522d8206e4aaa66b48f15920aa02200acfb5755ad143c7eebcf5bd777bf69dc4c1a110cfffc458673b41f0090af70e",
+          "base64": "MEQCIDPzcwWsl8qRKgKKqsP/Vyk8mUJSLYIG5Kqma0jxWSCqAiAKz7V1WtFDx+689b13e/adxMGhEM//xFhnO0HwCQr3Dg==",
+          "length_bytes": 70,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "af86030176fa4597e413cbd0ecc1e99608913ad1aeed559b03f9df0130ef1d61",
+        "expected_verify": true
+      },
+      {
+        "id": "v11-unicode-device-id",
+        "description": "v1.1 with multibyte + combining + emoji device_id (UTF-8 bytes are signed)",
+        "manifest_json": {
+          "version": "1.1",
+          "record_id": "023a1b2c-1111-4222-8333-444455556666",
+          "sequence_number": 0,
+          "previous_record_hash": null,
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T12:00:00+00:00",
+          "device_reported_time": "2026-11-09T12:00:00+00:00",
+          "device_id": "北京站①-🌉-naïve",
+          "location": null,
+          "signature": "MEYCIQD517RfOLMlsoDem9rpFB61z+IP8xnH7fOShoGHdP+u1QIhAJKqNd6+22g8rfR/3Riz9Mtfa/98Y9I8NfAn9gHvvtEu",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00+00:00\ndevice_reported_time=2026-11-09T12:00:00+00:00\ndevice_id=北京站①-🌉-naïve\nlocation=none\n",
+          "hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643de58c97e4baace7ab99e291a02df09f8c892d6e61c3af76650a6c6f636174696f6e3d6e6f6e650a",
+          "sha256_hex": "e90643d4e4b03508dd8387a2b13dd82b010d097818318bfdfd8d560d2bbcdd8f",
+          "length_bytes": 336,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1.1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 17
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.1",
+            "byte_offset": 17,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+            "byte_offset": 29,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=0",
+            "byte_offset": 76,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=none",
+            "byte_offset": 94,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 120,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T12:00:00+00:00",
+            "byte_offset": 196,
+            "byte_length_including_lf": 44
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T12:00:00+00:00",
+            "byte_offset": 240,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=北京站①-🌉-naïve",
+            "byte_offset": 287,
+            "byte_length_including_lf": 35
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=none",
+            "byte_offset": 322,
+            "byte_length_including_lf": 14
+          }
+        ],
+        "location_bits_hex": null,
+        "signature": {
+          "der_hex": "3046022100f9d7b45f38b325b280de9bdae9141eb5cfe20ff319c7edf39286818774ffaed502210092aa35debedb683cadf47fdd18b3f4cb5f6bff7c63d23c35f027f601efbed12e",
+          "base64": "MEYCIQD517RfOLMlsoDem9rpFB61z+IP8xnH7fOShoGHdP+u1QIhAJKqNd6+22g8rfR/3Riz9Mtfa/98Y9I8NfAn9gHvvtEu",
+          "length_bytes": 72,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "2d8a3eaa312f7244b28307315cf6eaee005380526afb20cee7d7dbe2549717c3",
+        "expected_verify": true
+      },
+      {
+        "id": "v11-unicode-nfd-record-id",
+        "description": "v1.1 with NFD (decomposed) Unicode record_id. Byte-different from the NFC form; the protocol signs bytes, never normalizes.",
+        "manifest_json": {
+          "version": "1.1",
+          "record_id": "café-nfd-023-①",
+          "sequence_number": 0,
+          "previous_record_hash": null,
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T12:00:00+00:00",
+          "device_reported_time": "2026-11-09T12:00:00+00:00",
+          "device_id": "w023-device-001",
+          "location": null,
+          "signature": "MEUCIHctjVed/0Nrxuz/ylCC1N0K9k2tUNhtCy2salFqVzokAiEA6T3deZPG9ubnqK/8q0UwA1vf2tZN3dLnc0iDrqtJIbw=",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=café-nfd-023-①\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00+00:00\ndevice_reported_time=2026-11-09T12:00:00+00:00\ndevice_id=w023-device-001\nlocation=none\n",
+          "hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d63616665cc812d6e66642d3032332de291a00a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a",
+          "sha256_hex": "230618242c18903bf8910f1ca474f90cd9d23f1b137dcb8db388c3ec3d888cfb",
+          "length_bytes": 309,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1.1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 17
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.1",
+            "byte_offset": 17,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=café-nfd-023-①",
+            "byte_offset": 29,
+            "byte_length_including_lf": 29
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=0",
+            "byte_offset": 58,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=none",
+            "byte_offset": 76,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 102,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T12:00:00+00:00",
+            "byte_offset": 178,
+            "byte_length_including_lf": 44
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T12:00:00+00:00",
+            "byte_offset": 222,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=w023-device-001",
+            "byte_offset": 269,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=none",
+            "byte_offset": 295,
+            "byte_length_including_lf": 14
+          }
+        ],
+        "location_bits_hex": null,
+        "signature": {
+          "der_hex": "30450220772d8d579dff436bc6ecffca5082d4dd0af64dad50d86d0b2dac6a516a573a24022100e93ddd7993c6f6e6e7a8affcab4530035bdfdad64dddd2e7734883aeab4921bc",
+          "base64": "MEUCIHctjVed/0Nrxuz/ylCC1N0K9k2tUNhtCy2salFqVzokAiEA6T3deZPG9ubnqK/8q0UwA1vf2tZN3dLnc0iDrqtJIbw=",
+          "length_bytes": 71,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "d56c97be11ead531b24b319f42cd7998e5371ba0aca574bf753648b1049e5068",
+        "expected_verify": true
+      },
+      {
+        "id": "v11-timestamp-z-suffix",
+        "description": "v1.1 with 'Z' UTC designator (byte-different from '+00:00')",
+        "manifest_json": {
+          "version": "1.1",
+          "record_id": "023a1b2c-1111-4222-8333-444455556666",
+          "sequence_number": 0,
+          "previous_record_hash": null,
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T12:00:00Z",
+          "device_reported_time": "2026-11-09T12:00:00Z",
+          "device_id": "w023-device-001",
+          "location": null,
+          "signature": "MEQCIBzWB6XifCsQYhTAoW9IUpsLxmLkkdBQxfZWBFNvCoXKAiB6A5wky5OCxIEQiQjqbHSdRQnNN6Nxu+W7KtwoznWNdw==",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00Z\ndevice_reported_time=2026-11-09T12:00:00Z\ndevice_id=w023-device-001\nlocation=none\n",
+          "hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30305a0a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30305a0a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a",
+          "sha256_hex": "d41a83ab603372886cb082eddfe1b28d822001a33f784df1a739c4273edd55e9",
+          "length_bytes": 317,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1.1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 17
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.1",
+            "byte_offset": 17,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+            "byte_offset": 29,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=0",
+            "byte_offset": 76,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=none",
+            "byte_offset": 94,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 120,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T12:00:00Z",
+            "byte_offset": 196,
+            "byte_length_including_lf": 39
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T12:00:00Z",
+            "byte_offset": 235,
+            "byte_length_including_lf": 42
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=w023-device-001",
+            "byte_offset": 277,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=none",
+            "byte_offset": 303,
+            "byte_length_including_lf": 14
+          }
+        ],
+        "location_bits_hex": null,
+        "signature": {
+          "der_hex": "304402201cd607a5e27c2b106214c0a16f48529b0bc662e491d050c5f65604536f0a85ca02207a039c24cb9382c481108908ea6c749d4509cd37a371bbe5bb2adc28ce758d77",
+          "base64": "MEQCIBzWB6XifCsQYhTAoW9IUpsLxmLkkdBQxfZWBFNvCoXKAiB6A5wky5OCxIEQiQjqbHSdRQnNN6Nxu+W7KtwoznWNdw==",
+          "length_bytes": 70,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "63f78018b573ffebca01023d9de618035f25132fecd197ed4d0224f795560325",
+        "expected_verify": true
+      },
+      {
+        "id": "v11-timestamp-offset-plus-8",
+        "description": "v1.1 with +08:00 offset (same instant as Z case, different bytes)",
+        "manifest_json": {
+          "version": "1.1",
+          "record_id": "023a1b2c-1111-4222-8333-444455556666",
+          "sequence_number": 0,
+          "previous_record_hash": null,
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T20:00:00+08:00",
+          "device_reported_time": "2026-11-09T20:00:00+08:00",
+          "device_id": "w023-device-001",
+          "location": null,
+          "signature": "MEQCICGeVRDaUzHFWyPiiUPrzWWFL28+GGhLx3EFj9acwN0xAiBFOuvmfKTyTN65csD2S2xoqRSgSGBcu6YGS3uYRw/Xmg==",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T20:00:00+08:00\ndevice_reported_time=2026-11-09T20:00:00+08:00\ndevice_id=w023-device-001\nlocation=none\n",
+          "hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395432303a30303a30302b30383a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395432303a30303a30302b30383a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a",
+          "sha256_hex": "c0fc0670cb1a59054e8a07423fe4bccb4eed1ea85f0febb5998c85266139e8af",
+          "length_bytes": 327,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1.1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 17
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.1",
+            "byte_offset": 17,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+            "byte_offset": 29,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=0",
+            "byte_offset": 76,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=none",
+            "byte_offset": 94,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 120,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T20:00:00+08:00",
+            "byte_offset": 196,
+            "byte_length_including_lf": 44
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T20:00:00+08:00",
+            "byte_offset": 240,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=w023-device-001",
+            "byte_offset": 287,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=none",
+            "byte_offset": 313,
+            "byte_length_including_lf": 14
+          }
+        ],
+        "location_bits_hex": null,
+        "signature": {
+          "der_hex": "30440220219e5510da5331c55b23e28943ebcd65852f6f3e18684bc771058fd69cc0dd310220453aebe67ca4f24cdeb972c0f64b6c68a914a048605cbba6064b7b98470fd79a",
+          "base64": "MEQCICGeVRDaUzHFWyPiiUPrzWWFL28+GGhLx3EFj9acwN0xAiBFOuvmfKTyTN65csD2S2xoqRSgSGBcu6YGS3uYRw/Xmg==",
+          "length_bytes": 70,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "66942ae0f5005dec0e0b6b8057a8c6c8eca9f517c522599d47c3e7fdb47890d9",
+        "expected_verify": true
+      },
+      {
+        "id": "v11-timestamp-microseconds",
+        "description": "v1.1 with fractional seconds (allowed by the ISO8601 shape regex)",
+        "manifest_json": {
+          "version": "1.1",
+          "record_id": "023a1b2c-1111-4222-8333-444455556666",
+          "sequence_number": 0,
+          "previous_record_hash": null,
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T12:00:00.123456+00:00",
+          "device_reported_time": "2026-11-09T12:00:00.123456+00:00",
+          "device_id": "w023-device-001",
+          "location": null,
+          "signature": "MEQCIHZ8wFywwqHtZMn3wOoL4fPuMsi8HgRY8MPcke+sEdJBAiAhE2gA+urQLUcyGQZeWalCKxdGtVmlQEYtgpqbWjJjxg==",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00.123456+00:00\ndevice_reported_time=2026-11-09T12:00:00.123456+00:00\ndevice_id=w023-device-001\nlocation=none\n",
+          "hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302e3132333435362b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302e3132333435362b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a",
+          "sha256_hex": "25b405fa8e5828a6bd77c8c7f2aa5d8dab583e82a8e74d96bbca5d35eab8e4d4",
+          "length_bytes": 341,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1.1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 17
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.1",
+            "byte_offset": 17,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+            "byte_offset": 29,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=0",
+            "byte_offset": 76,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=none",
+            "byte_offset": 94,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 120,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T12:00:00.123456+00:00",
+            "byte_offset": 196,
+            "byte_length_including_lf": 51
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T12:00:00.123456+00:00",
+            "byte_offset": 247,
+            "byte_length_including_lf": 54
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=w023-device-001",
+            "byte_offset": 301,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=none",
+            "byte_offset": 327,
+            "byte_length_including_lf": 14
+          }
+        ],
+        "location_bits_hex": null,
+        "signature": {
+          "der_hex": "30440220767cc05cb0c2a1ed64c9f7c0ea0be1f3ee32c8bc1e0458f0c3dc91efac11d241022021136800faead02d473219065e59a9422b1746b559a540462d829a9b5a3263c6",
+          "base64": "MEQCIHZ8wFywwqHtZMn3wOoL4fPuMsi8HgRY8MPcke+sEdJBAiAhE2gA+urQLUcyGQZeWalCKxdGtVmlQEYtgpqbWjJjxg==",
+          "length_bytes": 70,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "d3b9e3f5be05c77f63f416a262bb796e351629956b6e70683dc5dc2f2ac1254b",
+        "expected_verify": true
+      },
+      {
+        "id": "v11-seq1-prev-hash",
+        "description": "v1.1 second chain record with previous_record_hash present",
+        "manifest_json": {
+          "version": "1.1",
+          "record_id": "023a1b2c-1111-4222-8333-444455556666",
+          "sequence_number": 1,
+          "previous_record_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T12:00:00+00:00",
+          "device_reported_time": "2026-11-09T12:00:00+00:00",
+          "device_id": "w023-device-001",
+          "location": null,
+          "signature": "MEUCIF3ZfFPkZh6y+oZ+79Suhgh0u1Yb17wEHPse5OMOTujFAiEA1+ZaB1iWg1LNsAQ45IPLmhjbzPDoFXO7rvBBapW9Aqg=",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=1\nprevious_record_hash=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00+00:00\ndevice_reported_time=2026-11-09T12:00:00+00:00\ndevice_id=w023-device-001\nlocation=none\n",
+          "hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d310a70726576696f75735f7265636f72645f686173683d616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161620a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a",
+          "sha256_hex": "7c42dafa31f74933af8e4d3595057238a3dd910be6ec5d2cd2196e56cf9a86b6",
+          "length_bytes": 387,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1.1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 17
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.1",
+            "byte_offset": 17,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+            "byte_offset": 29,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=1",
+            "byte_offset": 76,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+            "byte_offset": 94,
+            "byte_length_including_lf": 86
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 180,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T12:00:00+00:00",
+            "byte_offset": 256,
+            "byte_length_including_lf": 44
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T12:00:00+00:00",
+            "byte_offset": 300,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=w023-device-001",
+            "byte_offset": 347,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=none",
+            "byte_offset": 373,
+            "byte_length_including_lf": 14
+          }
+        ],
+        "location_bits_hex": null,
+        "signature": {
+          "der_hex": "304502205dd97c53e4661eb2fa867eefd4ae860874bb561bd7bc041cfb1ee4e30e4ee8c5022100d7e65a0758968352cdb00438e483cb9a18dbccf0e81573bbaef0416a95bd02a8",
+          "base64": "MEUCIF3ZfFPkZh6y+oZ+79Suhgh0u1Yb17wEHPse5OMOTujFAiEA1+ZaB1iWg1LNsAQ45IPLmhjbzPDoFXO7rvBBapW9Aqg=",
+          "length_bytes": 71,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "c17d961c4ed3c1a23ce680ce38623e4c3d971a08b8bd15a71f00b7efbd65c938",
+        "expected_verify": true
+      },
+      {
+        "id": "v11-gps-boundary-max",
+        "description": "v1.1 at the upper GPS bounds: lat=90.0, lon=180.0 (boundary accepted)",
+        "manifest_json": {
+          "version": "1.1",
+          "record_id": "023a1b2c-1111-4222-8333-444455556666",
+          "sequence_number": 0,
+          "previous_record_hash": null,
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T12:00:00+00:00",
+          "device_reported_time": "2026-11-09T12:00:00+00:00",
+          "device_id": "w023-device-001",
+          "location": {
+            "latitude": 90.0,
+            "longitude": 180.0,
+            "horizontal_accuracy": 0.001,
+            "altitude": 8848.86
+          },
+          "signature": "MEUCIQDLCMthD5W2hVEUv7kyTuxYlgH5j48I9M/wIcqHNRP0wwIgROB/TryHaFCEP8G90DUnAGmqM793ZAhweE4YxtQfRJ8=",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00+00:00\ndevice_reported_time=2026-11-09T12:00:00+00:00\ndevice_id=w023-device-001\nlocation=90.0,180.0,0.001,8848.86\n",
+          "hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d39302e302c3138302e302c302e3030312c383834382e38360a",
+          "sha256_hex": "f82a80f39f2977f3b337b0d02990e35ec951f5d4624469896ebdc369c5355335",
+          "length_bytes": 347,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1.1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 17
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.1",
+            "byte_offset": 17,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+            "byte_offset": 29,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=0",
+            "byte_offset": 76,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=none",
+            "byte_offset": 94,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 120,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T12:00:00+00:00",
+            "byte_offset": 196,
+            "byte_length_including_lf": 44
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T12:00:00+00:00",
+            "byte_offset": 240,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=w023-device-001",
+            "byte_offset": 287,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=90.0,180.0,0.001,8848.86",
+            "byte_offset": 313,
+            "byte_length_including_lf": 34
+          }
+        ],
+        "location_bits_hex": {
+          "latitude": "4056800000000000",
+          "longitude": "4066800000000000",
+          "horizontal_accuracy": "3f50624dd2f1a9fc",
+          "altitude": "40c1486e147ae148"
+        },
+        "signature": {
+          "der_hex": "3045022100cb08cb610f95b6855114bfb9324eec589601f98f8f08f4cff021ca873513f4c3022044e07f4ebc876850843fc1bdd035270069aa33bf77640870784e18c6d41f449f",
+          "base64": "MEUCIQDLCMthD5W2hVEUv7kyTuxYlgH5j48I9M/wIcqHNRP0wwIgROB/TryHaFCEP8G90DUnAGmqM793ZAhweE4YxtQfRJ8=",
+          "length_bytes": 71,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "83ebf0b1594238af5aa3f79bdcdf4bf385da36c7067913d0a6697b80eb2a41ed",
+        "expected_verify": true
+      },
+      {
+        "id": "v11-gps-negative",
+        "description": "v1.1 southern/western hemisphere GPS with 10-significant-digit longitude",
+        "manifest_json": {
+          "version": "1.1",
+          "record_id": "023a1b2c-1111-4222-8333-444455556666",
+          "sequence_number": 0,
+          "previous_record_hash": null,
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T12:00:00+00:00",
+          "device_reported_time": "2026-11-09T12:00:00+00:00",
+          "device_id": "w023-device-001",
+          "location": {
+            "latitude": -33.8688,
+            "longitude": -179.9999999,
+            "horizontal_accuracy": 0.5,
+            "altitude": -423.0
+          },
+          "signature": "MEYCIQDwECxNePFUISmUwrkm2XMG6nN28lkBh8VL0jCDoJDp6gIhANDOxEM+TSErXApU6bXcLIKiMm24Qw7E9vngK+7bYhJF",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00+00:00\ndevice_reported_time=2026-11-09T12:00:00+00:00\ndevice_id=w023-device-001\nlocation=-33.8688,-179.9999999,0.5,-423.0\n",
+          "hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d2d33332e383638382c2d3137392e393939393939392c302e352c2d3432332e300a",
+          "sha256_hex": "871713b9720963bd62188bc43b579fe53790128b1b948da2fd9efc186af8e1e2",
+          "length_bytes": 355,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1.1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 17
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.1",
+            "byte_offset": 17,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+            "byte_offset": 29,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=0",
+            "byte_offset": 76,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=none",
+            "byte_offset": 94,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 120,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T12:00:00+00:00",
+            "byte_offset": 196,
+            "byte_length_including_lf": 44
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T12:00:00+00:00",
+            "byte_offset": 240,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=w023-device-001",
+            "byte_offset": 287,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=-33.8688,-179.9999999,0.5,-423.0",
+            "byte_offset": 313,
+            "byte_length_including_lf": 42
+          }
+        ],
+        "location_bits_hex": {
+          "latitude": "c040ef34d6a161e5",
+          "longitude": "c0667fffffca501b",
+          "horizontal_accuracy": "3fe0000000000000",
+          "altitude": "c07a700000000000"
+        },
+        "signature": {
+          "der_hex": "3046022100f0102c4d78f154212994c2b926d97306ea7376f2590187c54bd23083a090e9ea022100d0cec4433e4d212b5c0a54e9b5dc2c82a2326db8430ec4f6f9e02beedb621245",
+          "base64": "MEYCIQDwECxNePFUISmUwrkm2XMG6nN28lkBh8VL0jCDoJDp6gIhANDOxEM+TSErXApU6bXcLIKiMm24Qw7E9vngK+7bYhJF",
+          "length_bytes": 72,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "e8fb47ca77100f701c7833de6d1a025b53b24317d27b45f39cef9a85670c5384",
+        "expected_verify": true
+      },
+      {
+        "id": "v11-float-precision",
+        "description": "v1.1 float formatting: trailing-zero truncation (39.90420000 -> 39.9042), pi rounding to 10 significant digits",
+        "manifest_json": {
+          "version": "1.1",
+          "record_id": "023a1b2c-1111-4222-8333-444455556666",
+          "sequence_number": 0,
+          "previous_record_hash": null,
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T12:00:00+00:00",
+          "device_reported_time": "2026-11-09T12:00:00+00:00",
+          "device_id": "w023-device-001",
+          "location": {
+            "latitude": 39.9042,
+            "longitude": -0.1234567891,
+            "horizontal_accuracy": 3.14159265358979,
+            "altitude": null
+          },
+          "signature": "MEYCIQCgdChdOZlWnsC5p+Iat1HLxxZwZRwuBtnDAWgPGWGShgIhAOqWT8VxPbb1d79SS0stUHSxdgFGxD4VywhVfqCD0sap",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00+00:00\ndevice_reported_time=2026-11-09T12:00:00+00:00\ndevice_id=w023-device-001\nlocation=39.9042,-0.1234567891,3.141592654,none\n",
+          "hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d33392e393034322c2d302e313233343536373839312c332e3134313539323635342c6e6f6e650a",
+          "sha256_hex": "3b77820c550e50e58da787b3f754947363d971d7059d7766dc5a855b6d7a8dbe",
+          "length_bytes": 361,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1.1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 17
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.1",
+            "byte_offset": 17,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+            "byte_offset": 29,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=0",
+            "byte_offset": 76,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=none",
+            "byte_offset": 94,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 120,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T12:00:00+00:00",
+            "byte_offset": 196,
+            "byte_length_including_lf": 44
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T12:00:00+00:00",
+            "byte_offset": 240,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=w023-device-001",
+            "byte_offset": 287,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=39.9042,-0.1234567891,3.141592654,none",
+            "byte_offset": 313,
+            "byte_length_including_lf": 48
+          }
+        ],
+        "location_bits_hex": {
+          "latitude": "4043f3bcd35a8588",
+          "longitude": "bfbf9add37a756df",
+          "horizontal_accuracy": "400921fb54442d11"
+        },
+        "signature": {
+          "der_hex": "3046022100a074285d3999569ec0b9a7e21ab751cbc71670651c2e06d9c301680f19619286022100ea964fc5713db6f577bf524b4b2d5074b1760146c43e15cb08557ea083d2c6a9",
+          "base64": "MEYCIQCgdChdOZlWnsC5p+Iat1HLxxZwZRwuBtnDAWgPGWGShgIhAOqWT8VxPbb1d79SS0stUHSxdgFGxD4VywhVfqCD0sap",
+          "length_bytes": 72,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "f1f9518087d5bffcac05f1c3f107b8f67a82a4402ff13d89ccb0ddb1d8cd20b6",
+        "expected_verify": true
+      },
+      {
+        "id": "v11-bidi-device-id",
+        "description": "v1.1 with a RIGHT-TO-LEFT MARK (U+200F) inside device_id",
+        "manifest_json": {
+          "version": "1.1",
+          "record_id": "023a1b2c-1111-4222-8333-444455556666",
+          "sequence_number": 0,
+          "previous_record_hash": null,
+          "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+          "capture_timestamp": "2026-11-09T12:00:00+00:00",
+          "device_reported_time": "2026-11-09T12:00:00+00:00",
+          "device_id": "site-abc‏def",
+          "location": null,
+          "signature": "MEYCIQC0wPQ5o/JWXohXavzqj3vqEscVJM9CGfn0rBQW5pDqEAIhAJFfVJ6c3p9pq1j13a7bhbk+MASpocEb26g7Ac39V+uR",
+          "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+        },
+        "canonical_payload": {
+          "text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=023a1b2c-1111-4222-8333-444455556666\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9\ncapture_timestamp=2026-11-09T12:00:00+00:00\ndevice_reported_time=2026-11-09T12:00:00+00:00\ndevice_id=site-abc‏def\nlocation=none\n",
+          "hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d736974652d616263e2808f6465660a6c6f636174696f6e3d6e6f6e650a",
+          "sha256_hex": "82476eb78f9b9d0e506bc78a57d71833a1761d9800415206b6b73600ff2da3dd",
+          "length_bytes": 326,
+          "encoding": "UTF-8"
+        },
+        "payload_line_map": [
+          {
+            "line": 1,
+            "key": "(domain)",
+            "content_utf8": "WorkCam-Sig-v1.1",
+            "byte_offset": 0,
+            "byte_length_including_lf": 17
+          },
+          {
+            "line": 2,
+            "key": "version",
+            "content_utf8": "version=1.1",
+            "byte_offset": 17,
+            "byte_length_including_lf": 12
+          },
+          {
+            "line": 3,
+            "key": "record_id",
+            "content_utf8": "record_id=023a1b2c-1111-4222-8333-444455556666",
+            "byte_offset": 29,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 4,
+            "key": "sequence_number",
+            "content_utf8": "sequence_number=0",
+            "byte_offset": 76,
+            "byte_length_including_lf": 18
+          },
+          {
+            "line": 5,
+            "key": "previous_record_hash",
+            "content_utf8": "previous_record_hash=none",
+            "byte_offset": 94,
+            "byte_length_including_lf": 26
+          },
+          {
+            "line": 6,
+            "key": "photo_hash",
+            "content_utf8": "photo_hash=785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+            "byte_offset": 120,
+            "byte_length_including_lf": 76
+          },
+          {
+            "line": 7,
+            "key": "capture_timestamp",
+            "content_utf8": "capture_timestamp=2026-11-09T12:00:00+00:00",
+            "byte_offset": 196,
+            "byte_length_including_lf": 44
+          },
+          {
+            "line": 8,
+            "key": "device_reported_time",
+            "content_utf8": "device_reported_time=2026-11-09T12:00:00+00:00",
+            "byte_offset": 240,
+            "byte_length_including_lf": 47
+          },
+          {
+            "line": 9,
+            "key": "device_id",
+            "content_utf8": "device_id=site-abc‏def",
+            "byte_offset": 287,
+            "byte_length_including_lf": 25
+          },
+          {
+            "line": 10,
+            "key": "location",
+            "content_utf8": "location=none",
+            "byte_offset": 312,
+            "byte_length_including_lf": 14
+          }
+        ],
+        "location_bits_hex": null,
+        "signature": {
+          "der_hex": "3046022100b4c0f439a3f2565e88576afcea8f7bea12c71524cf4219f9f4ac1416e690ea10022100915f549e9cde9f69ab58f5ddaedb85b93e3004a9a1c11bdba83b01cdfd57eb91",
+          "base64": "MEYCIQC0wPQ5o/JWXohXavzqj3vqEscVJM9CGfn0rBQW5pDqEAIhAJFfVJ6c3p9pq1j13a7bhbk+MASpocEb26g7Ac39V+uR",
+          "length_bytes": 72,
+          "deterministic": "RFC 6979 (P-256, SHA-256)"
+        },
+        "record_hash_hex": "2e1bb2088c28c01ae2cf444d54b026e2af03a82a7666d854001ba7cbf1696b72",
+        "expected_verify": true
+      }
+    ]
+  },
+  "unicode_cases": {
+    "description": "Unicode cases: the protocol signs UTF-8 BYTES. NFC vs NFD vs bidi controls produce different bytes and therefore different signatures - both are valid, neither may be normalized. Swift rule: use String.utf8 (or Array(string.utf8)); never precomposedStringWith*. Python rule: str.encode('utf-8'); never unicodedata.normalize on the verification path.",
+    "cases": [
+      {
+        "id": "u1-cjk",
+        "text": "北京Beijing",
+        "utf8_hex": "e58c97e4baac4265696a696e67",
+        "length_bytes": 13,
+        "utf16_length_code_units": 9,
+        "sha256_hex": "4659be6e0077c4eeb1fc72c097ace26cb86dae3cd844886decad567f91e2334b",
+        "note": "Multibyte CJK text (3-byte UTF-8 units)"
+      },
+      {
+        "id": "u2-nfc-e",
+        "text": "é",
+        "utf8_hex": "c3a9",
+        "length_bytes": 2,
+        "utf16_length_code_units": 1,
+        "sha256_hex": "4a99557e4033c3539de2eb65472017cad5f9557f7a0625a09f1c3f6e2ba69c4c",
+        "note": "NFC precomposed LATIN SMALL LETTER E WITH ACUTE (2 UTF-8 bytes)"
+      },
+      {
+        "id": "u3-nfd-e",
+        "text": "é",
+        "utf8_hex": "65cc81",
+        "length_bytes": 3,
+        "utf16_length_code_units": 2,
+        "sha256_hex": "bf12767b0f2a56b2190075bae8169f656e3ce8d6357d4aff184bc6c7ea48f9f6",
+        "note": "NFD decomposed 'e' + U+0301 COMBINING ACUTE (3 UTF-8 bytes). Same visible glyph as u2, DIFFERENT bytes, therefore different signature. Never auto-normalize on either side."
+      },
+      {
+        "id": "u4-rlm",
+        "text": "site-a‏def",
+        "utf8_hex": "736974652d61e2808f646566",
+        "length_bytes": 12,
+        "utf16_length_code_units": 10,
+        "sha256_hex": "3cfeebf828a487280b7df335768e01daf94dccc7fc54da13c90920c9e90c33af",
+        "note": "Contains U+200F RIGHT-TO-LEFT MARK (zero-width bidi control). Allowed by the protocol (not a newline) and signed as-is."
+      },
+      {
+        "id": "u5-emoji-bridge",
+        "text": "🌉",
+        "utf8_hex": "f09f8c89",
+        "length_bytes": 4,
+        "utf16_length_code_units": 2,
+        "sha256_hex": "dd00299a1179ce7ff44a298a4245bcd3f674e02fde37da32f664b0700aaa0286",
+        "note": "Astral plane character U+1F309 (4-byte UTF-8 unit)"
+      },
+      {
+        "id": "u6-superscript",
+        "text": "éx²",
+        "utf8_hex": "65cc8178c2b2",
+        "length_bytes": 6,
+        "utf16_length_code_units": 4,
+        "sha256_hex": "5f1445c50526032cfb9cbe043182d5f39e72314fa7429e4ebdc6c0e067a9089c",
+        "note": "Combining mark + superscript two; multi-script mix"
+      },
+      {
+        "id": "u7-empty-string",
+        "text": "",
+        "utf8_hex": "",
+        "length_bytes": 0,
+        "utf16_length_code_units": 0,
+        "sha256_hex": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "note": "Empty string: 0 bytes; sha256 equals the FIPS empty-input KAT"
+      }
+    ]
+  },
+  "newline_cases": {
+    "description": "Newline discipline: payload lines are ALWAYS 0x0a (LF) only, including a final trailing LF. Any CR/LF variant rebuild must fail signature verification. Field values containing LF or CR are rejected by structure validation before crypto.",
+    "reject_cases": [
+      {
+        "id": "nl-r1-crlf-rebuild",
+        "tampered_payload_hex": "576f726b43616d2d5369672d76312e310d0a76657273696f6e3d312e310d0a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360d0a73657175656e63655f6e756d6265723d300d0a70726576696f75735f7265636f72645f686173683d6e6f6e650d0a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390d0a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300d0a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300d0a6465766963655f69643d773032332d6465766963652d3030310d0a6c6f636174696f6e3d6e6f6e650d0a",
+        "length_bytes": 337,
+        "signature_base64_used": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gb",
+        "expected_verify": false,
+        "note": "Same logical lines joined with CRLF. Swift-side trap: must fail."
+      },
+      {
+        "id": "nl-r2-cr-rebuild",
+        "tampered_payload_hex": "576f726b43616d2d5369672d76312e310d76657273696f6e3d312e310d7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360d73657175656e63655f6e756d6265723d300d70726576696f75735f7265636f72645f686173683d6e6f6e650d70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390d636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300d6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300d6465766963655f69643d773032332d6465766963652d3030310d6c6f636174696f6e3d6e6f6e650d",
+        "length_bytes": 327,
+        "signature_base64_used": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gb",
+        "expected_verify": false,
+        "note": "Same logical lines joined with bare CR. Must fail."
+      },
+      {
+        "id": "nl-r3-no-trailing-newline",
+        "tampered_payload_hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e65",
+        "length_bytes": 326,
+        "signature_base64_used": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gb",
+        "expected_verify": false,
+        "note": "Payload without the final 0x0a. Must fail."
+      },
+      {
+        "id": "nl-r4-double-trailing-newline",
+        "tampered_payload_hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a0a",
+        "length_bytes": 328,
+        "signature_base64_used": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gb",
+        "expected_verify": false,
+        "note": "Payload with an extra final newline. Must fail."
+      }
+    ],
+    "field_value_newline_rejection": {
+      "sample_field": "record_id",
+      "sample_value": "bad\\nid",
+      "expected": "rejected_by_structure_validation",
+      "production_error_sample": "record_id must not contain newlines"
+    }
+  },
+  "float_cases": {
+    "description": "Float serialization rules. v1.1 is the normative cross-language rule (10-significant-digit %.10g with integer detection and guaranteed decimal point); v1.0 uses Python repr semantics and is the known cross-language hazard (see proposal). The v1.1 rule must be ported VERBATIM to Swift - a bare String(format: \"%.10g\") is NOT sufficient (integer branch and '-0.0' handling differ). See W023CrosslangVectorTests.swift formatFloatV11() for the port.",
+    "v1_1_format_table": [
+      {
+        "input_double": 0.0,
+        "input_bits_hex": "0000000000000000",
+        "expected_v1_1_string": "0.0",
+        "branch": "integer-plus-.0"
+      },
+      {
+        "input_double": -0.0,
+        "input_bits_hex": "8000000000000000",
+        "expected_v1_1_string": "-0.0",
+        "branch": "dot-10g"
+      },
+      {
+        "input_double": 5.0,
+        "input_bits_hex": "4014000000000000",
+        "expected_v1_1_string": "5.0",
+        "branch": "integer-plus-.0"
+      },
+      {
+        "input_double": 39.9042,
+        "input_bits_hex": "4043f3bcd35a8588",
+        "expected_v1_1_string": "39.9042",
+        "branch": "dot-10g"
+      },
+      {
+        "input_double": 116.4074,
+        "input_bits_hex": "405d1a12d77318fc",
+        "expected_v1_1_string": "116.4074",
+        "branch": "dot-10g"
+      },
+      {
+        "input_double": 0.1,
+        "input_bits_hex": "3fb999999999999a",
+        "expected_v1_1_string": "0.1",
+        "branch": "dot-10g"
+      },
+      {
+        "input_double": 0.2,
+        "input_bits_hex": "3fc999999999999a",
+        "expected_v1_1_string": "0.2",
+        "branch": "dot-10g"
+      },
+      {
+        "input_double": 1.5,
+        "input_bits_hex": "3ff8000000000000",
+        "expected_v1_1_string": "1.5",
+        "branch": "dot-10g"
+      },
+      {
+        "input_double": -43.5,
+        "input_bits_hex": "c045c00000000000",
+        "expected_v1_1_string": "-43.5",
+        "branch": "dot-10g"
+      },
+      {
+        "input_double": 0.30000000000000004,
+        "input_bits_hex": "3fd3333333333334",
+        "expected_v1_1_string": "0.3",
+        "branch": "dot-10g"
+      },
+      {
+        "input_double": 0.000123456789,
+        "input_bits_hex": "3f202e85be111841",
+        "expected_v1_1_string": "0.000123456789",
+        "branch": "dot-10g"
+      },
+      {
+        "input_double": 1e-05,
+        "input_bits_hex": "3ee4f8b588e368f1",
+        "expected_v1_1_string": "1e-05",
+        "branch": "dot-10g"
+      },
+      {
+        "input_double": 1.5e-07,
+        "input_bits_hex": "3e8421f5f40d8376",
+        "expected_v1_1_string": "1.5e-07",
+        "branch": "dot-10g"
+      },
+      {
+        "input_double": 3.14159265358979,
+        "input_bits_hex": "400921fb54442d11",
+        "expected_v1_1_string": "3.141592654",
+        "branch": "dot-10g"
+      },
+      {
+        "input_double": 123456.789,
+        "input_bits_hex": "40fe240c9fbe76c9",
+        "expected_v1_1_string": "123456.789",
+        "branch": "dot-10g"
+      },
+      {
+        "input_double": 1234567.0,
+        "input_bits_hex": "4132d68700000000",
+        "expected_v1_1_string": "1234567.0",
+        "branch": "integer-plus-.0"
+      },
+      {
+        "input_double": 1000000000000000.0,
+        "input_bits_hex": "430c6bf526340000",
+        "expected_v1_1_string": "1000000000000000.0",
+        "branch": "integer-plus-.0"
+      },
+      {
+        "input_double": 1e+16,
+        "input_bits_hex": "4341c37937e08000",
+        "expected_v1_1_string": "10000000000000000.0",
+        "branch": "integer-plus-.0"
+      },
+      {
+        "input_double": 1e+20,
+        "input_bits_hex": "4415af1d78b58c40",
+        "expected_v1_1_string": "100000000000000000000.0",
+        "branch": "integer-plus-.0"
+      }
+    ],
+    "v1_0_repr_risk_table": [
+      {
+        "input_double": 39.9042,
+        "input_bits_hex": "4043f3bcd35a8588",
+        "python_v1_0_string": "39.9042",
+        "note": "v1.0 embeds floats with Python str()/repr() shortest-round-trip formatting. Swift String(describing:) is NOT guaranteed byte-equal for these (exponent thresholds differ between the two runtimes) - this is the documented v1.0 drift risk. Swift output for the same bits: PENDING_MAC_VERIFICATION."
+      },
+      {
+        "input_double": 0.1,
+        "input_bits_hex": "3fb999999999999a",
+        "python_v1_0_string": "0.1",
+        "note": "v1.0 embeds floats with Python str()/repr() shortest-round-trip formatting. Swift String(describing:) is NOT guaranteed byte-equal for these (exponent thresholds differ between the two runtimes) - this is the documented v1.0 drift risk. Swift output for the same bits: PENDING_MAC_VERIFICATION."
+      },
+      {
+        "input_double": -0.0,
+        "input_bits_hex": "8000000000000000",
+        "python_v1_0_string": "-0.0",
+        "note": "v1.0 embeds floats with Python str()/repr() shortest-round-trip formatting. Swift String(describing:) is NOT guaranteed byte-equal for these (exponent thresholds differ between the two runtimes) - this is the documented v1.0 drift risk. Swift output for the same bits: PENDING_MAC_VERIFICATION."
+      },
+      {
+        "input_double": 1.5,
+        "input_bits_hex": "3ff8000000000000",
+        "python_v1_0_string": "1.5",
+        "note": "v1.0 embeds floats with Python str()/repr() shortest-round-trip formatting. Swift String(describing:) is NOT guaranteed byte-equal for these (exponent thresholds differ between the two runtimes) - this is the documented v1.0 drift risk. Swift output for the same bits: PENDING_MAC_VERIFICATION."
+      },
+      {
+        "input_double": 0.30000000000000004,
+        "input_bits_hex": "3fd3333333333334",
+        "python_v1_0_string": "0.30000000000000004",
+        "note": "v1.0 embeds floats with Python str()/repr() shortest-round-trip formatting. Swift String(describing:) is NOT guaranteed byte-equal for these (exponent thresholds differ between the two runtimes) - this is the documented v1.0 drift risk. Swift output for the same bits: PENDING_MAC_VERIFICATION."
+      },
+      {
+        "input_double": 1000000000000000.0,
+        "input_bits_hex": "430c6bf526340000",
+        "python_v1_0_string": "1000000000000000.0",
+        "note": "v1.0 embeds floats with Python str()/repr() shortest-round-trip formatting. Swift String(describing:) is NOT guaranteed byte-equal for these (exponent thresholds differ between the two runtimes) - this is the documented v1.0 drift risk. Swift output for the same bits: PENDING_MAC_VERIFICATION."
+      },
+      {
+        "input_double": 1e+16,
+        "input_bits_hex": "4341c37937e08000",
+        "python_v1_0_string": "1e+16",
+        "note": "v1.0 embeds floats with Python str()/repr() shortest-round-trip formatting. Swift String(describing:) is NOT guaranteed byte-equal for these (exponent thresholds differ between the two runtimes) - this is the documented v1.0 drift risk. Swift output for the same bits: PENDING_MAC_VERIFICATION."
+      },
+      {
+        "input_double": 1e-05,
+        "input_bits_hex": "3ee4f8b588e368f1",
+        "python_v1_0_string": "1e-05",
+        "note": "v1.0 embeds floats with Python str()/repr() shortest-round-trip formatting. Swift String(describing:) is NOT guaranteed byte-equal for these (exponent thresholds differ between the two runtimes) - this is the documented v1.0 drift risk. Swift output for the same bits: PENDING_MAC_VERIFICATION."
+      }
+    ],
+    "rules": [
+      "R1: only finite values (NaN/Infinity rejected before formatting)",
+      "R2: if the value is an integer value (value == int(value)) and not negative zero, emit the integer digits followed by '.0'",
+      "R3: otherwise emit %.10g (10 significant digits); if the result has neither '.' nor an exponent, append '.0'",
+      "R4: negative zero formats as '-0.0'",
+      "R5: values with exponent < -4 render in exponential form ('1e-05', '1.5e-07')"
+    ],
+    "swift_status": "Expected strings are Python-side ground truth (recomputed independently by the generator AND cross-checked against production _format_float). Swift outputs for the same bit patterns: PENDING_MAC_VERIFICATION."
+  },
+  "null_absent_cases": {
+    "description": "null vs absent equivalence: JSON null, key-absent and (for location/altitude) empty inner values all serialize to 'none' in the canonical payload and are INTERCHANGEABLE. A signature made from the null form verifies under the absent form and vice versa. Swift rule: model these fields as optionals and decode with decodeIfPresent (JSONDecoder maps both null and absent to nil). The empty-string trap ('' serializes to 'key=' not 'key=none') is NOT equivalent and is rejected by structure validation.",
+    "equivalence_case": {
+      "manifest_json_with_nulls": {
+        "version": "1.1",
+        "record_id": "023-null-void-1111-4222-8333-444455556666",
+        "sequence_number": 0,
+        "previous_record_hash": null,
+        "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+        "capture_timestamp": "2026-11-09T12:00:00+00:00",
+        "device_reported_time": "2026-11-09T12:00:00+00:00",
+        "device_id": "w023-device-001",
+        "location": null,
+        "signature": "MEYCIQDmLJ51HKe6P5E+aG1gdxbePnAxan6+CXoQ/tom48PqJQIhAO6TnQqLLnAIdb8b1/eakZXmWHtfAkZV1hBkjUR6HBDC",
+        "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+      },
+      "manifest_json_with_absent_keys": {
+        "version": "1.1",
+        "record_id": "023-null-void-1111-4222-8333-444455556666",
+        "sequence_number": 0,
+        "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+        "capture_timestamp": "2026-11-09T12:00:00+00:00",
+        "device_reported_time": "2026-11-09T12:00:00+00:00",
+        "device_id": "w023-device-001",
+        "signature": "MEYCIQDmLJ51HKe6P5E+aG1gdxbePnAxan6+CXoQ/tom48PqJQIhAO6TnQqLLnAIdb8b1/eakZXmWHtfAkZV1hBkjUR6HBDC",
+        "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+      },
+      "canonical_payload_hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d3032332d6e756c6c2d766f69642d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a",
+      "signature": {
+        "der_hex": "3046022100e62c9e751ca7ba3f913e686d607716de3e70316a7ebe097a10feda26e3c3ea25022100ee939d0a8b2e700875bf1bd7f79a9195e6587b5f024655d610648d447a1c10c2",
+        "base64": "MEYCIQDmLJ51HKe6P5E+aG1gdxbePnAxan6+CXoQ/tom48PqJQIhAO6TnQqLLnAIdb8b1/eakZXmWHtfAkZV1hBkjUR6HBDC",
+        "length_bytes": 72
+      },
+      "expected_verify": true,
+      "note": "Both JSON forms MUST rebuild the same payload bytes and the same verification result."
+    },
+    "altitude_null_vs_absent_payload_hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d3032332d6e756c6c2d766f69642d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d312e302c322e302c332e302c6e6f6e650a",
+    "empty_string_trap": {
+      "field": "previous_record_hash",
+      "value": "",
+      "payload_line": "previous_record_hash=",
+      "expected": "rejected_by_structure_validation",
+      "production_error_sample": "previous_record_hash must be 64 hex characters when present"
+    }
+  },
+  "gps_cases": {
+    "description": "GPS coordinate rules shared by both ends: bounds validation BEFORE serialization (Swift must implement the same ranges), sign and precision are preserved by the v1.1 float rule, -0.0 is signed as '-0.0' (not normalized to '0.0').",
+    "valid_cases": [
+      {
+        "id": "gps-ok-1",
+        "location_bits_hex": {
+          "latitude": "4043f3bcd35a8588",
+          "longitude": "405d1a12d77318fc",
+          "horizontal_accuracy": "4014000000000000",
+          "altitude": "4045c00000000000"
+        },
+        "location": {
+          "latitude": 39.9042,
+          "longitude": 116.4074,
+          "horizontal_accuracy": 5.0,
+          "altitude": 43.5
+        },
+        "expected_v1_1_string": "39.9042,116.4074,5.0,43.5",
+        "expected": "accepted",
+        "note": "typical Beijing coordinate"
+      },
+      {
+        "id": "gps-ok-2",
+        "location_bits_hex": {
+          "latitude": "4056800000000000",
+          "longitude": "4066800000000000",
+          "horizontal_accuracy": "3f50624dd2f1a9fc",
+          "altitude": "40f86a0000000000"
+        },
+        "location": {
+          "latitude": 90.0,
+          "longitude": 180.0,
+          "horizontal_accuracy": 0.001,
+          "altitude": 100000.0
+        },
+        "expected_v1_1_string": "90.0,180.0,0.001,100000.0",
+        "expected": "accepted",
+        "note": "upper bounds incl. altitude ceiling"
+      },
+      {
+        "id": "gps-ok-3",
+        "location_bits_hex": {
+          "latitude": "c056800000000000",
+          "longitude": "c066800000000000",
+          "horizontal_accuracy": "3fe0000000000000",
+          "altitude": "c08f400000000000"
+        },
+        "location": {
+          "latitude": -90.0,
+          "longitude": -180.0,
+          "horizontal_accuracy": 0.5,
+          "altitude": -1000.0
+        },
+        "expected_v1_1_string": "-90.0,-180.0,0.5,-1000.0",
+        "expected": "accepted",
+        "note": "lower bounds incl. altitude floor"
+      },
+      {
+        "id": "gps-ok-4",
+        "location_bits_hex": {
+          "latitude": "0000000000000000",
+          "longitude": "0000000000000000",
+          "horizontal_accuracy": "3ff0000000000000"
+        },
+        "location": {
+          "latitude": 0.0,
+          "longitude": 0.0,
+          "horizontal_accuracy": 1.0,
+          "altitude": null
+        },
+        "expected_v1_1_string": "0.0,0.0,1.0,none",
+        "expected": "accepted",
+        "note": "origin, altitude null -> 'none'"
+      },
+      {
+        "id": "gps-ok-5",
+        "location_bits_hex": {
+          "latitude": "8000000000000000",
+          "longitude": "8000000000000000",
+          "horizontal_accuracy": "3ff0000000000000",
+          "altitude": "0000000000000000"
+        },
+        "location": {
+          "latitude": -0.0,
+          "longitude": -0.0,
+          "horizontal_accuracy": 1.0,
+          "altitude": 0.0
+        },
+        "expected_v1_1_string": "-0.0,-0.0,1.0,0.0",
+        "expected": "accepted",
+        "note": "negative zeros: '-0.0' is legal and signed as-is"
+      }
+    ],
+    "reject_cases": [
+      {
+        "id": "gps-r1-lat-above-90",
+        "note": "latitude > 90",
+        "expected": "rejected_by_model_validation",
+        "bounds": "latitude in [-90, 90]; longitude in [-180, 180]; horizontal_accuracy > 0; altitude in [-1000, 100000] or null; NaN/Infinity always rejected"
+      },
+      {
+        "id": "gps-r2-lon-below-180",
+        "note": "longitude < -180",
+        "expected": "rejected_by_model_validation",
+        "bounds": "latitude in [-90, 90]; longitude in [-180, 180]; horizontal_accuracy > 0; altitude in [-1000, 100000] or null; NaN/Infinity always rejected"
+      },
+      {
+        "id": "gps-r3-acc-zero",
+        "note": "horizontal_accuracy must be > 0",
+        "expected": "rejected_by_model_validation",
+        "bounds": "latitude in [-90, 90]; longitude in [-180, 180]; horizontal_accuracy > 0; altitude in [-1000, 100000] or null; NaN/Infinity always rejected"
+      },
+      {
+        "id": "gps-r4-acc-negative",
+        "note": "negative accuracy",
+        "expected": "rejected_by_model_validation",
+        "bounds": "latitude in [-90, 90]; longitude in [-180, 180]; horizontal_accuracy > 0; altitude in [-1000, 100000] or null; NaN/Infinity always rejected"
+      },
+      {
+        "id": "gps-r5-alt-below-floor",
+        "note": "altitude < -1000",
+        "expected": "rejected_by_model_validation",
+        "bounds": "latitude in [-90, 90]; longitude in [-180, 180]; horizontal_accuracy > 0; altitude in [-1000, 100000] or null; NaN/Infinity always rejected"
+      },
+      {
+        "id": "gps-r6-alt-above-ceiling",
+        "note": "altitude > 100000",
+        "expected": "rejected_by_model_validation",
+        "bounds": "latitude in [-90, 90]; longitude in [-180, 180]; horizontal_accuracy > 0; altitude in [-1000, 100000] or null; NaN/Infinity always rejected"
+      },
+      {
+        "id": "gps-r7-nan-lat",
+        "note": "NaN latitude (constructed at model layer; cannot appear in valid JSON)",
+        "expected": "rejected_by_model_validation",
+        "bounds": "latitude in [-90, 90]; longitude in [-180, 180]; horizontal_accuracy > 0; altitude in [-1000, 100000] or null; NaN/Infinity always rejected"
+      },
+      {
+        "id": "gps-r8-inf-lon",
+        "note": "Infinity longitude (constructed at model layer)",
+        "expected": "rejected_by_model_validation",
+        "bounds": "latitude in [-90, 90]; longitude in [-180, 180]; horizontal_accuracy > 0; altitude in [-1000, 100000] or null; NaN/Infinity always rejected"
+      }
+    ]
+  },
+  "iso8601_cases": {
+    "description": "ISO 8601 rules. CRITICAL cross-language rule: the timestamp inside the canonical payload is an OPAQUE STRING - never parse-then-reformat it. 'Z' and '+00:00' denote the same instant but are different bytes with different signatures. The production validator is a SHAPE regex, not a calendar: e.g. 2026-13-01T00:00:00Z passes the shape check (documented finding; tightening proposed in the proposal doc, not implemented here).",
+    "valid_cases": [
+      {
+        "id": "ts-ok-1-z",
+        "value": "2026-11-09T12:00:00Z",
+        "expected": "accepted",
+        "note": "Z designator"
+      },
+      {
+        "id": "ts-ok-2-zero-offset",
+        "value": "2026-11-09T12:00:00+00:00",
+        "expected": "accepted",
+        "note": "explicit +00:00"
+      },
+      {
+        "id": "ts-ok-3-plus-8",
+        "value": "2026-11-09T20:00:00+08:00",
+        "expected": "accepted",
+        "note": "east of UTC"
+      },
+      {
+        "id": "ts-ok-4-minus-5",
+        "value": "2026-11-09T07:00:00-05:00",
+        "expected": "accepted",
+        "note": "west of UTC"
+      },
+      {
+        "id": "ts-ok-5-millis",
+        "value": "2026-11-09T12:00:00.123+00:00",
+        "expected": "accepted",
+        "note": "fractional seconds"
+      },
+      {
+        "id": "ts-ok-6-micros-z",
+        "value": "2026-11-09T12:00:00.123456Z",
+        "expected": "accepted",
+        "note": "fractional + Z"
+      },
+      {
+        "id": "ts-ok-7-plus-14",
+        "value": "2026-11-10T02:00:00+14:00",
+        "expected": "accepted",
+        "note": "extreme east offset"
+      },
+      {
+        "id": "ts-ok-8-minus-12",
+        "value": "2026-11-09T00:00:00-12:00",
+        "expected": "accepted",
+        "note": "extreme west offset"
+      }
+    ],
+    "invalid_cases": [
+      {
+        "id": "ts-r1-space-separator",
+        "value": "2026-11-09 12:00:00Z",
+        "expected": "rejected_by_iso8601_validation",
+        "note": "space instead of T"
+      },
+      {
+        "id": "ts-r2-date-only",
+        "value": "2026-11-09",
+        "expected": "rejected_by_iso8601_validation",
+        "note": "date without time"
+      },
+      {
+        "id": "ts-r3-no-tz",
+        "value": "2026-11-09T12:00:00",
+        "expected": "rejected_by_iso8601_validation",
+        "note": "missing timezone designator"
+      },
+      {
+        "id": "ts-r4-offset-no-colon",
+        "value": "2026-11-09T12:00:00+0800",
+        "expected": "rejected_by_iso8601_validation",
+        "note": "offset without colon"
+      },
+      {
+        "id": "ts-r5-slashes",
+        "value": "2026/11/09T12:00:00Z",
+        "expected": "rejected_by_iso8601_validation",
+        "note": "slash separators"
+      },
+      {
+        "id": "ts-r6-lowercase",
+        "value": "2026-11-09t12:00:00z",
+        "expected": "rejected_by_iso8601_validation",
+        "note": "lowercase t/z (rejected by regex shape)"
+      },
+      {
+        "id": "ts-r7-offset-one-digit",
+        "value": "2026-11-09T12:00:00+00:0",
+        "expected": "rejected_by_iso8601_validation",
+        "note": "offset minutes one digit"
+      },
+      {
+        "id": "ts-r8-tz-only-hours",
+        "value": "2026-11-09T12:00:00+00",
+        "expected": "rejected_by_iso8601_validation",
+        "note": "offset hours only"
+      }
+    ],
+    "shape_only_accepted_example": {
+      "value": "2026-13-01T00:00:00Z",
+      "finding": "month 13 passes the shape regex; the production validator does not check calendar semantics"
+    }
+  },
+  "timezone_cases": {
+    "description": "Timezone offsets: three textual representations of the SAME UTC instant. Each has different bytes and therefore a different signature. A verifier that normalizes timestamps (e.g. Swift ISO8601DateFormatter parse then re-format) will rebuild different payload bytes and break verification. Rule: compare and sign the literal string.",
+    "same_instant_representations": [
+      {
+        "value": "2026-11-09T12:00:00Z",
+        "utf8_hex": "323032362d31312d30395431323a30303a30305a",
+        "sha256_of_utf8": "18fb36e580c7f62b46409db79049f515e68ad7b31d793020a97bee47f0941eb0"
+      },
+      {
+        "value": "2026-11-09T12:00:00+00:00",
+        "utf8_hex": "323032362d31312d30395431323a30303a30302b30303a3030",
+        "sha256_of_utf8": "3f2ce27ddf702a8e70b2beb2b85b5256bc2b2c4d1963ff02bfdef542ca972900"
+      },
+      {
+        "value": "2026-11-09T20:00:00+08:00",
+        "utf8_hex": "323032362d31312d30395432303a30303a30302b30383a3030",
+        "sha256_of_utf8": "bfcf2d47c200ca85e6c828a9bd0ab60f4889cfa07e731c2e36e128ed330338b9"
+      }
+    ],
+    "rule": "bytes_in_payload_are_the_contract: capture_timestamp and device_reported_time are signed as opaque strings"
+  },
+  "field_order_cases": {
+    "description": "Field order: the canonical payload uses a FIXED field order (see fixed_order below), independent of the JSON key order of the incoming manifest. Both ends MUST rebuild lines in this exact order - never rely on dictionary/JSONEncoder ordering. This case is signed once; a verifier loading the shuffled-order JSON must rebuild identical payload bytes and the signature must verify.",
+    "fixed_order": [
+      "version",
+      "record_id",
+      "sequence_number",
+      "previous_record_hash",
+      "photo_hash",
+      "capture_timestamp",
+      "device_reported_time",
+      "device_id",
+      "location"
+    ],
+    "shuffled_json_equivalence_case": {
+      "manifest_json_key_order_shuffled": {
+        "device_id": "w023-device-001",
+        "location": {
+          "latitude": 1.25,
+          "longitude": 2.5,
+          "horizontal_accuracy": 6.75,
+          "altitude": null
+        },
+        "photo_hash": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+        "version": "1.1",
+        "device_reported_time": "2026-11-09T12:00:00+00:00",
+        "record_id": "023-order-7777-1111-4222-8333-444455556666",
+        "sequence_number": 0,
+        "previous_record_hash": null,
+        "capture_timestamp": "2026-11-09T12:00:00+00:00",
+        "signature": "MEYCIQCH/MgSCegaiIe/UoyqVIj0AAxkhbZFeQjtyYZiFGPQ4AIhAPQTFI5VP89QOuwoVYH6ffVDC7XJAuOPUnDUWqX9YODS",
+        "public_key": "BKxEaGX0h+Hgz5yxaRJ8I2z3W6Rz9vfEPiiWISM0eFfHB/d69IbeyY4CpbJ9/NA4Cry/wuiAvtAznmVadG/ekXs="
+      },
+      "canonical_payload_hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d3032332d6f726465722d373737372d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d312e32352c322e352c362e37352c6e6f6e650a",
+      "signature": {
+        "der_hex": "304602210087fcc81209e81a8887bf528caa5488f4000c6485b6457908edc986621463d0e0022100f413148e553fcf503aec285581fa7df5430bb5c902e38f5270d45aa5fd60e0d2",
+        "base64": "MEYCIQCH/MgSCegaiIe/UoyqVIj0AAxkhbZFeQjtyYZiFGPQ4AIhAPQTFI5VP89QOuwoVYH6ffVDC7XJAuOPUnDUWqX9YODS",
+        "length_bytes": 72
+      },
+      "expected_verify": true
+    },
+    "canonical_json_note": "If/when the protocol ever signs JSON directly, use RFC 8785 (JCS) canonicalization - proposed in docs/crosslang-serialization-proposal.md, NOT part of v1.x."
+  },
+  "tamper_cases": {
+    "description": "Tamper cases: every modification of one byte (payload, signature, base64 layer, DER layer, domain separator, timezone digit) must cause verification failure. Both implementations must reject every case in this list.",
+    "base_case": "v11-minimal-no-location",
+    "reject_cases": [
+      {
+        "id": "t01-flip-domain-byte",
+        "base_case": "v11-minimal-no-location",
+        "flip_index": 3,
+        "tampered_payload_hex": "576f726a43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a",
+        "signature_base64_used": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gb",
+        "expected_verify": false,
+        "note": "single byte flipped inside the domain separator line"
+      },
+      {
+        "id": "t02-flip-photo-hash-byte",
+        "base_case": "v11-minimal-no-location",
+        "flip_index": 131,
+        "tampered_payload_hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d363835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a",
+        "signature_base64_used": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gb",
+        "expected_verify": false,
+        "note": "first byte of photo_hash value flipped"
+      },
+      {
+        "id": "t03-flip-last-byte",
+        "base_case": "v11-minimal-no-location",
+        "flip_index": 326,
+        "tampered_payload_hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650b",
+        "signature_base64_used": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gb",
+        "expected_verify": false,
+        "note": "final 0x0a flipped to 0x0b"
+      },
+      {
+        "id": "t04-version-field-flip",
+        "base_case": "v11-minimal-no-location",
+        "flip_index": 25,
+        "tampered_payload_hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d302e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a",
+        "signature_base64_used": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gb",
+        "expected_verify": false,
+        "note": "'1.1' -> '0.1' single-byte change in the version line"
+      },
+      {
+        "id": "t05-location-lat-last-digit",
+        "base_case": "v11-location-full",
+        "tampered_payload_hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d33392e393034332c3131362e343037342c352e302c34332e350a",
+        "signature_base64_used": "MEUCIQDwyWA+JR4+H9eOgllmbthMMxiByEJLfl+ajGc3FOFAUgIgJTtCNpYsJRb4LcXWJqSuDb7YJAhhjQIEhNLKBxeMoeg=",
+        "expected_verify": false,
+        "note": "latitude 39.9042 -> 39.9043 (one decimal digit)"
+      },
+      {
+        "id": "t06-timestamp-offset-change",
+        "base_case": "v11-minimal-no-location",
+        "tampered_payload_hex": "576f726b43616d2d5369672d76312e310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30313a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30313a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a",
+        "signature_base64_used": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gb",
+        "expected_verify": false,
+        "note": "timezone offset +00:00 -> +01:00 (same clock reading, different offset)"
+      },
+      {
+        "id": "t07-domain-separator-swap",
+        "base_case": "v11-minimal-no-location",
+        "tampered_payload_hex": "576f726b43616d2d5369672d76310a76657273696f6e3d312e310a7265636f72645f69643d30323361316232632d313131312d343232322d383333332d3434343435353535363636360a73657175656e63655f6e756d6265723d300a70726576696f75735f7265636f72645f686173683d6e6f6e650a70686f746f5f686173683d373835623037353166633263353364633134613463653364383030653639656639636531303039656233323763636634353861666530396332343263323663390a636170747572655f74696d657374616d703d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f7265706f727465645f74696d653d323032362d31312d30395431323a30303a30302b30303a30300a6465766963655f69643d773032332d6465766963652d3030310a6c6f636174696f6e3d6e6f6e650a",
+        "signature_base64_used": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gb",
+        "expected_verify": false,
+        "note": "domain line v1.1 -> v1.0 while version field still says 1.1"
+      },
+      {
+        "id": "t08-signature-byte-flip",
+        "base_case": "v11-minimal-no-location",
+        "tampered_signature_base64": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8ga",
+        "der_structure_after_flip": "valid",
+        "expected_verify": false,
+        "note": "last DER byte flipped; may still parse as DER but verification must fail"
+      },
+      {
+        "id": "t09-signature-truncated",
+        "base_case": "v11-minimal-no-location",
+        "tampered_signature_base64": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplow==",
+        "expected_der_structure": "rejected_by_der_structure_check",
+        "expected_verify": false,
+        "note": "8 bytes removed from the end"
+      },
+      {
+        "id": "t10-signature-trailing-garbage",
+        "base_case": "v11-minimal-no-location",
+        "tampered_signature_base64": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8gbAAA=",
+        "expected_der_structure": "rejected_by_der_structure_check",
+        "expected_verify": false,
+        "note": "two zero bytes appended"
+      },
+      {
+        "id": "t11-signature-rs-swapped",
+        "base_case": "v11-minimal-no-location",
+        "tampered_signature_base64": "MEYCIQCuySKts0XvOaaJphI4GH0/3WRUFIqaZaOjoOOyxH/IGwIhAPNzhJwcxZ0KVL8r7blJgVr6dsb/0o4xFgJ2sZr+FTaH",
+        "expected_verify": false,
+        "note": "valid DER with r and s exchanged (structural check passes, crypto must fail)"
+      },
+      {
+        "id": "t12-signature-base64-char-swap",
+        "base_case": "v11-minimal-no-location",
+        "tampered_signature_base64": "MEYCIQDzc4ScHMWdClS/K+25SYFa+nbG/9KOMRYCdrGa/hU2hwIhAK7JIq2zRe85pommEjgYfT/dZFQUipplo6Og47LEf8g=",
+        "expected": "verification_failed",
+        "note": "final base64 character replaced (payload bytes may or may not change)"
+      },
+      {
+        "id": "t13-wrong-key-signature",
+        "base_case": "v11-minimal-no-location",
+        "tampered_signature_base64": "MEUCIQDjnxUcGChkiG+b0KX3X5Hxds8LDCFrajPoWiZcO9DxvwIgPuaNV2Mz4A/RILO/5ahPK1YJ4mI85Ku2BhI0Mek5Bg8=",
+        "expected_verify": false,
+        "note": "structurally valid DER signature produced by a DIFFERENT P-256 key over the same payload"
+      }
+    ]
+  },
+  "version_cases": {
+    "description": "Protocol version compatibility. The version field value is BOUND to the domain separator line. Unknown versions are rejected by structure validation. REVIEW FINDING (recorded as-is, not changed here): the production canonical_payload silently falls back to the v1.0 domain separator for any version string outside {'1.0','1.1'}; a Swift port MUST NOT copy this fallback - it must reject unknown versions before serialization (the structural check does reject the manifest first, so the fallback is unreachable through the public API, but it is still a divergence trap for fresh implementations).",
+    "binding_table": {
+      "1.0": "WorkCam-Sig-v1",
+      "1.1": "WorkCam-Sig-v1.1"
+    },
+    "unknown_version_behavior": {
+      "version": "2.0",
+      "canonical_domain_used_by_production": "WorkCam-Sig-v1",
+      "structure_validation": "rejected (Unsupported version)",
+      "production_error_sample": "Unsupported version '2.0'; supported: ['1.0', '1.1']",
+      "cross_lang_rule": "Both ends MUST check version in {'1.0','1.1'} BEFORE building the payload and MUST reject otherwise. Do not reproduce the Python fallback domain separator."
+    },
+    "positive_cases": {
+      "1.0": "see signed_manifest_cases[v10-minimal-no-location]",
+      "1.1": "see signed_manifest_cases[v11-minimal-no-location]"
+    },
+    "negative_cases": [
+      "t04-version-field-flip (version line byte change breaks signature)",
+      "t07-domain-separator-swap (domain/version mismatch breaks signature)"
+    ]
+  }
+}
