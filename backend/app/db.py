@@ -349,6 +349,7 @@ CREATE TABLE IF NOT EXISTS mvp_issue_links (
     PRIMARY KEY (issue_id, annotation_id)
 );
 """,
+
     # v9 (B02-W014): extend the sync event stream to annotations and
     # issues. SQLite cannot ALTER a CHECK constraint, so the table is
     # REBUILT (same approach as the v3 evidence_links rebuild):
@@ -460,6 +461,25 @@ CREATE TABLE IF NOT EXISTS mvp_photo_exports (
     12: """
     ALTER TABLE mvp_issues ADD COLUMN remediation_note TEXT NOT NULL DEFAULT '';
 """,
+    # v11 (B02-W025): storage-space management. Per-project quota MODEL
+    # ONLY - enforcement is NOT wired into any production route (the
+    # task brief requires detection/reporting; deletion and hard
+    # enforcement are product decisions). policy='report_only' is the
+    # only value production code may assume; 'enforce_reject' exists in
+    # the vocabulary so the model can express the future product
+    # decision without another migration. v9/v10 are reserved for
+    # B02-W014 / B02-W017 - migrate() applies by sorted key so gaps
+    # are legal.
+    11: """
+    CREATE TABLE IF NOT EXISTS mvp_storage_quota (
+        project_id  TEXT PRIMARY KEY REFERENCES mvp_projects(project_id),
+        quota_bytes INTEGER NOT NULL CHECK (quota_bytes >= 0),
+        policy      TEXT NOT NULL DEFAULT 'report_only'
+                    CHECK (policy IN ('report_only', 'enforce_reject')),
+        updated_at  TEXT NOT NULL,
+        updated_by  TEXT NOT NULL DEFAULT ''
+    );
+    """,
 }
 
 _write_lock = threading.Lock()

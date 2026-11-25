@@ -203,7 +203,10 @@ def test_rc2_v1_to_latest_sequential_migration(tmp_path, monkeypatch):
     Updated in B02-W017: version numbers may SKIP (v10 here avoids
     colliding with the B02-W014 branch's v9) - the walk iterates the
     versions that actually exist, which is exactly what migrate()
-    does (sorted keys)."""
+    does (sorted keys).
+    Updated in B02-W025: migration NUMBERS may have GAPS - user_version
+    still lands on every APPLIED level, matching migrate()'s own
+    behaviour on a gapped dictionary."""
     import app.db as dbm
     import sqlite3
     db = tmp_path / "seq.db"

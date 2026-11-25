@@ -15,6 +15,7 @@ from app.api.derivatives import router as derivatives_router
 from app.api.reports import router as reports_router
 from app.api.inspection import router as inspection_router
 from app.api.photo_batch import router as photo_batch_router
+from app.api.storage import router as storage_router
 from app.services.security_config import check_startup_security
 
 logging.basicConfig(level=logging.INFO)
@@ -59,6 +60,7 @@ app.include_router(device_admin_router)  # /api/v1/devices (W009)
 app.include_router(derivatives_router)  # /api/v1 derivatives (W011)
 app.include_router(reports_router)    # /api/v1 reports (W012)
 app.include_router(inspection_router)  # /api/v1 annotations+issues (W013)
+app.include_router(storage_router)    # /api/v1 storage ops (B02-W025)
 
 # W009: startup security guards - dangerous configurations abort boot
 # (fail_fast=True) or print warnings; prints go to stderr.
