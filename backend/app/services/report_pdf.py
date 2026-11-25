@@ -34,7 +34,7 @@ from reportlab.platypus import (
     Paragraph, Spacer, Table, TableStyle,
 )
 
-REPORTS_VERSION = "1"
+REPORTS_VERSION = "2"
 
 
 class ReportType(str, Enum):
@@ -86,6 +86,16 @@ class ReportMeta:
     include_evidence_appendix: bool = False
     # W013-R1: issue snapshot (list of issue dicts from the API)
     issue_snapshot: list | None = None
+    # B02-W015: inspector + project metadata block (MANUAL INPUT)
+    inspector_name: str = ""
+    inspector_title: str = ""
+    project_metadata: dict = field(default_factory=dict)
+    # B02-W015: LiDAR measurement record references. Each item is a
+    # dict {record_id, description, related_issue_id?, data_status}.
+    # data_status defaults to DEVICE_PENDING - real-device LiDAR data
+    # has NOT been captured yet; every row renders as an EXPERIMENTAL
+    # MEASUREMENT reference, never as a verified survey result.
+    lidar_measurements: list | None = None
 
 
 # ---------------------------------------------------------------- palette
@@ -105,6 +115,58 @@ _EVIDENCE_TEXT = {
     "verification_failed": "Verification failed",
     "server_anchored": "Server anchored",
 }
+
+# B02-W015: four-tier source classification. EVERY content element in
+# the report carries one of these labels so a reader can tell raw
+# captures from human records, from experimental measurements, from
+# generated images. Wording rule: nothing in this report is presented
+# as a legal certification or attestation.
+SOURCE_CLASSES = [
+    ("RAW EVIDENCE",
+     "Original capture bytes as uploaded; immutable in storage; "
+     "SHA-256 recorded in this report."),
+    ("MANUAL INPUT",
+     "Human-entered record (severity, status, remediation notes, "
+     "inspector details, sign-off). Not an automated assessment."),
+    ("EXPERIMENTAL MEASUREMENT",
+     "Sensor estimate under laboratory test conditions (LiDAR "
+     "depth). Not survey-grade; device data status stated per row."),
+    ("DERIVED IMAGE",
+     "Image generated from an original (watermark, annotation or "
+     "comparison render). Never a substitute for the original."),
+]
+
+_SEVERITY_ORDER = ["low", "medium", "high", "critical"]
+_STATUS_ORDER = ["open", "in_progress", "resolved", "closed"]
+
+_LIDAR_STATUS_TEXT = {
+    "DEVICE_PENDING": "DEVICE_PENDING - real-device data not captured",
+    "DEVICE_VERIFIED": "Device data verified in the B02-W016 experiment",
+    "DESKTOP_SIMULATION": "Synthetic simulation data - not device results",
+}
+
+
+def _severity_breakdown(issues: list) -> dict:
+    counts = {s: 0 for s in _SEVERITY_ORDER}
+    for iss in issues:
+        sev = iss.get("severity")
+        if sev in counts:
+            counts[sev] += 1
+    return counts
+
+
+def _status_summary(issues: list) -> dict:
+    counts = {s: 0 for s in _STATUS_ORDER}
+    for iss in issues:
+        st = iss.get("status")
+        if st in counts:
+            counts[st] += 1
+    return counts
+
+
+def _ref_map(ids: list, prefix: str) -> dict:
+    """Stable report-scoped reference numbers: PH-001 / ISS-001 ..."""
+    return {i: f"{prefix}-{n + 1:03d}" for n, i in enumerate(ids)}
 
 
 def _styles():
@@ -183,29 +245,8 @@ class _ReportDoc(BaseDocTemplate):
 # ------------------------------------------------------------- front page
 
 
-def _front_page(story, meta: ReportMeta, styles, report_type: ReportType,
-                 count: int):
-    m = meta
-    story.append(Spacer(1, 0.35 * inch))
-    story.append(Paragraph(_escape(m.project_name), styles["title"]))
-    story.append(Paragraph(_escape(m.site_address), styles["subtitle"]))
-    story.append(Spacer(1, 0.10 * inch))
-    type_label = {
-        ReportType.SITE_PHOTO: "Site Photo Report",
-        ReportType.INSPECTION: "Inspection Report",
-        ReportType.EVIDENCE: "Evidence Report",
-    }[report_type]
-    story.append(Paragraph(
-        f"{type_label} - {count} photo(s)", styles["subtitle"]))
-    story.append(Spacer(1, 0.18 * inch))
-
-    info = [
-        ["Report No.", m.report_number],
-        ["Generated", m.generated_at],
-        ["Operator", m.operator or "-"],
-        ["Company", m.company_name or "-"],
-    ]
-    t = Table(info, colWidths=[1.3 * inch, 5.2 * inch])
+def _info_table(rows: list, styles) -> Table:
+    t = Table(rows, colWidths=[1.3 * inch, 5.2 * inch])
     t.setStyle(TableStyle([
         ("FONT", (0, 0), (0, -1), "Helvetica-Bold", 8.5),
         ("FONT", (1, 0), (1, -1), "Helvetica", 8.5),
@@ -215,8 +256,83 @@ def _front_page(story, meta: ReportMeta, styles, report_type: ReportType,
         ("TOPPADDING", (0, 0), (-1, -1), 1),
         ("LINEBELOW", (0, -1), (-1, -1), 0.6, _LINE),
     ]))
+    return t
+
+
+def _source_legend(story, styles):
+    """Four-tier source classification - the reader's key to which
+    parts of the report are raw captures, human records, experimental
+    measurements, or generated images."""
+    story.append(Paragraph("Source Classification", styles["h2"]))
+    story.append(Paragraph(
+        "Every element in this report belongs to one of the following "
+        "source classes. No element in this report constitutes a legal "
+        "certification, attestation, or notarized statement.",
+        styles["notes"]))
+    rows = [["Class", "Meaning"]]
+    for label, meaning in SOURCE_CLASSES:
+        rows.append([label, meaning])
+    t = Table(rows, colWidths=[1.7 * inch, 4.8 * inch])
+    t.setStyle(TableStyle([
+        ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 7),
+        ("FONT", (0, 1), (0, -1), "Helvetica-Bold", 7),
+        ("FONT", (1, 1), (1, -1), "Helvetica", 7),
+        ("BACKGROUND", (0, 0), (-1, 0), _SOFT),
+        ("TEXTCOLOR", (0, 0), (-1, 0), _BRAND),
+        ("TEXTCOLOR", (0, 1), (0, -1), _BRAND),
+        ("TEXTCOLOR", (1, 1), (1, -1), _TEXT),
+        ("GRID", (0, 0), (-1, -1), 0.4, _LINE),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 2.5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, _SOFT]),
+    ]))
     story.append(t)
-    story.append(Spacer(1, 0.22 * inch))
+    story.append(Spacer(1, 0.12 * inch))
+
+
+def _front_page(story, meta: ReportMeta, styles, report_type: ReportType,
+                 count: int, page_size: PageSize, issue_count: int):
+    m = meta
+    story.append(Spacer(1, 0.30 * inch))
+    story.append(Paragraph(_escape(m.project_name), styles["title"]))
+    story.append(Paragraph(_escape(m.site_address), styles["subtitle"]))
+    story.append(Spacer(1, 0.10 * inch))
+    type_label = {
+        ReportType.SITE_PHOTO: "Site Photo Report",
+        ReportType.INSPECTION: "Inspection Report",
+        ReportType.EVIDENCE: "Evidence Report",
+    }[report_type]
+    story.append(Paragraph(
+        f"{type_label} - {count} photo(s), {issue_count} issue(s)",
+        styles["subtitle"]))
+    story.append(Spacer(1, 0.14 * inch))
+
+    info = [
+        ["Report No.", m.report_number],
+        ["Generated", m.generated_at],
+        ["Page Size", {"a4": "A4 (210 x 297 mm)",
+                       "letter": "US Letter (8.5 x 11 in)"
+                       }[page_size.value]],
+        ["Operator", m.operator or "-"],
+        ["Company", m.company_name or "-"],
+        ["Inspector",
+         f"{m.inspector_name or '-'}"
+         + (f" ({m.inspector_title})" if m.inspector_title else "")],
+    ]
+    if m.project_metadata:
+        for k, v in list(m.project_metadata.items())[:10]:
+            info.append([_escape(str(k))[:64], _escape(str(v))[:300]])
+    story.append(_info_table(info, styles))
+    story.append(Paragraph(
+        "Inspector and project metadata above are MANUAL INPUT "
+        "provided at report generation time.",
+        styles["small"]))
+    story.append(Spacer(1, 0.14 * inch))
+
+    _source_legend(story, styles)
+
     story.append(Paragraph(
         "This report was generated from project data captured in WorkCam. "
         "Photos are presented as recorded at capture time; evidence "
@@ -229,11 +345,13 @@ def _front_page(story, meta: ReportMeta, styles, report_type: ReportType,
 
 
 def _photo_grid(story, photos: list[PhotoEntry], per_page: int, styles,
-                meta: ReportMeta, doc: _ReportDoc):
+                meta: ReportMeta, doc: _ReportDoc, photo_ref: dict):
     """Photos 1/2/4 per page with per-photo metadata captions. Image
     sizing is bounded by the ACTUAL doc frame (width AND height) - the
     first draft computed height from the page size and a portrait image
-    overflowed the frame (found by the Letter-page sample run)."""
+    overflowed the frame (found by the Letter-page sample run).
+    Captions carry the PH-nnn report reference and the RAW EVIDENCE
+    source class (the embedded image is the immutable original)."""
     usable_w = doc.width                      # already margin-subtracted
     frame_h = doc.height
     rows = 1 if per_page == 1 else 2          # 2-per-page = 2 rows
@@ -265,7 +383,9 @@ def _photo_grid(story, photos: list[PhotoEntry], per_page: int, styles,
                 f"[photo {ph.photo_id} - image not embedded in this "
                 "report]", styles["notes"]))
 
-        caption_bits = [f"<b>{_escape(ph.photo_id)}</b>"]
+        caption_bits = [
+            f"<b>{photo_ref.get(ph.photo_id, ph.photo_id)}</b>",
+            "[RAW EVIDENCE - original capture]"]
         if ph.captured_time:
             src = {"device": "device time", "server_anchored":
                    "server-anchored", None: ""}.get(ph.time_source, "")
@@ -292,34 +412,179 @@ def _photo_grid(story, photos: list[PhotoEntry], per_page: int, styles,
                 story.append(PageBreak())
 
 
-# -------------------------------------------------- W013-R1: issue section
-
+# -------------------------------------------------- W013-R1 + W015 issues
 
 _SEVERITY_LABELS = {"low": "Low", "medium": "Medium",
                     "high": "High", "critical": "Critical"}
 _STATUS_LABELS = {"open": "Open", "in_progress": "In Progress",
                   "resolved": "Resolved", "closed": "Closed"}
 
+_ISSUE_FIG_MAX_H = 2.1 * inch       # before/after pair height bound
 
-def _issue_section(story, issues: list, styles):
+
+def _issue_photo_ref(p: dict, photo_ref: dict) -> str:
+    """Reference label for an issue-linked photo: the PH-nnn number when
+    the photo is embedded in this report, otherwise its raw id with an
+    explicit not-embedded marker."""
+    pid = p.get("photo_id", "")
+    if pid in photo_ref:
+        return photo_ref[pid]
+    return f"{pid} (not embedded in this report)"
+
+
+def _register_table(story, issues: list, styles, photo_ref: dict,
+                    issue_ref: dict):
+    """Issue register: one row per issue with report-scoped numbers."""
+    rows = [["No.", "Title", "Severity", "Status", "Linked Photos"]]
+    for iss in issues:
+        refs = ", ".join(
+            _issue_photo_ref(p, photo_ref) for p in iss.get("photos", []))
+        rows.append([
+            issue_ref.get(iss.get("issue_id", ""), "-"),
+            _escape(iss.get("title", "Untitled"))[:80],
+            _SEVERITY_LABELS.get(iss.get("severity"), iss.get("severity")
+                                  or "-"),
+            _STATUS_LABELS.get(iss.get("status"), iss.get("status") or "-"),
+            _escape(refs) or "-",
+        ])
+    t = Table(rows, colWidths=[0.62 * inch, 2.5 * inch, 0.72 * inch,
+                                0.85 * inch, 1.81 * inch], repeatRows=1)
+    t.setStyle(TableStyle([
+        ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 7),
+        ("FONT", (0, 1), (-1, -1), "Helvetica", 7),
+        ("BACKGROUND", (0, 0), (-1, 0), _SOFT),
+        ("TEXTCOLOR", (0, 0), (-1, 0), _BRAND),
+        ("GRID", (0, 0), (-1, -1), 0.4, _LINE),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 2.5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, _SOFT]),
+    ]))
+    story.append(t)
+    story.append(Spacer(1, 0.10 * inch))
+
+
+def _summary_table(story, issues: list, styles, kind: str):
+    """One-row summary table: severity breakdown or remediation status
+    counts, all MANUAL INPUT records."""
+    if kind == "severity":
+        counts = _severity_breakdown(issues)
+        order, labels = _SEVERITY_ORDER, _SEVERITY_LABELS
+        heading = "Severity Breakdown"
+    else:
+        counts = _status_summary(issues)
+        order, labels = _STATUS_ORDER, _STATUS_LABELS
+        heading = "Remediation Status Summary"
+    story.append(Paragraph(heading, styles["h2"]))
+    rows = [["Class", *[labels[s] for s in order], "Total"]]
+    rows.append(["Count", *[str(counts[s]) for s in order],
+                 str(sum(counts.values()))])
+    widths = [0.7 * inch] + [1.0 * inch] * len(order) + [0.7 * inch]
+    t = Table(rows, colWidths=widths)
+    t.setStyle(TableStyle([
+        ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 7.5),
+        ("FONT", (0, 1), (-1, -1), "Helvetica", 7.5),
+        ("BACKGROUND", (0, 0), (-1, 0), _SOFT),
+        ("TEXTCOLOR", (0, 0), (-1, 0), _BRAND),
+        ("GRID", (0, 0), (-1, -1), 0.4, _LINE),
+        ("TOPPADDING", (0, 0), (-1, -1), 2.5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5),
+        ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+    ]))
+    story.append(t)
+    story.append(Paragraph(
+        "Counts above summarize MANUAL INPUT records captured at "
+        "generation time; no automated assessment is implied.",
+        styles["small"]))
+    story.append(Spacer(1, 0.10 * inch))
+
+
+def _before_after_pair(iss: dict, styles, photo_ref: dict, usable_w: float):
+    """Side-by-side before/after (or before/progress) comparison figure.
+    Each embedded image is the RAW EVIDENCE original; the pairing is a
+    MANUAL association made by a human, and this layout is a report
+    rendering, not a stored derivative."""
+    by_role = {}
+    for p in iss.get("photos", []):
+        if p.get("image_bytes"):
+            by_role.setdefault(p.get("role"), p)
+    if not by_role:
+        return None
+    roles = [r for r in ("before", "progress", "after")
+             if r in by_role]
+    if not roles:
+        return None
+    roles = roles[:2]                     # pair layout: 2 columns max
+    cells, cap_cells = [], []
+    half = usable_w / 2 - 0.08 * inch
+    for role in roles:
+        p = by_role[role]
+        try:
+            img = Image(io.BytesIO(p["image_bytes"]))
+            ratio = img.imageHeight / max(1, img.imageWidth)
+            h = _ISSUE_FIG_MAX_H
+            w = min(half, h / ratio)
+            h = w * ratio
+            img.drawWidth = w
+            img.drawHeight = h
+            cells.append(img)
+            sha_short = (p.get("original_sha256") or "")[:16] + "..."
+            cap_cells.append(Paragraph(
+                f"{role.upper()} - {_escape(_issue_photo_ref(p, photo_ref))}"
+                f" [RAW EVIDENCE] sha {sha_short}", styles["small"]))
+        except Exception:
+            cells.append(Paragraph("[image unavailable]", styles["notes"]))
+            cap_cells.append(Paragraph("", styles["small"]))
+    while len(cells) < 2:
+        cells.append(Paragraph("", styles["small"]))
+        cap_cells.append(Paragraph("", styles["small"]))
+    label_row = [Paragraph(
+        f"<b>{roles[0].upper()}</b>", styles["small"]), Paragraph(
+        f"<b>{roles[1].upper()}</b>" if len(roles) > 1 else "",
+        styles["small"])]
+    t = Table([label_row, cells, cap_cells],
+              colWidths=[usable_w / 2, usable_w / 2])
+    t.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+        ("TOPPADDING", (0, 0), (-1, -1), 2),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+        ("BOX", (0, 0), (-1, -1), 0.4, _LINE),
+        ("INNERGRID", (0, 0), (-1, -1), 0.4, _LINE),
+    ]))
+    return t
+
+
+def _issue_section(story, issues: list, styles, photo_ref: dict,
+                   issue_ref: dict, usable_w: float):
     story.append(PageBreak())
     story.append(Paragraph("Inspection Issues", styles["h2"]))
     story.append(Paragraph(
-        "The issues below are HUMAN records captured at generation time. "
-        "Annotations and before/after photo associations are manual - "
-        "they do not constitute acceptance of completed work or prove "
-        "the photos show the same location.",
+        "The issues below are MANUAL INPUT records captured at "
+        "generation time (source class: MANUAL INPUT). Annotations and "
+        "before/after photo associations are manual - they do not "
+        "constitute acceptance of completed work or prove the photos "
+        "show the same location.",
         styles["notes"]))
     story.append(Spacer(1, 0.10 * inch))
 
-    for idx, iss in enumerate(issues):
+    # 1) register + breakdown + status summary
+    _register_table(story, issues, styles, photo_ref, issue_ref)
+    _summary_table(story, issues, styles, "severity")
+    _summary_table(story, issues, styles, "status")
+    story.append(PageBreak())
+
+    # 2) per-issue detail
+    for iss in issues:
         block = []
+        ref = issue_ref.get(iss.get("issue_id", ""), "")
         sev = _SEVERITY_LABELS.get(iss.get("severity"), iss.get("severity"))
         st = _STATUS_LABELS.get(iss.get("status"), iss.get("status"))
         block.append(Paragraph(
-            f"<b>{idx + 1}. {_escape(iss.get('title', 'Untitled'))}</b>",
+            f"<b>{ref}. {_escape(iss.get('title', 'Untitled'))}</b>",
             styles["body"]))
-        info_bits = [f"Severity: {sev}", f"Status: {st}"]
+        info_bits = [f"Severity: {sev}", f"Status: {st}",
+                     "[MANUAL INPUT]"]
         if iss.get("assigned_to"):
             info_bits.append(f"Assigned: {_escape(iss['assigned_to'])}")
         if iss.get("location_description"):
@@ -330,14 +595,26 @@ def _issue_section(story, issues: list, styles):
             block.append(Paragraph(f"Description: "
                                     f"{_escape(iss['description'])}",
                                     styles["small"]))
+        if iss.get("remediation_note"):
+            block.append(Paragraph(
+                "<b>Remediation Recommendation (MANUAL INPUT):</b>",
+                styles["small"]))
+            block.append(Paragraph(_escape(iss["remediation_note"]),
+                                    styles["small"]))
         if iss.get("photos"):
-            role_bits = []
-            for p in iss["photos"]:
-                sha_short = p.get("original_sha256", "")[:16] + "…"
-                role_bits.append(f"{p['role'].title()}: "
-                                 f"{_escape(p['photo_id'])} "
-                                 f"(sha {sha_short})")
+            role_bits = [
+                f"{p['role'].title()}: "
+                f"{_escape(_issue_photo_ref(p, photo_ref))}"
+                for p in iss["photos"]]
             block.append(Paragraph(" | ".join(role_bits), styles["small"]))
+        pair = _before_after_pair(iss, styles, photo_ref, usable_w)
+        if pair is not None:
+            block.append(pair)
+            block.append(Paragraph(
+                "Side-by-side layout is a report rendering of two RAW "
+                "EVIDENCE originals; the pairing is a manual "
+                "association and is not itself a stored image.",
+                styles["small"]))
         if iss.get("history"):
             block.append(Paragraph("<b>History:</b>", styles["small"]))
             for h in iss["history"][:10]:
@@ -347,13 +624,14 @@ def _issue_section(story, issues: list, styles):
                 if h.get("from_value") and h.get("to_value"):
                     parts.append(f"{h['from_value']} -> {h['to_value']}")
                 block.append(Paragraph(" | ".join(parts), styles["small"]))
-        block.append(Spacer(1, 0.08 * inch))
+        block.append(Spacer(1, 0.10 * inch))
         story.append(KeepTogether(block))
 
     story.append(Spacer(1, 0.06 * inch))
     story.append(Paragraph(
-        "Issue severity and status are HUMAN records; no AI assessment "
-        "is implied. Before/after photos are manual associations.",
+        "Issue severity, status and remediation notes are MANUAL INPUT; "
+        "no AI assessment is implied. Before/after photos are manual "
+        "associations.",
         styles["notes"]))
 
 
@@ -411,6 +689,108 @@ def _evidence_appendix(story, photos: list[PhotoEntry], styles):
         styles["notes"]))
 
 
+# ------------------------------------------- B02-W015: LiDAR references
+
+
+def _lidar_section(story, refs: list, styles, issue_ref: dict):
+    """LiDAR measurement record references. Rows point at B02-W016
+    analyzer artifacts by record id; every row is labeled an
+    EXPERIMENTAL MEASUREMENT and states its device-data status. Real
+    device data is DEVICE_PENDING at the time of this template; the
+    reference placeholder never renders as a verified survey value."""
+    story.append(PageBreak())
+    story.append(Paragraph("LiDAR Measurement References", styles["h2"]))
+    story.append(Paragraph(
+        "Record ids below reference LiDAR measurement rows and analyzer "
+        "artifacts from the B02-W016 LiDAR experiment protocol. These are "
+        "EXPERIMENTAL MEASUREMENT references: ARKit depth is an estimate, "
+        "not survey-grade instrumentation. No measurement in this report "
+        "is presented as a certified or legally attested value.",
+        styles["notes"]))
+    story.append(Spacer(1, 0.08 * inch))
+    rows = [["Record ID", "Description", "Related Issue", "Data Status"]]
+    for r in refs:
+        rid = str(r.get("record_id", ""))[:128]
+        desc = _escape(str(r.get("description", ""))[:500])
+        rel = r.get("related_issue_id") or ""
+        related = issue_ref.get(rel, rel or "-")
+        status = str(r.get("data_status", "DEVICE_PENDING"))
+        status_text = _LIDAR_STATUS_TEXT.get(status, status)
+        rows.append([_escape(rid), desc or "-",
+                     _escape(related) if rel else "-",
+                     status_text])
+    t = Table(rows, colWidths=[1.7 * inch, 2.4 * inch, 0.7 * inch,
+                                1.7 * inch], repeatRows=1)
+    t.setStyle(TableStyle([
+        ("FONT", (0, 0), (-1, 0), "Helvetica-Bold", 7),
+        ("FONT", (0, 1), (-1, -1), "Helvetica", 7),
+        ("BACKGROUND", (0, 0), (-1, 0), _SOFT),
+        ("TEXTCOLOR", (0, 0), (-1, 0), _BRAND),
+        ("GRID", (0, 0), (-1, -1), 0.4, _LINE),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 2.5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, _SOFT]),
+    ]))
+    story.append(t)
+    story.append(Spacer(1, 0.10 * inch))
+    story.append(Paragraph(
+        "Source class: EXPERIMENTAL MEASUREMENT. Device-data status is "
+        "stated per row; DEVICE_PENDING means real-device capture has "
+        "not yet occurred and the reference is a placeholder for the "
+        "B02-W016 analyzer artifact. Fill references only after the "
+        "referenced rows exist in the B02-W016 experiment dataset.",
+        styles["small"]))
+
+
+# ----------------------------------------------- B02-W015: manual sign-off
+
+
+def _sign_off_section(story, meta: ReportMeta, styles):
+    """Manual sign-off block (source class: MANUAL INPUT). Layout only:
+    name/date lines for wet or digital signatures. It makes no legal
+    claim - no certification, attestation or notarization wording."""
+    story.append(PageBreak())
+    story.append(Paragraph("Manual Sign-off (Human Record)",
+                           styles["h2"]))
+    story.append(Paragraph(
+        "Signatures in this section are MANUAL INPUT records created "
+        "after the signer reviewed this report. Signing acknowledges "
+        "review of the report content by the named individuals at the "
+        "stated dates. It is a record-keeping field only: no legal "
+        "attestation, certification or notarization is made or implied.",
+        styles["notes"]))
+    story.append(Spacer(1, 0.30 * inch))
+
+    def _line(label, value=""):
+        pre = f"{_escape(value)}" if value else ""
+        row = [[Paragraph(f"<b>{label}</b>", styles["body"]),
+                Paragraph(pre, styles["body"]),
+                Paragraph("", styles["body"]),
+                Paragraph("", styles["body"])]]
+        t = Table(row, colWidths=[1.9 * inch, 2.4 * inch, 0.5 * inch,
+                                  1.7 * inch])
+        t.setStyle(TableStyle([
+            ("LINEBELOW", (1, 0), (1, 0), 0.8, _TEXT),
+            ("LINEBELOW", (3, 0), (3, 0), 0.8, _TEXT),
+            ("TOPPADDING", (0, 0), (-1, -1), 14),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ("VALIGN", (0, 0), (-1, -1), "BOTTOM"),
+        ]))
+        return t
+
+    hint = Paragraph(
+        "Columns: signatory role / printed name on the signature line / "
+        "date signed.", styles["small"])
+    story.append(hint)
+    story.append(Spacer(1, 0.10 * inch))
+    story.append(_line("Inspector", meta.inspector_name or ""))
+    story.append(Spacer(1, 0.34 * inch))
+    story.append(_line("Reviewed by", ""))
+    story.append(Spacer(1, 0.34 * inch))
+    story.append(_line("Approved by", ""))
+
+
 # --------------------------------------------------------------- entry
 
 
@@ -433,16 +813,30 @@ def generate_report_pdf(report_type: ReportType, meta: ReportMeta,
     frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height,
                   id="main")
     doc.addPageTemplates([PageTemplate(id="report", frames=[frame],
-                                      onPage=doc._furniture)])
+                                       onPage=doc._furniture)])
 
     styles = _styles()
-    story: list = []
-    _front_page(story, meta, styles, report_type, len(photos))
-    _photo_grid(story, photos, per_page, styles, meta, doc)
+    issues = meta.issue_snapshot or []
+    photo_ref = _ref_map([p.photo_id for p in photos], "PH")
+    issue_ref = _ref_map([i.get("issue_id", "") for i in issues], "ISS")
 
-    # W013-R1: issue section (if issues were snapshotted)
-    if meta.issue_snapshot:
-        _issue_section(story, meta.issue_snapshot, styles)
+    story: list = []
+    _front_page(story, meta, styles, report_type, len(photos),
+                page_size, len(issues))
+    _photo_grid(story, photos, per_page, styles, meta, doc, photo_ref)
+
+    # W013-R1 + B02-W015: issue register, breakdown, status summary,
+    # per-issue details with remediation notes and before/after pairs
+    if issues:
+        _issue_section(story, issues, styles, photo_ref, issue_ref,
+                       doc.width)
+
+    # B02-W015: LiDAR measurement record references
+    if meta.lidar_measurements:
+        _lidar_section(story, meta.lidar_measurements, styles, issue_ref)
+
+    # B02-W015: manual sign-off block (layout; no legal claim)
+    _sign_off_section(story, meta, styles)
 
     want_appendix = (include_appendix if include_appendix is not None
                      else report_type == ReportType.EVIDENCE)
@@ -454,4 +848,9 @@ def generate_report_pdf(report_type: ReportType, meta: ReportMeta,
     return {"pdf_bytes": pdf,
             "sha256": hashlib.sha256(pdf).hexdigest(),
             "page_count": doc.page,
-            "version": REPORTS_VERSION}
+            "version": REPORTS_VERSION,
+            "issue_summary": {
+                "severity": _severity_breakdown(issues),
+                "status": _status_summary(issues),
+                "total": len(issues)},
+            "source_classes": [c[0] for c in SOURCE_CLASSES]}

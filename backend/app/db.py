@@ -349,6 +349,13 @@ CREATE TABLE IF NOT EXISTS mvp_issue_links (
     PRIMARY KEY (issue_id, annotation_id)
 );
 """,
+    # v9 (B02-W015): manual remediation recommendations on issues.
+    # remediation_note is HUMAN-ENTERED content - rendered in reports
+    # under an explicit MANUAL INPUT label; never an AI or measured
+    # claim, never a certification.
+    9: """
+ALTER TABLE mvp_issues ADD COLUMN remediation_note TEXT NOT NULL DEFAULT '';
+""",
 }
 
 _write_lock = threading.Lock()
