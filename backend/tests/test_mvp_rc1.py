@@ -199,7 +199,11 @@ def test_rc2_v1_to_latest_sequential_migration(tmp_path, monkeypatch):
     Updated in W011: 'latest' is now v6 (derivatives).
     Updated in W022 RC2 premerge: the chain may skip numbers (v10/v11
     are reserved for W017/W025; W015 took v12) - walk the real
-    MIGRATIONS keys instead of a contiguous range."""
+    MIGRATIONS keys instead of a contiguous range.
+    Updated in B02-W017: version numbers may SKIP (v10 here avoids
+    colliding with the B02-W014 branch's v9) - the walk iterates the
+    versions that actually exist, which is exactly what migrate()
+    does (sorted keys)."""
     import app.db as dbm
     import sqlite3
     db = tmp_path / "seq.db"
@@ -215,9 +219,7 @@ def test_rc2_v1_to_latest_sequential_migration(tmp_path, monkeypatch):
 
     monkeypatch.setenv("WORKCAM_BUSINESS_DB", str(db))
     latest = max(dbm.MIGRATIONS)
-    for version in sorted(dbm.MIGRATIONS):
-        if version < 2:
-            continue
+    for version in [v for v in sorted(dbm.MIGRATIONS) if v > 1]:
         conn = sqlite3.connect(str(db))
         conn.execute("BEGIN IMMEDIATE")
         for stmt in dbm._split_statements(dbm.MIGRATIONS[version]):

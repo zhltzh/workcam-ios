@@ -14,6 +14,7 @@ from app.api.device_admin import router as device_admin_router
 from app.api.derivatives import router as derivatives_router
 from app.api.reports import router as reports_router
 from app.api.inspection import router as inspection_router
+from app.api.photo_batch import router as photo_batch_router
 from app.services.security_config import check_startup_security
 
 logging.basicConfig(level=logging.INFO)
@@ -47,6 +48,10 @@ app = FastAPI(
 app.include_router(verify_router)
 app.include_router(time_anchor_router)
 app.include_router(upload_router)   # experimental prefix /upload/experimental
+# B02-W017 batch router registers BEFORE the generic mvp router:
+# /photos/search and /photos/duplicates are literal paths and must win
+# over /photos/{photo_id} (Starlette matches in registration order).
+app.include_router(photo_batch_router)  # /api/v1 batch + search (B02-W017)
 app.include_router(mvp_router)      # /api/v1 business surface (W006)
 app.include_router(originals_router)  # /api/v1 originals (W007)
 app.include_router(sync_router)     # /api/v1/sync (W008)

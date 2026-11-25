@@ -383,6 +383,74 @@ ALTER TABLE mvp_sync_events_v9 RENAME TO mvp_sync_events;
 CREATE INDEX IF NOT EXISTS idx_sync_events_owner
     ON mvp_sync_events(owner_token, seq ASC);
 """,
+    # v10 (B02-W017): photo batch management. Numbered 10 (not 9) on
+    # purpose: the B02-W014 branch already defines a v9 event-stream
+    # rebuild; keeping this migration at 10 avoids a duplicate dict
+    # key when the branches merge (migrate() applies versions in
+    # sorted order, gaps are fine).
+    #
+    # DESIGN RULE (task constraint): business metadata is stored in
+    # SEPARATE tables - mvp_photos keeps its evidence-adjacent fields
+    # untouched (original_sha256 / captured_at / device_id ...), the
+    # signature/verification chain is never written by batch ops.
+    #
+    #  a) mvp_photo_tags - per-photo tag set (PK photo+tag: idempotent
+    #     add, remove = delete row)
+    #  b) mvp_photo_business - business metadata (category/note) with
+    #     optimistic revision; NOT an evidence field
+    #  c) mvp_batch_ops - per-(batch, photo) idempotency ledger.
+    #     SUCCESSFUL items are recorded so retries of a partial batch
+    #     replay the stored result (no re-execution); FAILED items
+    #     are deliberately NOT recorded - a failed photo stays
+    #     retryable under the same batch id (resumable partial-failure
+    #     handling, task requirement). Same-hash replay = duplicate
+    #     receipt, different-hash replay = typed conflict (W008
+    #     operation-id discipline, applied per photo).
+    #  d) mvp_photo_exports - generated export packages (ZIP artifact
+    #     metadata; bytes live in the export store, sha-256 pinned)
+    10: """
+CREATE TABLE IF NOT EXISTS mvp_photo_tags (
+    photo_id    TEXT NOT NULL REFERENCES mvp_photos(photo_id),
+    tag         TEXT NOT NULL CHECK (length(tag) >= 1 AND length(tag) <= 64),
+    added_at    TEXT NOT NULL,
+    PRIMARY KEY (photo_id, tag)
+);
+CREATE INDEX IF NOT EXISTS idx_photo_tags_tag
+    ON mvp_photo_tags(tag);
+CREATE TABLE IF NOT EXISTS mvp_photo_business (
+    photo_id    TEXT PRIMARY KEY REFERENCES mvp_photos(photo_id),
+    category    TEXT NOT NULL DEFAULT '' CHECK (length(category) <= 100),
+    note        TEXT NOT NULL DEFAULT '' CHECK (length(note) <= 5000),
+    updated_by  TEXT NOT NULL DEFAULT '',
+    updated_at  TEXT NOT NULL,
+    revision    INTEGER NOT NULL DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS mvp_batch_ops (
+    batch_id    TEXT NOT NULL,
+    owner_token TEXT NOT NULL,
+    op_type     TEXT NOT NULL CHECK (op_type IN
+                  ('tag_add', 'tag_remove', 'category', 'note',
+                   'move', 'watermark', 'export')),
+    photo_id    TEXT NOT NULL,
+    request_hash TEXT NOT NULL,
+    result_json TEXT NOT NULL,
+    created_at  TEXT NOT NULL,
+    PRIMARY KEY (batch_id, owner_token, photo_id)
+);
+CREATE INDEX IF NOT EXISTS idx_batch_ops_owner
+    ON mvp_batch_ops(owner_token, created_at DESC);
+CREATE TABLE IF NOT EXISTS mvp_photo_exports (
+    export_id   TEXT PRIMARY KEY,
+    owner_token TEXT NOT NULL,
+    batch_id    TEXT NOT NULL,
+    photo_count INTEGER NOT NULL,
+    include_originals INTEGER NOT NULL CHECK (include_originals IN (0, 1)),
+    zip_sha256  TEXT NOT NULL,
+    file_count  INTEGER NOT NULL,
+    byte_size   INTEGER NOT NULL,
+    created_at  TEXT NOT NULL
+);
+""",
     # v12 (B02-W015): manual remediation recommendations on issues.
     # remediation_note is HUMAN-ENTERED content - rendered in reports
     # under an explicit MANUAL INPUT label; never an AI or measured

@@ -87,6 +87,114 @@ def derivative_path(sha256: str) -> Path:
 # ----------------------------------------------------------------- create
 
 
+def render_watermark_for_photo(token: str, photo_id: str, template: str,
+                               fields: WatermarkFields) -> dict:
+    """Shared render+persist path for the W011 single-photo endpoint and
+    the B02-W017 batch watermark engine. Ownership, server-side evidence
+    override, idempotency probe, rendering and content-addressed persist
+    all live HERE so both entry points cannot drift apart.
+
+    Raises ApiError (not_found / original_not_uploaded / ...) - callers
+    decide whether that is an HTTP error or a per-photo failure item.
+    Returns the derivative row dict + idempotent_replay + note + geometry.
+    """
+    original_sha = None
+    with db() as conn:
+        photo = _get_owned_photo(conn, photo_id, token)
+        # ---- P0 SECURITY FIX (W012): the evidence status on a
+        # derivative MUST come from the SERVER's own evidence-link
+        # state, never from the client's claim. A closed enum prevents
+        # free-text forgery but NOT a false claim of the highest
+        # status - so we resolve the photo's ACTUAL highest verified
+        # state from mvp_evidence_links and override the submitted
+        # field outright.
+        fields.evidence_status = _resolve_actual_evidence_status(
+            conn, photo_id, photo["original_sha256"])
+        original_sha = photo["original_sha256"]
+
+    binding_row = None
+    with db() as conn:
+        binding_row = conn.execute(
+            "SELECT sha256 FROM mvp_photo_originals WHERE photo_id = ?",
+            (photo_id,)).fetchone()
+    if binding_row is None:
+        raise ApiError(404, "original_not_uploaded",
+                       "upload the original first (metadata-then-bytes "
+                       "rule): a watermark renders the REAL bytes")
+
+    from app.services.original_store import read_original
+    original_bytes = read_original(original_sha)
+
+    params_hash = hashlib.sha256(json.dumps(
+        {"template": template,
+         "fields_hash": fields.render_params_hash()}
+    ).encode()).hexdigest()
+
+    # idempotency probe BEFORE rendering
+    with db() as conn:
+        existing = conn.execute(
+            "SELECT * FROM mvp_derivatives WHERE photo_id = ? "
+            "AND template_name = ? AND render_params_hash = ? "
+            "AND original_sha256 = ?",
+            (photo_id, template, params_hash, original_sha)).fetchone()
+    if existing is not None and derivative_path(
+            existing["derivative_sha256"]).exists():
+        return _row_to_derivative(existing) | {
+            "idempotent_replay": True,
+            "note": "derivative is a DERIVATIVE image, not the trusted "
+                    "original evidence"}
+
+    result = render_watermark(original_bytes, fields, template)
+    d_sha = result["derivative_sha256"]
+
+    # integrity guard: rendered output must hash to what we store
+    assert hashlib.sha256(result["image_bytes"]).hexdigest() == d_sha
+
+    # persist the derivative bytes (W007 discipline: tmp -> rename)
+    target = derivative_path(d_sha)
+    if not target.exists():        # same-bytes duplicates share the object
+        import os
+        import tempfile
+        target.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(dir=str(target.parent),
+                                   prefix=".w011_", suffix=".part")
+        try:
+            with os.fdopen(fd, "wb") as f:
+                f.write(result["image_bytes"])
+            os.replace(tmp, target)
+        except Exception:
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
+            raise
+
+    derivative_id = hashlib.sha256(
+        f"{photo_id}|{template}|{params_hash}|{original_sha}"
+        .encode()).hexdigest()[:36]
+    geo = result["geometry"]
+    with db() as conn:
+        _get_owned_photo(conn, photo_id, token)     # re-check under tx
+        conn.execute(
+            "INSERT INTO mvp_derivatives (derivative_id, photo_id, "
+            "owner_token, template_name, template_version, "
+            "render_params_hash, original_sha256, derivative_sha256, "
+            "image_width, image_height, created_at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?) "
+            "ON CONFLICT(derivative_id) DO NOTHING",
+            (derivative_id, photo_id, token, template,
+             geo["template_version"], params_hash, original_sha, d_sha,
+             geo["image_width"], geo["image_height"], utc_now()))
+        row = conn.execute(
+            "SELECT * FROM mvp_derivatives WHERE derivative_id = ?",
+            (derivative_id,)).fetchone()
+    return _row_to_derivative(row) | {
+        "idempotent_replay": False,
+        "note": "derivative is a DERIVATIVE image, not the trusted "
+                "original evidence",
+        "geometry": geo}
+
+
 @router.post("/photos/{photo_id}/derivatives/watermark", status_code=201)
 async def create_watermark_derivative(photo_id: str, body: WatermarkRequest,
                                       request: Request):
@@ -105,102 +213,10 @@ async def create_watermark_derivative(photo_id: str, body: WatermarkRequest,
                                                    validate=True)
         except Exception:
             raise ApiError(400, "invalid_logo",
-                          "company_logo_b64 is not valid base64")
+                           "company_logo_b64 is not valid base64")
 
-    # ownership + fetch the ORIGINAL (bound at render time)
-    with db() as conn:
-        photo = _get_owned_photo(conn, photo_id, token)
-        # ---- P0 SECURITY FIX (W012): the evidence status on a
-        # derivative MUST come from the SERVER's own evidence-link
-        # state, never from the client's claim. A closed enum prevents
-        # free-text forgery but NOT a false claim of the highest
-        # status - so we resolve the photo's ACTUAL highest verified
-        # state from mvp_evidence_links and override the submitted
-        # field outright.
-        fields.evidence_status = _resolve_actual_evidence_status(
-            conn, photo_id, photo["original_sha256"])
-    original_sha = photo["original_sha256"]
-
-    binding_row = None
-    with db() as conn:
-        binding_row = conn.execute(
-            "SELECT sha256 FROM mvp_photo_originals WHERE photo_id = ?",
-            (photo_id,)).fetchone()
-    if binding_row is None:
-        raise ApiError(404, "original_not_uploaded",
-                       "upload the original first (metadata-then-bytes "
-                       "rule): a watermark renders the REAL bytes")
-
-    from app.services.original_store import read_original
-    original_bytes = read_original(original_sha)
-
-    params_hash = hashlib.sha256(json.dumps(
-        {"template": body.template, "fields_hash": fields.render_params_hash()}
-    ).encode()).hexdigest()
-
-    # idempotency probe BEFORE rendering
-    with db() as conn:
-        existing = conn.execute(
-            "SELECT * FROM mvp_derivatives WHERE photo_id = ? "
-            "AND template_name = ? AND render_params_hash = ? "
-            "AND original_sha256 = ?",
-            (photo_id, body.template, params_hash, original_sha)).fetchone()
-    if existing is not None and derivative_path(
-            existing["derivative_sha256"]).exists():
-        return _row_to_derivative(existing) | {
-            "idempotent_replay": True,
-            "note": "derivative is a DERIVATIVE image, not the trusted "
-                    "original evidence"}
-
-    result = render_watermark(original_bytes, fields, body.template)
-    d_sha = result["derivative_sha256"]
-
-    # integrity guard: rendered output must hash to what we store
-    assert hashlib.sha256(result["image_bytes"]).hexdigest() == d_sha
-
-    # persist the derivative bytes (W007 discipline: tmp -> rename)
-    target = derivative_path(d_sha)
-    if not target.exists():        # same-bytes duplicates share the object
-        import os
-        import tempfile
-        target.parent.mkdir(parents=True, exist_ok=True)
-        fd, tmp = tempfile.mkstemp(dir=str(target.parent),
-                                    prefix=".w011_", suffix=".part")
-        try:
-            with os.fdopen(fd, "wb") as f:
-                f.write(result["image_bytes"])
-            os.replace(tmp, target)
-        except Exception:
-            try:
-                os.unlink(tmp)
-            except OSError:
-                pass
-            raise
-
-    derivative_id = hashlib.sha256(
-        f"{photo_id}|{body.template}|{params_hash}|{original_sha}"
-        .encode()).hexdigest()[:36]
-    geo = result["geometry"]
-    with db() as conn:
-        _get_owned_photo(conn, photo_id, token)     # re-check under tx
-        conn.execute(
-            "INSERT INTO mvp_derivatives (derivative_id, photo_id, "
-            "owner_token, template_name, template_version, "
-            "render_params_hash, original_sha256, derivative_sha256, "
-            "image_width, image_height, created_at) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?) "
-            "ON CONFLICT(derivative_id) DO NOTHING",
-            (derivative_id, photo_id, token, body.template,
-             geo["template_version"], params_hash, original_sha, d_sha,
-             geo["image_width"], geo["image_height"], utc_now()))
-        row = conn.execute(
-            "SELECT * FROM mvp_derivatives WHERE derivative_id = ?",
-            (derivative_id,)).fetchone()
-    return _row_to_derivative(row) | {
-        "idempotent_replay": False,
-        "note": "derivative is a DERIVATIVE image, not the trusted "
-                "original evidence",
-        "geometry": geo}
+    return render_watermark_for_photo(token, photo_id, body.template,
+                                      fields)
 
 
 # -------------------------------------------------------------- list / get
