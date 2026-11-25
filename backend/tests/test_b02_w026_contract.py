@@ -126,10 +126,10 @@ def test_openapi_paths_match_repo_copy(repo_openapi):
 def test_endpoint_inventory_counts(repo_openapi):
     paths = repo_openapi["paths"]
     ops = sum(1 for p in paths.values() for m in p if m in METHODS)
-    # RC2 premerge integrated endpoint set: the W026 branch snapshot
-    # (47/58) + W017 photo-batch + W025 storage/thumbnail/stream.
-    assert len(paths) == 65
-    assert ops == 77
+    # RC2 premerge integrated endpoint set + TM03 key lifecycle
+    # (rotate prepare/commit, suspend, resume, keys, keys/status).
+    assert len(paths) == 71
+    assert ops == 83
 
     def surface(path: str) -> str:
         if path.startswith("/api/v1/sync"):
@@ -153,7 +153,7 @@ def test_endpoint_inventory_counts(repo_openapi):
     assert counts["time-anchor"] == [5, 5]
     assert counts["upload-experimental"] == [7, 7]
     assert counts["sync"] == [2, 2]
-    assert counts["devices"] == [5, 5]
+    assert counts["devices"] == [11, 11]
     assert counts["api-v1-business"] == [41, 53]
 
 

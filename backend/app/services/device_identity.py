@@ -163,6 +163,21 @@ def enroll_device(public_key_b64: str, device_id: str,
                            "this device was previously enrolled and "
                            "revoked; re-enrollment requires manual "
                            "intervention")
+        # TM03 rollback guard: keys that were rotated OUT (or belong to
+        # revoked devices) must never enroll as a NEW device - rotation
+        # is one-way. A rotated-out key can still verify OLD evidence
+        # math via key_status_for_public_key(), it just never authorizes
+        # anything again.
+        retired = conn.execute(
+            "SELECT 1 FROM mvp_key_history "
+            "WHERE key_fingerprint = ? "
+            "AND event IN ('rotated_out', 'revoked')",
+            (_key_fingerprint(public_key_b64),)).fetchone()
+        if retired is not None:
+            raise ApiError(409, "key_retired",
+                           "this public key was previously rotated out "
+                           "or revoked - it cannot be enrolled on any "
+                           "device (rollback protection)")
         conn.execute(
             "INSERT INTO mvp_devices (device_token, device_id, "
             "public_key_b64, key_fingerprint, status, enrolled_at) "
@@ -289,6 +304,11 @@ def resolve_device(token: str) -> str:
         if row["status"] == "revoked":
             raise ApiError(401, "unauthorized",
                            "device token is revoked")
+        if row["status"] == "suspended":
+            # TM03: suspended is REVERSIBLE (unlike revoked) but blocks
+            # every protected API while active - one flag, no silent path
+            raise ApiError(401, "unauthorized",
+                           "device token is suspended")
         return row["device_id"]
     legacy = _legacy_lookup(token)
     if legacy is not None:
@@ -414,3 +434,226 @@ def check_rate(device_token: str, capacity: int = 60,
         raise ApiError(429, "rate_limited",
                        f"device rate limit exceeded ({capacity}/"
                        f"{window_seconds}s window)")
+
+
+# ===================================================== TM03 key lifecycle
+# Rotation / suspension / history - the enrollment key becomes a
+# LIFECYCLE object: old keys keep verifying historical evidence math
+# forever, while NEVER authorizing new traffic after rotation-out.
+
+
+def _key_fingerprint(public_key_b64: str) -> str:
+    """TM03: fingerprint OF THE PUBLIC KEY material (not the token -
+    token_fingerprint stays for logs). This is the stable identity of
+    a KEY across rotation, suspension and revocation events, used as
+    mvp_key_history's primary key and by every rollback guard."""
+    return hashlib.sha256(public_key_b64.encode("ascii")).hexdigest()[:16]
+
+
+def _validate_pub_key_b64(public_key_b64: str) -> None:
+    """Raise unless the string is a valid 65-byte X9.63 P-256 point."""
+    try:
+        raw = base64.b64decode(public_key_b64, validate=True)
+        if len(raw) != 65 or raw[0] != 0x04:
+            raise ValueError("not a 65-byte X9.63 point")
+        ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), raw)
+    except Exception:
+        raise ApiError(400, "invalid_public_key",
+                       "public_key_b64 must be a valid P-256 X9.63 "
+                       "uncompressed point")
+
+
+def rotate_key(device_token: str, nonce: str, signature_b64: str,
+               new_public_key_b64: str) -> dict:
+    """Key rotation with POSSESSION PROOF of the OLD key.
+
+    The nonce comes from issue_challenge() (single-use, TTL-bound,
+    bound to THIS device token); verify_challenge_signature() consumes
+    it atomically and verifies against the CURRENTLY enrolled key.
+    Only after that proof does the new key replace the old one.
+
+    Effects:
+      - mvp_devices row now carries the new key/fingerprint (status
+        stays 'active'; the token itself NEVER changes)
+      - mvp_key_history gains rotated_out(old) + rotated_in(new)
+      - the old key can no longer authorize anything (it is not the
+        enrolled key anymore) and can never re-enroll (enroll checks
+        rotated-out history)
+    """
+    _validate_pub_key_b64(new_public_key_b64)
+    # atomic single-use nonce + OLD-key signature proof; raises 401/403
+    verify_challenge_signature(device_token, nonce, signature_b64)
+
+    if new_public_key_b64 == public_key_for_token(device_token):
+        raise ApiError(409, "same_key",
+                       "new public key equals the currently enrolled key")
+
+    now = utc_now()
+    new_fp = _key_fingerprint(new_public_key_b64)
+    with db() as conn:
+        row = conn.execute(
+            "SELECT * FROM mvp_devices WHERE device_token = ?",
+            (device_token,)).fetchone()
+        if row is None:
+            raise ApiError(404, "not_found", "device not found")
+        if row["status"] != "active":
+            raise ApiError(409, "device_not_active",
+                           f"rotation requires an active device "
+                           f"(current: {row['status']})")
+        old_fp = _key_fingerprint(row["public_key_b64"])
+        old_key = row["public_key_b64"]
+        # reject rotating TO a key with an existing history (rollback):
+        # a rotated-out or revoked key must never come back
+        prior = conn.execute(
+            "SELECT event FROM mvp_key_history WHERE key_fingerprint = ?",
+            (new_fp,)).fetchone()
+        if prior is not None and prior["event"] in (
+                "rotated_out", "revoked"):
+            raise ApiError(409, "key_retired",
+                           "this key was previously rotated out or "
+                           "belongs to a revoked device - it cannot be "
+                           "re-enrolled (rollback protection)")
+        conn.execute(
+            "INSERT OR REPLACE INTO mvp_key_history (key_fingerprint, "
+            "device_token, public_key_b64, event, occurred_at) "
+            "VALUES (?,?,?,'rotated_out',?)",
+            (old_fp, device_token, old_key, now))
+        conn.execute(
+            "INSERT OR REPLACE INTO mvp_key_history (key_fingerprint, "
+            "device_token, public_key_b64, event, occurred_at) "
+            "VALUES (?,?,?,'rotated_in',?)",
+            (new_fp, device_token, new_public_key_b64, now))
+        conn.execute(
+            "UPDATE mvp_devices SET public_key_b64 = ? "
+            "WHERE device_token = ?",
+            (new_public_key_b64, device_token))
+    audit("key_rotated", device_token,
+          {"old_fingerprint": old_fp, "new_fingerprint": new_fp})
+    return {"device_token": device_token,
+            "old_key_fingerprint": old_fp,
+            "new_key_fingerprint": new_fp,
+            "rotated_at": now}
+
+
+def suspend_device(device_token: str, admin_code: str) -> dict:
+    """REVERSIBLE deactivation (lost-device / investigation hold).
+    Suspended devices are refused by resolve_device() (every protected
+    API) but can be resumed by an admin - unlike revocation, which is
+    final."""
+    _require_admin_code(admin_code)
+    now = utc_now()
+    with db() as conn:
+        row = conn.execute(
+            "SELECT status, key_fingerprint, public_key_b64 "
+            "FROM mvp_devices WHERE device_token = ?",
+            (device_token,)).fetchone()
+        if row is None:
+            raise ApiError(404, "not_found", "device not found")
+        if row["status"] == "revoked":
+            raise ApiError(409, "device_revoked",
+                           "device is revoked (final) - cannot suspend")
+        if row["status"] == "suspended":
+            return {"device_token": device_token, "status": "suspended",
+                    "suspended_at": now, "idempotent": True}
+        conn.execute(
+            "UPDATE mvp_devices SET status='suspended' "
+            "WHERE device_token=?", (device_token,))
+        conn.execute(
+            "INSERT OR REPLACE INTO mvp_key_history (key_fingerprint, "
+            "device_token, public_key_b64, event, occurred_at) "
+            "VALUES (?,?,?,'suspended',?)",
+            (_key_fingerprint(row["public_key_b64"]), device_token,
+             row["public_key_b64"], now))
+    with db() as conn:
+        conn.execute(
+            "DELETE FROM mvp_auth_challenges WHERE device_token = ?",
+            (device_token,))
+    audit("device_suspended", device_token)
+    return {"device_token": device_token, "status": "suspended",
+            "suspended_at": now, "idempotent": False}
+
+
+def resume_device(device_token: str, admin_code: str) -> dict:
+    """Lift a suspension (admin action). Revocation stays final."""
+    _require_admin_code(admin_code)
+    now = utc_now()
+    with db() as conn:
+        row = conn.execute(
+            "SELECT status, key_fingerprint, public_key_b64 "
+            "FROM mvp_devices WHERE device_token = ?",
+            (device_token,)).fetchone()
+        if row is None:
+            raise ApiError(404, "not_found", "device not found")
+        if row["status"] == "revoked":
+            raise ApiError(409, "device_revoked",
+                           "device is revoked (final) - cannot resume")
+        if row["status"] != "suspended":
+            return {"device_token": device_token, "status": row["status"],
+                    "resumed_at": now, "idempotent": True}
+        conn.execute(
+            "UPDATE mvp_devices SET status='active' "
+            "WHERE device_token=?", (device_token,))
+        conn.execute(
+            "INSERT OR REPLACE INTO mvp_key_history (key_fingerprint, "
+            "device_token, public_key_b64, event, occurred_at) "
+            "VALUES (?,?,?,'resumed',?)",
+            (_key_fingerprint(row["public_key_b64"]), device_token,
+             row["public_key_b64"], now))
+    audit("device_resumed", device_token)
+    return {"device_token": device_token, "status": "active",
+            "resumed_at": now, "idempotent": False}
+
+
+def _require_admin_code(admin_code: str) -> None:
+    """The enrollment code doubles as the admin secret for this MVP
+    stage (same gate as revocation - see device_admin.py header)."""
+    code = _enrollment_code()
+    if code is None or admin_code != code:
+        raise ApiError(403, "bad_admin_code", "invalid admin code")
+
+
+def key_status_for_public_key(public_key_b64: str) -> dict:
+    """Evidence-verification lookup (TM03/TM06/TM07 interface): report
+    the REGISTRATION state of a public key WITHOUT conflating it with
+    signature math. Historical keys stay resolvable forever so old
+    evidence can say 'signature math OK, key state: rotated_out'."""
+    fp = _key_fingerprint(public_key_b64)
+    with db() as conn:
+        cur = conn.execute(
+            "SELECT status, device_id FROM mvp_devices "
+            "WHERE public_key_b64 = ?", (public_key_b64,)).fetchone()
+        if cur is not None:
+            return {"key_fingerprint": fp,
+                    "enrollment_status": cur["status"],
+                    "device_id": cur["device_id"],
+                    "is_current_enrolled_key": True}
+        hist = conn.execute(
+            "SELECT event, occurred_at FROM mvp_key_history "
+            "WHERE key_fingerprint = ? "
+            "ORDER BY occurred_at DESC LIMIT 1", (fp,)).fetchone()
+        if hist is not None:
+            return {"key_fingerprint": fp,
+                    "enrollment_status": hist["event"],
+                    "last_event_at": hist["occurred_at"],
+                    "is_current_enrolled_key": False}
+        return {"key_fingerprint": fp, "enrollment_status": "unknown",
+                "is_current_enrolled_key": False}
+
+
+def key_history(device_token: str, admin_code: str) -> dict:
+    """Full lifecycle audit trail for one device's keys."""
+    _require_admin_code(admin_code)
+    with db() as conn:
+        row = conn.execute(
+            "SELECT device_id FROM mvp_devices WHERE device_token = ?",
+            (device_token,)).fetchone()
+        if row is None:
+            raise ApiError(404, "not_found", "device not found")
+        events = conn.execute(
+            "SELECT key_fingerprint, event, occurred_at "
+            "FROM mvp_key_history WHERE device_token = ? "
+            "ORDER BY occurred_at ASC", (device_token,)).fetchall()
+    return {"device_token": device_token, "device_id": row["device_id"],
+            "keys": [{"key_fingerprint": e["key_fingerprint"],
+                      "event": e["event"],
+                      "occurred_at": e["occurred_at"]} for e in events]}

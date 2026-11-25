@@ -480,6 +480,46 @@ CREATE TABLE IF NOT EXISTS mvp_photo_exports (
         updated_by  TEXT NOT NULL DEFAULT ''
     );
     """,
+    # v13 (TM03): key lifecycle history. Every key a device ever held
+    # stays queryable - rotated-OUT keys keep verifying OLD evidence
+    # math while never authorizing NEW traffic (rollback-proof). Rows
+    # are append-only: event + occurred_at are the audit trail.
+    # ALSO widens mvp_devices.status to admit 'suspended' (TM03's
+    # reversible hold) via a table REBUILD - SQLite cannot ALTER a
+    # CHECK constraint. Rows, tokens and fingerprints carry over.
+    13: """
+    CREATE TABLE IF NOT EXISTS mvp_key_history (
+        key_fingerprint TEXT NOT NULL,
+        device_token    TEXT NOT NULL,
+        public_key_b64  TEXT NOT NULL,
+        event           TEXT NOT NULL CHECK (event IN
+                          ('enrolled', 'rotated_in', 'rotated_out',
+                           'suspended', 'resumed', 'revoked')),
+        occurred_at     TEXT NOT NULL,
+        PRIMARY KEY (key_fingerprint, event)
+    );
+    CREATE INDEX IF NOT EXISTS idx_key_history_token
+        ON mvp_key_history(device_token, occurred_at DESC);
+    CREATE TABLE mvp_devices_v13 (
+        device_token    TEXT PRIMARY KEY,
+        device_id       TEXT NOT NULL,
+        public_key_b64  TEXT NOT NULL,
+        key_fingerprint TEXT NOT NULL,
+        status          TEXT NOT NULL DEFAULT 'active'
+                        CHECK (status IN ('active', 'revoked', 'suspended')),
+        enrolled_at     TEXT NOT NULL,
+        revoked_at      TEXT
+    );
+    INSERT INTO mvp_devices_v13 (device_token, device_id, public_key_b64,
+        key_fingerprint, status, enrolled_at, revoked_at)
+        SELECT device_token, device_id, public_key_b64, key_fingerprint,
+               status, enrolled_at, revoked_at
+        FROM mvp_devices;
+    DROP TABLE mvp_devices;
+    ALTER TABLE mvp_devices_v13 RENAME TO mvp_devices;
+    CREATE INDEX IF NOT EXISTS idx_devices_status
+        ON mvp_devices(status, device_id);
+    """,
 }
 
 _write_lock = threading.Lock()

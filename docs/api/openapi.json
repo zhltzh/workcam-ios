@@ -2455,6 +2455,256 @@
         ]
       }
     },
+    "/api/v1/devices/rotate/prepare": {
+      "post": {
+        "tags": [
+          "device-admin"
+        ],
+        "summary": "Rotate Prepare",
+        "description": "Issue the single-use nonce the CURRENT key must sign before the\ndevice may swap in a new key. Caller = the enrolled device itself.",
+        "operationId": "rotate_prepare_api_v1_devices_rotate_prepare_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/devices/rotate/commit": {
+      "post": {
+        "tags": [
+          "device-admin"
+        ],
+        "summary": "Rotate Commit",
+        "description": "Swap the enrolled key after an OLD-key possession proof. The\ntoken stays; the key changes; the old key goes to history.",
+        "operationId": "rotate_commit_api_v1_devices_rotate_commit_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RotateCommitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/devices/{device_token}/suspend": {
+      "post": {
+        "tags": [
+          "device-admin"
+        ],
+        "summary": "Suspend",
+        "operationId": "suspend_api_v1_devices__device_token__suspend_post",
+        "parameters": [
+          {
+            "name": "device_token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Device Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/devices/{device_token}/resume": {
+      "post": {
+        "tags": [
+          "device-admin"
+        ],
+        "summary": "Resume",
+        "operationId": "resume_api_v1_devices__device_token__resume_post",
+        "parameters": [
+          {
+            "name": "device_token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Device Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/devices/{device_token}/keys": {
+      "get": {
+        "tags": [
+          "device-admin"
+        ],
+        "summary": "Keys",
+        "operationId": "keys_api_v1_devices__device_token__keys_get",
+        "parameters": [
+          {
+            "name": "device_token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Device Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "adminCode": []
+          }
+        ]
+      }
+    },
+    "/api/v1/devices/keys/status": {
+      "post": {
+        "tags": [
+          "device-admin"
+        ],
+        "summary": "Key Status",
+        "description": "Evidence-verifier interface: registration state of a public key\nWITHOUT any signature-math claim (math and registration are two\ndifferent verification questions - never conflate them).",
+        "operationId": "key_status_api_v1_devices_keys_status_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KeyStatusQuery"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
     "/api/v1/photos/{photo_id}/derivatives/watermark": {
       "post": {
         "tags": [
@@ -4491,6 +4741,20 @@
         ],
         "title": "KeyRegistrationStatus"
       },
+      "KeyStatusQuery": {
+        "properties": {
+          "public_key_b64": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Public Key B64"
+          }
+        },
+        "type": "object",
+        "required": [
+          "public_key_b64"
+        ],
+        "title": "KeyStatusQuery"
+      },
       "LidarMeasurementRef": {
         "properties": {
           "record_id": {
@@ -4948,6 +5212,33 @@
           "admin_code"
         ],
         "title": "RevokeRequest"
+      },
+      "RotateCommitRequest": {
+        "properties": {
+          "nonce": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 16,
+            "title": "Nonce"
+          },
+          "signature_b64": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Signature B64"
+          },
+          "new_public_key_b64": {
+            "type": "string",
+            "minLength": 1,
+            "title": "New Public Key B64"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nonce",
+          "signature_b64",
+          "new_public_key_b64"
+        ],
+        "title": "RotateCommitRequest"
       },
       "SignatureManifest": {
         "properties": {
@@ -5919,7 +6210,7 @@
     }
   },
   "x-b02-w026-enrichment": {
-    "baseline": "RC2-premerge (31917e3 + W014/W015/W017/W021/W025/W026/W027 integrated)",
+    "baseline": "tm-security (RC2 premerge + TM01/TM03 key lifecycle endpoints)",
     "generator": "backend/scripts/b02_w026_export_openapi.py",
     "note": "The path/method inventory and all JSON schemas are the live /openapi.json export of app.main:app, unmodified. Fields listed below were added manually for handoff readability; they annotate, never contradict, the machine truth.",
     "manually_enriched_fields": [
@@ -5933,7 +6224,8 @@
       "components.schemas.<name>.description"
     ],
     "notes": [
-      "RC2 premerge: security annotations re-applied programmatically to the integrated endpoint set; new W017 batch and W025 storage endpoints carry the same deviceToken scheme"
+      "RC2 premerge: security annotations re-applied programmatically to the integrated endpoint set; new W017 batch and W025 storage endpoints carry the same deviceToken scheme",
+      "TM03: rotate/suspend/resume/keys endpoints carry the same schemes"
     ]
   }
 }
