@@ -378,3 +378,30 @@ Evidence regression 7 groups passed, LiDAR 3 groups passed, and Mock outbox
 passed. The temporary archive fixture decoded legacy JSON without an archive
 flag and verified archive-flag round trip with stable ID and name. Physical
 iPhone listed offline. Xcode logs /tmp/workcam-night03-{Debug,Release,Sim,Signed}.log.
+
+## Night 04 — 2026-11-25
+
+Branch codex/workcam-mac-night-04 from 008dfea.
+
+```sh
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamNight04-Debug CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamNight04-Release CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/WorkCamNight04-Sim CODE_SIGNING_ALLOWED=NO build
+xcrun swiftc -module-cache-path /tmp/night04-cache Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/night04-evidence && /tmp/night04-evidence test-vectors/fixed-vectors.json
+xcrun swiftc -module-cache-path /tmp/night04-cache Features/TechLab/DepthGeometry.swift Features/TechLab/LabArchive.swift Tests/Lidar/main.swift -o /tmp/night04-lidar && /tmp/night04-lidar
+xcrun swiftc -parse-as-library -module-cache-path /tmp/night04-cache Core/Sync/SyncOutbox.swift Tests/Sync/main.swift -o /tmp/night04-sync && /tmp/night04-sync
+xcrun simctl install "$wc_sim" /tmp/WorkCamNight04-Sim/Build/Products/Debug-iphonesimulator/WorkCam.app
+xcrun simctl launch --terminate-running-process "$wc_sim" com.example.workcam.dev --night04-fixture
+xcrun simctl get_app_container "$wc_sim" com.example.workcam.dev data
+xcrun simctl io "$wc_sim" screenshot "$wc_artifacts/workflow.png"
+xcrun xctrace list devices
+```
+
+All three builds passed. Simulator used the booted iPhone 18 Pro, read the
+fixture result from its temporary container and collected six PDFs, a JPEG
+derivative and a screenshot. The fixture is synthetic. Physical capture,
+Secure Enclave use and UI tap flows were not part of this run.
+
+Evidence desktop regression passed nine groups and LiDAR three groups.
+Physical iPhone was listed offline. Targeted nm scans found Lab and tamper
+symbols in Debug and no matches for those or the fixture in Release.

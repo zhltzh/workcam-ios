@@ -57,3 +57,11 @@ legacy decoding, and local evidence inspection in project photo detail.
 Watermark preferences are stored locally. Rendering reads the original into
 an orientation-corrected bounded image and writes a separate protected JPEG.
 Site Photo PDF supports A4 and US Letter with system Quick Look previews.
+
+Night 04 stages a SHA-256 capture intent before writing the original. Recovery
+can promote a matching photo without signing metadata as unsigned. A new
+transaction commits its signed manifest before the detached DER; recovery can
+recreate a missing DER from a verified manifest and matching capture intent.
+Annotation sidecars extend the legacy marker with an optional shape and
+normalized points. Screen overlays, JPEG derivatives and PDF pages share the
+same annotation renderer.

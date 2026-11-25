@@ -22,8 +22,18 @@ struct WorkPhoto: Identifiable, Sendable {
 
 enum ProjectStore {
     private static func root() throws -> URL {
-        let support = try FileManager.default.url(for: .applicationSupportDirectory,
+        let support: URL
+        #if DEBUG && targetEnvironment(simulator)
+        if let fixture = Night04Fixture.root {
+            support = fixture
+        } else {
+            support = try FileManager.default.url(for: .applicationSupportDirectory,
                                                   in: .userDomainMask, appropriateFor: nil, create: true)
+        }
+        #else
+        support = try FileManager.default.url(for: .applicationSupportDirectory,
+                                                  in: .userDomainMask, appropriateFor: nil, create: true)
+        #endif
         let root = support.appendingPathComponent("WorkProjects", isDirectory: true)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         return root
@@ -119,8 +129,20 @@ enum ProjectStore {
     }
 }
 
+enum AnnotationKind: String, Codable, CaseIterable, Sendable {
+    case marker = "Numbered Marker", arrow = "Arrow", rectangle = "Rectangle"
+    case ellipse = "Ellipse", text = "Text", freehand = "Freehand"
+}
+
+struct AnnotationPoint: Codable, Sendable {
+    let x: Double
+    let y: Double
+}
+
 struct PhotoAnnotation: Codable, Sendable {
     let x: Double
     let y: Double
-    let note: String
+    var note: String
+    var kind: AnnotationKind? = nil
+    var points: [AnnotationPoint]? = nil
 }

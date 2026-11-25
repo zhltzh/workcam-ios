@@ -1,6 +1,7 @@
 import SwiftUI
 import ImageIO
 import QuickLook
+import PDFKit
 import AVFoundation
 
 @MainActor
@@ -261,6 +262,10 @@ private enum ReportPaper: String, CaseIterable, Sendable {
     }
 }
 
+private enum ReportKind: String, CaseIterable, Sendable {
+    case site = "Site Photo Report", inspection = "Inspection Report", evidence = "Evidence Report"
+}
+
 private struct ProjectPhotosView: View {
     @State var project: WorkProject
     let didRename: () -> Void
@@ -272,6 +277,7 @@ private struct ProjectPhotosView: View {
     @State private var report: URL?
     @State private var preview: URL?
     @State private var paper = ReportPaper.a4
+    @State private var reportKind = ReportKind.site
 
     var body: some View {
         List {
@@ -283,6 +289,9 @@ private struct ProjectPhotosView: View {
                         Label("Take Photo", systemImage: "camera")
                     }
                 }
+                Picker("Report Type", selection: $reportKind) {
+                    ForEach(ReportKind.allCases, id: \.self) { Text($0.rawValue) }
+                }.disabled(exporting).onChange(of: reportKind) { report = nil }
                 Picker("Report Paper", selection: $paper) {
                     ForEach(ReportPaper.allCases, id: \.self) { Text($0.rawValue) }
                 }.disabled(exporting).onChange(of: paper) { report = nil }
@@ -341,12 +350,13 @@ private struct ProjectPhotosView: View {
         let project = project
         let photos = photos
         let paper = paper
+        let kind = reportKind
         exporting = true
         error = ""
         Task {
             defer { exporting = false }
             do { report = try await Task.detached(priority: .userInitiated) {
-                try ProjectVisuals.report(project: project, photos: photos, paper: paper)
+                try ProjectVisuals.report(project: project, photos: photos, paper: paper, kind: kind)
             }.value }
             catch { self.error = error.localizedDescription }
         }
@@ -390,6 +400,10 @@ private struct ProjectPhotoView: View {
     @State private var image: UIImage?
     @State private var annotation: PhotoAnnotation?
     @State private var note = ""
+    @State private var tool = AnnotationKind.marker
+    @State private var draft: [AnnotationPoint] = []
+    @State private var undo: [PhotoAnnotation?] = []
+    @State private var redo: [PhotoAnnotation?] = []
     @State private var error = ""
     @State private var derivative: URL?
     @AppStorage("watermark.template") private var template = WatermarkTemplate.construction
@@ -408,31 +422,56 @@ private struct ProjectPhotoView: View {
                         .resizable()
                         .scaledToFit()
                         .overlay {
-                            GeometryReader { geometry in
-                                if let annotation {
-                                    Image(systemName: "1.circle.fill")
-                                        .font(.title2)
-                                        .foregroundStyle(.white, .red)
-                                        .position(x: geometry.size.width * annotation.x,
-                                                  y: geometry.size.height * annotation.y)
-                                        .allowsHitTesting(false)
+                            Canvas { context, size in
+                                let bounds = CGRect(origin: .zero, size: size)
+                                context.withCGContext { cg in
+                                    UIGraphicsPushContext(cg)
+                                    defer { UIGraphicsPopContext() }
+                                    ProjectVisuals.drawMarker(makeAnnotation(draft) ?? annotation, in: bounds, diameter: 24)
                                 }
-                            }
+                            }.allowsHitTesting(false)
                         }
                         .contentShape(Rectangle())
-                        .gesture(SpatialTapGesture().onEnded { tap in
-                            let point = tap.location
-                            if let size = displayedSize, size.width > 0, size.height > 0 {
-                                annotation = PhotoAnnotation(x: min(1, max(0, point.x / size.width)),
-                                                             y: min(1, max(0, point.y / size.height)), note: note)
+                        .gesture(DragGesture(minimumDistance: 0).onChanged { event in
+                            guard let point = normalized(event.location) else { return }
+                            if draft.isEmpty { draft = [point] }
+                            if tool == .freehand {
+                                if draft.count < 2048 { draft.append(point) }
+                            } else {
+                                draft = [draft[0], point]
+                            }
+                        }.onEnded { _ in
+                            if let next = makeAnnotation(draft) {
+                                undo.append(annotation)
+                                redo.removeAll()
+                                annotation = next
                                 derivative = nil
                             }
+                            draft.removeAll()
                         })
                         .onGeometrySizeChange { displayedSize = $0 }
                 }
-                Text("Tap the photo to place or move a human-added marker.")
-                    .font(.caption)
-                TextField("Marker note", text: $note)
+                Picker("Annotation Tool", selection: $tool) {
+                    ForEach(AnnotationKind.allCases, id: \.self) { Text($0.rawValue) }
+                }
+                HStack {
+                    Button("Undo") {
+                        if let previous = undo.popLast() {
+                            redo.append(annotation)
+                            annotation = previous
+                            derivative = nil
+                        }
+                    }.disabled(undo.isEmpty)
+                    Button("Redo") {
+                        if let next = redo.popLast() {
+                            undo.append(annotation)
+                            annotation = next
+                            derivative = nil
+                        }
+                    }.disabled(redo.isEmpty)
+                }.buttonStyle(.bordered)
+                Text("Draw on the photo to place a human-added annotation.").font(.caption)
+                TextField("Annotation text or note", text: $note)
                     .textFieldStyle(.roundedBorder)
                     .onChange(of: note) { derivative = nil }
                 Button("Save Annotation") {
@@ -483,6 +522,7 @@ private struct ProjectPhotoView: View {
             do {
                 annotation = try ProjectStore.annotation(for: photo)
                 note = annotation?.note ?? ""
+                tool = annotation?.kind ?? .marker
                 if image == nil { throw ProjectVisuals.ExportError.unreadablePhoto }
             } catch { self.error = error.localizedDescription }
             if photo.localEntry.pathExtension == "evidence" {
@@ -496,11 +536,23 @@ private struct ProjectPhotoView: View {
 
     @State private var displayedSize: CGSize?
 
+    private func normalized(_ point: CGPoint) -> AnnotationPoint? {
+        guard let size = displayedSize, size.width > 0, size.height > 0 else { return nil }
+        return AnnotationPoint(x: min(1, max(0, point.x / size.width)),
+                               y: min(1, max(0, point.y / size.height)))
+    }
+
+    private func makeAnnotation(_ points: [AnnotationPoint]) -> PhotoAnnotation? {
+        guard let first = points.first else { return nil }
+        let anchor = tool == .marker || tool == .text ? (points.last ?? first) : first
+        return PhotoAnnotation(x: anchor.x, y: anchor.y, note: note, kind: tool, points: points)
+    }
+
     private func saveAnnotation() throws {
-        guard let annotation else { return }
-        let updated = PhotoAnnotation(x: annotation.x, y: annotation.y, note: note)
+        guard var updated = annotation else { return }
+        updated.note = note
         try ProjectStore.save(updated, for: photo)
-        self.annotation = updated
+        annotation = updated
     }
 }
 
@@ -573,19 +625,20 @@ private enum ProjectVisuals {
         return url
     }
 
-    static func report(project: WorkProject, photos: [WorkPhoto], paper: ReportPaper) throws -> URL {
+    static func report(project: WorkProject, photos: [WorkPhoto], paper: ReportPaper, kind: ReportKind) throws -> URL {
         guard photos.count <= 500 else { throw ExportError.photoLimit }
         let page = CGRect(origin: .zero, size: paper.size)
         let contentWidth = page.width - 72
-        let url = try exportURL(name: "Site Photo Report.pdf")
+        let url = try exportURL(name: "\(kind.rawValue).pdf")
         do {
             let annotations = try photos.map { try ProjectStore.annotation(for: $0) }
+            let originalHashes = kind == .evidence ? try photos.map { evidenceHash(try Data(contentsOf: $0.url)) } : []
             var unreadablePhoto = false
             try UIGraphicsPDFRenderer(bounds: page).writePDF(to: url) { context in
                 for (offset, photo) in photos.enumerated() {
                     autoreleasepool {
                         context.beginPage()
-                        drawText("Site Photo Report", in: CGRect(x: 36, y: 32, width: contentWidth, height: 32), size: 23)
+                        drawText(kind.rawValue, in: CGRect(x: 36, y: 32, width: contentWidth, height: 32), size: 23)
                         drawText(project.name, in: CGRect(x: 36, y: 70, width: contentWidth, height: 40), size: 16)
                         drawText(deviceTime(photo), in: CGRect(x: 36, y: 116, width: contentWidth, height: 24), size: 11)
                         if let image = image(photo, maxPixels: 1800) {
@@ -598,6 +651,10 @@ private enum ProjectVisuals {
                         }
                         if let annotation = annotations[offset] {
                             drawText("Human-added note: \(annotation.note)", in: CGRect(x: 36, y: page.height - 164, width: contentWidth, height: 92), size: 12)
+                        }
+                        if kind == .evidence {
+                            drawText("Original SHA-256: " + originalHashes[offset],
+                                     in: CGRect(x: 36, y: page.height - 76, width: contentWidth, height: 22), size: 9)
                         }
                         drawText("UNVERIFIED · Reference only · \(offset + 1) / \(photos.count)",
                                  in: CGRect(x: 36, y: page.height - 54, width: contentWidth, height: 24), size: 10)
@@ -630,8 +687,47 @@ private enum ProjectVisuals {
         ], context: nil)
     }
 
-    private static func drawMarker(_ annotation: PhotoAnnotation?, in rect: CGRect, diameter: CGFloat) {
+    static func drawMarker(_ annotation: PhotoAnnotation?, in rect: CGRect, diameter: CGFloat) {
         guard let annotation else { return }
+        let kind = annotation.kind ?? .marker
+        func mapped(_ point: AnnotationPoint) -> CGPoint {
+            CGPoint(x: rect.minX + rect.width * point.x, y: rect.minY + rect.height * point.y)
+        }
+        let start = mapped(AnnotationPoint(x: annotation.x, y: annotation.y))
+        if kind == .text {
+            let width = min(rect.width * 0.7, max(1, rect.maxX - start.x))
+            drawText(annotation.note, in: CGRect(x: start.x, y: start.y, width: width,
+                                                 height: max(1, rect.maxY - start.y)), size: diameter * 0.8, color: .systemRed)
+            return
+        }
+        if kind != .marker, let endpoint = annotation.points?.last {
+            let end = mapped(endpoint)
+            let path = UIBezierPath()
+            let frame = CGRect(x: min(start.x, end.x), y: min(start.y, end.y),
+                               width: abs(end.x - start.x), height: abs(end.y - start.y))
+            switch kind {
+            case .rectangle: path.append(UIBezierPath(rect: frame))
+            case .ellipse: path.append(UIBezierPath(ovalIn: frame))
+            case .freehand:
+                path.move(to: start)
+                for point in annotation.points ?? [] { path.addLine(to: mapped(point)) }
+            case .arrow:
+                path.move(to: start)
+                path.addLine(to: end)
+                let angle = atan2(end.y - start.y, end.x - start.x)
+                for turn in [-CGFloat.pi / 6, CGFloat.pi / 6] {
+                    path.move(to: end)
+                    path.addLine(to: CGPoint(x: end.x - diameter * cos(angle + turn),
+                                              y: end.y - diameter * sin(angle + turn)))
+                }
+            default: break
+            }
+            UIColor.systemRed.setStroke()
+            path.lineWidth = max(2, diameter * 0.15)
+            path.lineCapStyle = .round
+            path.stroke()
+            return
+        }
         let x = min(rect.maxX - diameter, max(rect.minX, rect.minX + rect.width * annotation.x - diameter / 2))
         let y = min(rect.maxY - diameter, max(rect.minY, rect.minY + rect.height * annotation.y - diameter / 2))
         let marker = CGRect(x: x, y: y, width: diameter, height: diameter)
@@ -644,3 +740,59 @@ private enum ProjectVisuals {
                                withAttributes: attributes)
     }
 }
+
+#if DEBUG && targetEnvironment(simulator)
+enum Night04Fixture {
+    static let root: URL? = ProcessInfo.processInfo.arguments.contains("--night04-fixture")
+        ? FileManager.default.temporaryDirectory.appendingPathComponent("Night04-" + UUID().uuidString)
+        : nil
+
+    @MainActor
+    static func run() -> String {
+        guard let root else { return "Synthetic workflow disabled" }
+        let result: String
+        do {
+            let project = try ProjectStore.create("Synthetic Test Site")
+            let source = UIGraphicsImageRenderer(size: CGSize(width: 640, height: 480))
+                .jpegData(withCompressionQuality: 0.9) { context in
+                    UIColor.systemBlue.setFill()
+                    context.fill(CGRect(x: 0, y: 0, width: 640, height: 480))
+                }
+            _ = try ProjectStore.capture(source, in: project)
+            guard let photo = try ProjectStore.photos(in: project).first else { throw EvidenceError.invalid }
+            let mark = PhotoAnnotation(x: 0.2, y: 0.2, note: "Synthetic fixture", kind: .arrow,
+                                       points: [.init(x: 0.2, y: 0.2), .init(x: 0.7, y: 0.6)])
+            try ProjectStore.save(mark, for: photo)
+            guard try ProjectStore.annotation(for: photo)?.kind == .arrow else { throw EvidenceError.invalid }
+            let watermark = try ProjectVisuals.watermark(photo: photo, annotation: mark, template: .evidence,
+                                                         position: .bottomRight, label: "SYNTHETIC · UNVERIFIED")
+            guard UIImage(contentsOfFile: watermark.path) != nil else { throw EvidenceError.invalid }
+            try FileManager.default.copyItem(at: watermark, to: root.appendingPathComponent("Synthetic Watermark.jpg"))
+            for kind in ReportKind.allCases {
+                for paper in ReportPaper.allCases {
+                    let pdf = try ProjectVisuals.report(project: project, photos: [photo], paper: paper, kind: kind)
+                    guard let document = PDFDocument(url: pdf), document.pageCount == 1,
+                          document.page(at: 0)?.bounds(for: .mediaBox).size == paper.size else {
+                        throw EvidenceError.invalid
+                    }
+                    try FileManager.default.copyItem(at: pdf,
+                        to: root.appendingPathComponent("Synthetic \(kind.rawValue) \(paper.rawValue).pdf"))
+                }
+            }
+            let evidence = try EvidenceStore.exportPackages()
+            let packages = try FileManager.default.contentsOfDirectory(at: evidence, includingPropertiesForKeys: nil)
+            guard packages.count == 1, let package = packages.first,
+                  try Data(contentsOf: package.appendingPathComponent("photo.jpg")) == source,
+                  try Data(contentsOf: photo.url) == source,
+                  try ProjectStore.projects().contains(where: { $0.id == project.id }) else {
+                throw EvidenceError.invalid
+            }
+            result = "PASS · Synthetic project → save → annotation → watermark → 6 PDFs → evidence export"
+        } catch {
+            result = "FAIL · Synthetic workflow: \(error)"
+        }
+        try? Data(result.utf8).write(to: root.appendingPathComponent("result.txt"), options: .atomic)
+        return result
+    }
+}
+#endif
