@@ -1,0 +1,135 @@
+{
+  "active_manifest": "urn:c2pa:a783fecc-b290-42a4-a692-d2d2ea95842b",
+  "manifests": {
+    "urn:c2pa:a783fecc-b290-42a4-a692-d2d2ea95842b": {
+      "assertion_store": {
+        "c2pa.actions.v2": {
+          "actions": [
+            {
+              "action": "c2pa.created",
+              "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/digitalCapture",
+              "when": "2026-11-25T10:00:00Z"
+            }
+          ]
+        },
+        "c2pa.hash.data": {
+          "alg": "sha256",
+          "exclusions": [
+            {
+              "length": 35329,
+              "start": 20
+            }
+          ],
+          "hash": "b64'Xd5boNIK0qvfQk+908cJhOQbGIT7wVToFhsBlmTnIt8='",
+          "name": "jumbf manifest",
+          "pad": "b64'AAAAAAAAAAAA'"
+        },
+        "c2pa.thumbnail.claim": "<omitted> len = 31350",
+        "org.workcam.poc.evidence": {
+          "capture_timestamp": "2026-11-25T10:00:00Z",
+          "device_id": "test-device-001",
+          "hash_alg": "sha256",
+          "location": "none",
+          "note": "WorkCam evidence fields mapped as a custom assertion (PoC mapping experiment)",
+          "photo_hash_sha256": "5dde5ba0d20ad2abdf424fbdd3c70984e41b1884fbc154e8161b019664e722df",
+          "record_id": "b02w019-poc-record-0001"
+        }
+      },
+      "claim": {
+        "alg": "sha256",
+        "claim_generator_info": {
+          "documentation": "B02-W019 PoC",
+          "name": "workcam-c2pa-poc",
+          "org.contentauth.c2pa_rs": "0.92.0",
+          "version": "0.1.0"
+        },
+        "claim_version": 2,
+        "created_assertions": [
+          {
+            "hash": "b64'9Fc8jA4xqjRGTQlvmoUrevEMrO/qs7kZQbUpW7/lGP0='",
+            "url": "self#jumbf=c2pa.assertions/c2pa.actions.v2"
+          },
+          {
+            "hash": "b64'NR9YXU8Qzmoss8lpj+SW8tbmMPDySeOKAuGyjFzcdGQ='",
+            "url": "self#jumbf=c2pa.assertions/c2pa.thumbnail.claim"
+          },
+          {
+            "hash": "b64'38bbpcycyIeChTzmELevOf0V93pZk0wkQvKj/lWQquw='",
+            "url": "self#jumbf=c2pa.assertions/c2pa.hash.data"
+          }
+        ],
+        "dc:title": "WorkCam B02-W019 PoC JPEG",
+        "gathered_assertions": [
+          {
+            "hash": "b64'SRgujD8zU+IdKoEmD5VJBZLTcDovAMfrEuzbcS4m9DA='",
+            "url": "self#jumbf=c2pa.assertions/org.workcam.poc.evidence"
+          }
+        ],
+        "instanceID": "xmp.iid:d124f15c-e5ec-408f-8b92-4a07937bf6dd",
+        "signature": "self#jumbf=/c2pa/urn:c2pa:a783fecc-b290-42a4-a692-d2d2ea95842b/c2pa.signature"
+      },
+      "signature": {
+        "alg": "es256",
+        "common_name": "WorkCam C2PA PoC Leaf Signing Cert",
+        "issuer": "WorkCam Tech Lab (PoC only)"
+      }
+    }
+  },
+  "validation_results": {
+    "activeManifest": {
+      "failure": [
+        {
+          "code": "signingCredential.untrusted",
+          "explanation": "signing certificate untrusted",
+          "url": "self#jumbf=/c2pa/urn:c2pa:a783fecc-b290-42a4-a692-d2d2ea95842b/c2pa.signature"
+        }
+      ],
+      "informational": [
+        {
+          "code": "signingCredential.ocsp.skipped",
+          "explanation": "OCSP fetching skipped",
+          "url": "self#jumbf=/c2pa/urn:c2pa:a783fecc-b290-42a4-a692-d2d2ea95842b/c2pa.signature"
+        }
+      ],
+      "success": [
+        {
+          "code": "claimSignature.insideValidity",
+          "explanation": "claim signature valid",
+          "url": "self#jumbf=/c2pa/urn:c2pa:a783fecc-b290-42a4-a692-d2d2ea95842b/c2pa.signature"
+        },
+        {
+          "code": "claimSignature.validated",
+          "explanation": "claim signature valid",
+          "url": "self#jumbf=/c2pa/urn:c2pa:a783fecc-b290-42a4-a692-d2d2ea95842b/c2pa.signature"
+        },
+        {
+          "code": "assertion.hashedURI.match",
+          "explanation": "hashed uri matched: self#jumbf=c2pa.assertions/c2pa.actions.v2",
+          "url": "self#jumbf=/c2pa/urn:c2pa:a783fecc-b290-42a4-a692-d2d2ea95842b/c2pa.assertions/c2pa.actions.v2"
+        },
+        {
+          "code": "assertion.hashedURI.match",
+          "explanation": "hashed uri matched: self#jumbf=c2pa.assertions/c2pa.thumbnail.claim",
+          "url": "self#jumbf=/c2pa/urn:c2pa:a783fecc-b290-42a4-a692-d2d2ea95842b/c2pa.assertions/c2pa.thumbnail.claim"
+        },
+        {
+          "code": "assertion.hashedURI.match",
+          "explanation": "hashed uri matched: self#jumbf=c2pa.assertions/c2pa.hash.data",
+          "url": "self#jumbf=/c2pa/urn:c2pa:a783fecc-b290-42a4-a692-d2d2ea95842b/c2pa.assertions/c2pa.hash.data"
+        },
+        {
+          "code": "assertion.hashedURI.match",
+          "explanation": "hashed uri matched: self#jumbf=c2pa.assertions/org.workcam.poc.evidence",
+          "url": "self#jumbf=/c2pa/urn:c2pa:a783fecc-b290-42a4-a692-d2d2ea95842b/c2pa.assertions/org.workcam.poc.evidence"
+        },
+        {
+          "code": "assertion.dataHash.match",
+          "explanation": "data hash valid",
+          "url": "self#jumbf=/c2pa/urn:c2pa:a783fecc-b290-42a4-a692-d2d2ea95842b/c2pa.assertions/c2pa.hash.data"
+        }
+      ]
+    },
+    "specVersion": "2.4.0"
+  },
+  "validation_state": "Valid"
+}

@@ -1,0 +1,91 @@
+{
+  "sdk": "0.92.0",
+  "python_binding": "c2pa-python 0.39.0",
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "steps": [
+    {
+      "step": "generate_test_jpeg",
+      "path": "D:\\定时\\工程相机\\worktrees\\b02-w019\\backend\\tools\\c2pa-poc\\output\\poc_plain.jpg",
+      "bytes": 5355,
+      "sha256": "5dde5ba0d20ad2ab..."
+    },
+    {
+      "step": "generate_test_key",
+      "curve": "secp256r1 (P-256)",
+      "structure": "test CA (self-signed) + leaf signing cert issued by CA",
+      "leaf_eku": "id-kp-documentSigning (1.3.6.1.5.5.7.3.36)",
+      "written_to_disk": false,
+      "ca_subject": "O=WorkCam Tech Lab (PoC only), CN=WorkCam C2PA PoC Test CA",
+      "leaf_subject": "O=WorkCam Tech Lab (PoC only), CN=WorkCam C2PA PoC Leaf Signing Cert"
+    },
+    {
+      "step": "sign_no_trust_settings",
+      "rejected": false,
+      "unexpected": true
+    },
+    {
+      "step": "sign_offline",
+      "src_bytes": 5355,
+      "dst_bytes": 40684,
+      "overhead_bytes": 35329,
+      "overhead_pct": 659.74,
+      "wall_ms": 56.2,
+      "tsa": "none (offline)"
+    },
+    {
+      "step": "read_back_no_trust",
+      "validation_state": "Valid",
+      "read_wall_ms": 3.6,
+      "active_manifest_found": true
+    },
+    {
+      "step": "read_back_with_poc_trust",
+      "validation_state": "Trusted",
+      "read_wall_ms": 3.9
+    },
+    {
+      "step": "tamper_one_byte",
+      "path": "D:\\定时\\工程相机\\worktrees\\b02-w019\\backend\\tools\\c2pa-poc\\output\\poc_tampered.jpg",
+      "reader_raised": false,
+      "validation_state_after_tamper": "Invalid"
+    },
+    {
+      "step": "online_tsa_attempt",
+      "ok": false,
+      "error_type": "_C2paSignature",
+      "error": "Signature: internal error (an error occurred from the underlying http resolver: error sending request for url (https://timestamp.digicert.com/))"
+    },
+    {
+      "step": "derivative_ingredient_test",
+      "ok": true,
+      "validation_state": "Trusted",
+      "ingredient_chain_depth": 1
+    },
+    {
+      "step": "large_image_perf",
+      "plain_bytes": 322116,
+      "signed_bytes": 358447,
+      "overhead_bytes": 36331,
+      "overhead_pct": 11.279,
+      "sign_wall_ms": 242.8,
+      "read_wall_ms": 7.5
+    },
+    {
+      "step": "heic_roundtrip",
+      "ok": true,
+      "plain_bytes": 19593,
+      "signed_bytes": 23483,
+      "sign_wall_ms": 42.2,
+      "read_wall_ms": 11.4,
+      "validation_state": "Trusted"
+    },
+    {
+      "step": "size_perf_summary",
+      "plain_bytes": 5355,
+      "signed_bytes": 40684,
+      "overhead_bytes": 35329,
+      "sign_wall_ms_offline": 56.2,
+      "read_wall_ms": 3.6
+    }
+  ]
+}
