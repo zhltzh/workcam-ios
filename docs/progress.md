@@ -434,3 +434,10 @@ portrait EXIF orientation, issue history, PDF reads and unchanged original.
 Independent unzip and SHA256SUMS verification passed all nine listed hashes.
 UI retries initially failed at a signing-fixture assumption and while leaving
 the system search UI. These failures are distinct from the synthetic results.
+
+Final run `wc_run=6`: two XCUITests passed, zero failures. Real clicks
+covered create, search, archive and archived-list visibility, reopening a
+photo, saving an annotation, watermarked preview and Quick Look PDF.
+Run 5 reached Quick Look but asserted an outdated system button label.
+The final run checks the observed Quick Look accessibility identifier.
+The final iOS Debug and Release builds passed. Code SHA f6774efde9577ec4e9fa03dd38424c210f07b448.
