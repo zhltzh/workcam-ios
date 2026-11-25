@@ -574,9 +574,26 @@ async def comparison_image(issue_id: str, body: ComparisonRequest,
         raise ApiError(404, "original_not_uploaded",
                        "both originals must be uploaded first")
 
-    result = _render_comparison(before_bytes, after_bytes,
-                                 body.before_photo_id,
-                                 body.after_photo_id)
+    from PIL import Image as _PILImage
+    try:
+        result = _render_comparison(before_bytes, after_bytes,
+                                    body.before_photo_id,
+                                    body.after_photo_id)
+    except _PILImage.DecompressionBombError as e:
+        # PIL's bomb guard inherits Exception directly (not OSError /
+        # ValueError) - caught explicitly so an oversized-pixel bomb is
+        # a typed 400 too, never an unhandled 500.
+        raise ApiError(400, "image_too_large",
+                       f"an original exceeds the decompression-bomb "
+                       f"guard: {e}")
+    except (OSError, ValueError) as e:
+        # B02-W021 fix (ISSUE-W021-01): PIL raises OSError (truncated /
+        # unidentifiable bytes, decompression-bomb escalation) or
+        # ValueError for bytes that are not a decodable image. The
+        # originals stay intact in storage; the request is a typed 400,
+        # never an unhandled 500.
+        raise ApiError(400, "invalid_image",
+                       f"an original is not a decodable image: {e}")
     return Response(
         content=result["image_bytes"],
         media_type="image/jpeg",

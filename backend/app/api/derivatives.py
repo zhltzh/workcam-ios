@@ -144,7 +144,28 @@ def render_watermark_for_photo(token: str, photo_id: str, template: str,
             "note": "derivative is a DERIVATIVE image, not the trusted "
                     "original evidence"}
 
-    result = render_watermark(original_bytes, fields, template)
+    from PIL import Image as _PILImage
+    try:
+        result = render_watermark(original_bytes, fields, template)
+    except _PILImage.DecompressionBombError as e:
+        # PIL's bomb guard inherits Exception directly (not OSError /
+        # ValueError) - caught explicitly so an oversized-pixel bomb is
+        # a typed 400 too, never an unhandled 500. (B02-W021 fix,
+        # ISSUE-W021-02, carried into the shared path during the W022
+        # RC2 premerge so batch watermark gets it too.)
+        raise ApiError(400, "image_too_large",
+                       f"the original exceeds the decompression-bomb "
+                       f"guard: {e}")
+    except (OSError, ValueError) as e:
+        # B02-W021 fix (ISSUE-W021-02): PIL raises OSError (truncated /
+        # unidentifiable bytes) or ValueError (decompression-bomb
+        # escalation, or the renderer's all-toggles-off business rule)
+        # for bytes that are not a decodable image or a request that
+        # renders nothing. The original stays intact in storage; the
+        # request is a typed 400, never an unhandled 500.
+        raise ApiError(400, "invalid_image_or_request",
+                       f"cannot render a derivative from these bytes "
+                       f"and fields: {e}")
     d_sha = result["derivative_sha256"]
 
     # integrity guard: rendered output must hash to what we store
@@ -215,6 +236,11 @@ async def create_watermark_derivative(photo_id: str, body: WatermarkRequest,
             raise ApiError(400, "invalid_logo",
                            "company_logo_b64 is not valid base64")
 
+    # W022 RC2 premerge: keep the W015 shared-path call. The W021
+    # security fixes (typed 400 for hostile image bytes / bomb guard)
+    # were carried INTO render_watermark_for_photo above, so both the
+    # single-photo endpoint and the W017 batch watermark engine get
+    # them - strictly better than the W021-side inline body.
     return render_watermark_for_photo(token, photo_id, body.template,
                                       fields)
 
