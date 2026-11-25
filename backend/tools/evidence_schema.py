@@ -143,7 +143,18 @@ def validate_record(rec: dict) -> SchemaReport:
 def build_canonical_payload(rec: dict) -> str:
     """Rebuild the exact signed text per the schema field order.
     Raises KeyError with a clear message when a payload field is absent.
-    v1.1 float formatting mirrors the B02-W023 byte contract."""
+    v1.1 float formatting mirrors the B02-W023 byte contract.
+    PROTOCOL RULE (schema meta.canonical_payload.rules): no string
+    field may contain a newline - a value like 'a\\r\\ninjected=1'
+    would smuggle a forged line INTO the signed text, so the builder
+    hard-rejects it (found while pinning TM02 hostile vectors)."""
+    for field in ("record_id", "capture_timestamp",
+                  "device_reported_time", "device_id"):
+        v = rec.get(field)
+        if isinstance(v, str) and ("\n" in v or "\r" in v):
+            raise ValueError(
+                f"{field} must not contain newlines "
+                f"(protocol canonical-payload rule)")
     pv = rec["protocol_version"]
 
     def fmt_num(v: float) -> str:

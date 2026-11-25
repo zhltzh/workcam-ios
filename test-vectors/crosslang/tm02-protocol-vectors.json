@@ -1,0 +1,1805 @@
+{
+  "_meta": {
+    "task": "TECH-MARATHON-01 / TM02",
+    "description": "REAL-protocol cross-language vectors: canonical payloads built by the TM01 schema byte contract, deterministic ECDSA over the exact bytes.",
+    "determinism": "signatures are deterministic given the fixed test key recorded below",
+    "openssl_note": "openssl cross-verified 96 signatures",
+    "python_problems": [],
+    "openssl_problems": [],
+    "hostile_guards": "all hostile cases rejected",
+    "swift_status": "CROSS_PLATFORM_PENDING - Swift side executes the emitted Swift test file on Mac"
+  },
+  "test_public_key_b64": "BHFNGGFmyj6oNNdTOVo1Buyf8nPbp94n4AkMZyr3WBon7oA4e0AjSWc92ZidcsQvVQ2JdNnfmg8cAYDvpZI9FvE=",
+  "cases": [
+    {
+      "name": "1.0-loc-none",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": null
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "ef444f69d6c61a13ab5fbe03f19db2094a1fbbbbf65d27d4e08a0dad1bd6e2bb",
+      "signature_der_b64": "MEUCIQDuPajnwgJbQsFYxzfqmCd1T5oJVRl0PUDmjzgJuLGVewIgJ5kuGgyn+D3saAxeE2Is+WNoAgan5XZR6TG8f9T03Qw="
+    },
+    {
+      "name": "1.0-loc-full",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2304,
+          "longitude": 121.4737,
+          "accuracy": 5.0,
+          "altitude": 4.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2304,121.4737,5.0,4.5\n",
+      "payload_sha256": "94fb2e79770f5f5e348b6201ebadef4de8b8633ecd47d27461982af1ec2741c8",
+      "signature_der_b64": "MEQCIBrTCLyeofNFRjo3c6nVfUlnrt92KLkYAE3LSxFnwJAQAiB6ctknMssBYo5s0Cd4KG6vdEH2bHkH6FjGSzSXaQxJtw=="
+    },
+    {
+      "name": "1.0-loc-no-alt",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": -33.8688,
+          "longitude": 151.2093,
+          "accuracy": 8.25,
+          "altitude": null
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=-33.8688,151.2093,8.25,none\n",
+      "payload_sha256": "269045b2bff5ee0b4731716dd32b584bfac7d2662899ca80a3361037ea5200ea",
+      "signature_der_b64": "MEUCIA4Q+wzjaP6K/DI/OSv7FfhfD5O1SnBraohe+8nz6LoPAiEAg1GpF1LeFUffokbflzW4AxHZUlFUnl/Y7eAL0576pyY="
+    },
+    {
+      "name": "1.0-loc-int-coords",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31,
+          "longitude": 0,
+          "accuracy": 10,
+          "altitude": 0
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31,0,10,0\n",
+      "payload_sha256": "c49e4b2fa220f117ba3230706db188c04d4eb55dfd4b746c85ec4df81f44b359",
+      "signature_der_b64": "MEUCIQD2RkoxKFbljxQ7S5y13UeWbIwiapEz/0ukOswB1Te5ygIgHavb/u3JxvPh2K7i6Bq92odYjPWGvNlqtf290subGbs="
+    },
+    {
+      "name": "1.0-loc-lat-max",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 90.0,
+          "longitude": 180.0,
+          "accuracy": 0.0,
+          "altitude": null
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=90.0,180.0,0.0,none\n",
+      "payload_sha256": "a716783315844e84374c5a050ca30de7ecde31379c3f69e063304795d1747446",
+      "signature_der_b64": "MEUCIQD9NikAvNVOPdaDD/8qHJ1ZQfZLn6s2AT2dEUfHdvomTgIgUppM3Rru/HQ99+wX2r1TOcF45aJQvXuQTPSTFjQ7Qro="
+    },
+    {
+      "name": "1.0-loc-lat-min",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": -90.0,
+          "longitude": -180.0,
+          "accuracy": 0.001,
+          "altitude": -402.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=-90.0,-180.0,0.001,-402.5\n",
+      "payload_sha256": "decab41dba7dfd57d5d14a78a89d407d077f92c40a62e881d046240dece0c147",
+      "signature_der_b64": "MEUCIQCUSHntnXCRi1u3De5upfq9nx/Ik/bffFMxDn/6yfVCDwIgEneksBUsgW62XvBW6p9e9XFmt04xe6XCoG6DS97PsSI="
+    },
+    {
+      "name": "1.0-loc-exp-notation",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 1e-07,
+          "longitude": -2.5e-06,
+          "accuracy": 3.14159265358979,
+          "altitude": 0.0015
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=1e-07,-2.5e-06,3.14159265358979,0.0015\n",
+      "payload_sha256": "295e6fb2120ec83e687b8db0ec39d71e2e8ed548500e60d3e8362940412fd0da",
+      "signature_der_b64": "MEQCIH6tYqzwXqFxRzncZakKFev64kjJelYFldkmjQdXumtNAiA7SwWwe5LErio5IuPuvyqnoTYc5HHktGxbePQYZE/PuQ=="
+    },
+    {
+      "name": "1.1-loc-none",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": null
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "c0bd69b1bdb21a175cfed1282eb011b064b093a2f1595c6aaedeac382a241d17",
+      "signature_der_b64": "MEUCIQD/41e9Y8IEDZtLb2dzAzlj0aaxa2k0b5mXetvYLERPWQIgDZIkIGgSL96wONU8frqv+97TlOwLMImXitbflYxIKgg="
+    },
+    {
+      "name": "1.1-loc-full",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2304,
+          "longitude": 121.4737,
+          "accuracy": 5.0,
+          "altitude": 4.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2304,121.4737,5.0,4.5\n",
+      "payload_sha256": "aa058db174cef253c8632675983ed2947503b4aeb8e39943d5a9d40fa51d3ace",
+      "signature_der_b64": "MEQCIG0vgrx2xLHJjCSwESbuNJWfi/qj1+8CxMsGUQ4rlxsFAiAnJhtFFJc8EVn9YqtMh+yEU1OA//DBIkL99byWbA+njQ=="
+    },
+    {
+      "name": "1.1-loc-no-alt",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": -33.8688,
+          "longitude": 151.2093,
+          "accuracy": 8.25,
+          "altitude": null
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=-33.8688,151.2093,8.25,none\n",
+      "payload_sha256": "d3ea7e0c957ac765ef13e280763de56f16153b5640a8616de913258f58f9539b",
+      "signature_der_b64": "MEUCIF2H57ohM4dNME50+CZ5mi2RB5on50BAJjnkHd4kGCOpAiEAyGcmvgLK6imPxpMUb4SpvkHgsCSxwysyB++O3brvZdQ="
+    },
+    {
+      "name": "1.1-loc-int-coords",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31,
+          "longitude": 0,
+          "accuracy": 10,
+          "altitude": 0
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31,0,10,0\n",
+      "payload_sha256": "b2442eab73938457d3e7bf6aea91e2fb69735eb0613ff2826f6cc2830d99e4df",
+      "signature_der_b64": "MEYCIQC6n1bxxuXkQw5uyZsZLWuHaUdMmtYItj1oEB/QcOyjcgIhAKRNEPPPcI7EkPVW7xwnuv9OsRSskuBIu/A1AUzimbkG"
+    },
+    {
+      "name": "1.1-loc-lat-max",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 90.0,
+          "longitude": 180.0,
+          "accuracy": 0.0,
+          "altitude": null
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=90.0,180.0,0.0,none\n",
+      "payload_sha256": "5860fe5be188f5915b02735da84e5174c55b9126d3b83870bde838de62e87ff7",
+      "signature_der_b64": "MEUCIEIwBWHafdBxGeoPUN9ORw+t/LBSaIL1qDoQkjcw1E85AiEAjdPjNLWQ32kr+HgGUM6jNhyCcWZHW5IM/dMxyb5DdT0="
+    },
+    {
+      "name": "1.1-loc-lat-min",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": -90.0,
+          "longitude": -180.0,
+          "accuracy": 0.001,
+          "altitude": -402.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=-90.0,-180.0,0.001,-402.5\n",
+      "payload_sha256": "35a30f36321ccd47952a9eababec630fd7012ad0f55d0dda88c0067dd13839c5",
+      "signature_der_b64": "MEYCIQDm0ipKrGZ9mm1hZwa42XprUg8J1h+9WkuZmNsJgOA8rwIhAMzIi/5UaOj4VQfbF4pK+aNsGJ/0p5IfXm+R+hrULLz6"
+    },
+    {
+      "name": "1.1-loc-exp-notation",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 1e-07,
+          "longitude": -2.5e-06,
+          "accuracy": 3.14159265358979,
+          "altitude": 0.0015
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=1e-07,-2.5e-06,3.141592654,0.0015\n",
+      "payload_sha256": "9738e63bc8601c50ff739e8f37481e78c7a93d92493214a89a14c55e1147c1cc",
+      "signature_der_b64": "MEUCIDLxq6QzMZDdUxWJNOLMMp0QlcgSqIIMr3ZNYbl6h4PaAiEAgLabSds5B8qe5Ok3tYtC7q0NAmUlsL3DSXTTwrzqPG0="
+    },
+    {
+      "name": "seq-zero",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 0,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=0\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "4a1c01c8791fbee97c5e929488af0ae89e682f98fc3952af7b2c9aba0dbcbaaf",
+      "signature_der_b64": "MEQCIBscYzCEVBJE3Y6Q3RpuIlVr+lU0gfRAo/1sOEVHDlf5AiB7nwLAh0cYdAqF4lugpXFxITYNrz5IYZkcd8Kc73eavA=="
+    },
+    {
+      "name": "seq-2pow31",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 2147483648,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=2147483648\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "bf70b76bf4837299befef374974e10879e648e086ece952881e5591592a6d996",
+      "signature_der_b64": "MEYCIQD5iCphphwdd4QEP6aoUvJ5QlOd6h6Cs7xrBbraZtVxkAIhAPrU5b0NIsFtwjEsE6/kUqXyLkbx19R3W3nOgQLpRs6Z"
+    },
+    {
+      "name": "seq-2pow53",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 9007199254740991,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=9007199254740991\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "1e4fadde202eed50b07e37be23c27f26f9602ea1bd2c3a4f9f877713f232495c",
+      "signature_der_b64": "MEUCIQDv0EYBMVFaG81NFAiOgtmsadCKMqLP+a9qAeKKoLFzQAIgOnpckIQjFXr1aLEG3Q2fhTib1VUYu1YZ+8r3UNuzMIg="
+    },
+    {
+      "name": "prev-hash",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef",
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "fd21a03c22d24b5b12d49ae7073c22b3780a8955fb5cc43df1c05eb551bb0352",
+      "signature_der_b64": "MEYCIQDZ2Rf+lCDwhUHmuUBidwaqu1lUn7Evpv9224CEx0o8EwIhAMl7scu/3m0kr/+TPF1FAUhbqB9gV4NsyxJlbdaPIwo8"
+    },
+    {
+      "name": "ts-z",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00Z",
+        "device_reported_time": "2026-11-25T09:00:00Z",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00Z\ndevice_reported_time=2026-11-25T09:00:00Z\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "8f22f8bd8d6390853fd1f3d72c212591a9ab69fc4aa256a8d6d9419be5196631",
+      "signature_der_b64": "MEYCIQCTKwfT17rTt2WWijqt9Ey2sMIQUwjmSfm6QHgC7YX9WgIhAPf2xXcxxpdZabesdaRmfssF7UvNkySEEkecuHk+/H48"
+    },
+    {
+      "name": "ts-frac",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00.123456+00:00",
+        "device_reported_time": "2026-11-25T09:00:00.123456+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00.123456+00:00\ndevice_reported_time=2026-11-25T09:00:00.123456+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "fdf09bec595b5ec7280df738977b47b5688f2441e64d21b5a9af26823d13101c",
+      "signature_der_b64": "MEUCIQCpq6fMkTDHtDpjvmOrQH5cVu0hbhFxZAxemGcKsswVbwIgKzi6SXXarGNL3u6gdpflvWlsDLvdf6hUgp+F2t3FcHI="
+    },
+    {
+      "name": "ts-negoffset",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T14:30:00+05:30",
+        "device_reported_time": "2026-11-25T14:30:00+05:30",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T14:30:00+05:30\ndevice_reported_time=2026-11-25T14:30:00+05:30\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "e59d20ce0076b86e227118a90721f1245bce2a01303cf5f5b2c33bda487c05c5",
+      "signature_der_b64": "MEYCIQCA9ekps6ddJwjz1S5GavE9RfZqRCYGP2WCNX0K0o9PRwIhAJXICCYyN9mPsSoVIf1CUaDbWWbtzAUanfEpFrsq7aFk"
+    },
+    {
+      "name": "ts-minoffset",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-26T02:00:00-11:00",
+        "device_reported_time": "2026-11-26T02:00:00-11:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-26T02:00:00-11:00\ndevice_reported_time=2026-11-26T02:00:00-11:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "d75e3b6a53accef6b81df08ca4565d011b3ca1f1e265c55508733a91c4becfd9",
+      "signature_der_b64": "MEYCIQDXgJ4DmCL7xhCB4xUyu6gix+Mq7P/LDRhFbQFeQzmdRQIhAOa+tZYTpVycl1IWiE6Ya0lSPLga48G0SRCZLaI+on/A"
+    },
+    {
+      "name": "dev-unicode",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "工程相机-设备-001"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=工程相机-设备-001\nlocation=none\n",
+      "payload_sha256": "c45d6411ad3064f6bfc7e6ed6e6dd877c01f2df5b4f843e68783b9178c71054e",
+      "signature_der_b64": "MEUCIQC2k8AEQ8hLEsJp4wP5hO7lBDLBw+ToGLX7MOIst6HZzwIgKZOaKqsbnVtjjFasdj9am2vxapKONRRgkPX14oBPcbU="
+    },
+    {
+      "name": "dev-combining",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "dev́icé"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=dev́icé\nlocation=none\n",
+      "payload_sha256": "355548d4f0c2bf3262231e63ab2d511e6cbe6da4afaecb682b99a9a6bc33cdf7",
+      "signature_der_b64": "MEYCIQChuL5rIyiyvh+q5knjlkrl6l3TYvBT5IFkvphGrEAK4gIhAPLF4djL8vnCB6CkddSoHFG5HWacj2H85SYTiCGtKBuB"
+    },
+    {
+      "name": "dev-128max",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\nlocation=none\n",
+      "payload_sha256": "3df8d1242c41c0273ca3279cbd3a9db64fd7ab80a90ee44f187c739ddcdb3063",
+      "signature_der_b64": "MEUCIQDpHPReCJcLIZGFgEnti8ktx06p3nU9CUL8UNJPdXOeJQIga43lv0SwmWtiL+3J1NE/eTlJKbapLuUOZ8MmwU39No8="
+    },
+    {
+      "name": "hostile-crlf-device-id",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "dev\r\ninjected=1"
+      },
+      "expect_build_error": "newline"
+    },
+    {
+      "name": "hostile-lf-capture-ts",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00\nx=1",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "expect_build_error": "newline"
+    },
+    {
+      "name": "hostile-lf-record-id",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "aaaaaaaaaaaaaaaa\nphoto_hash=zz",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "expect_build_error": "newline"
+    },
+    {
+      "name": "hostile-string-latitude",
+      "record": {
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": "31.2",
+          "longitude": 121.4,
+          "accuracy": 5
+        }
+      },
+      "expect_validation_error": "latitude must be numeric"
+    },
+    {
+      "name": "sweep-loc-00",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2304,
+          "longitude": 121.4737,
+          "accuracy": 1.0,
+          "altitude": null
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2304,121.4737,1.0,none\n",
+      "payload_sha256": "fb86d55c02d51031997f9a1aacc9bb281b506cee8021ff493efb7fd67d30b545",
+      "signature_der_b64": "MEQCIDBbPTOQ24pyGlNuNtHFZz7S5VzMzcODVcbT4VL6ZFsMAiBcdJnmksYe5lio3gJqRHt2kb0IoAwgFO8LnsVSsl+xxA=="
+    },
+    {
+      "name": "sweep-loc-01",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2305,
+          "longitude": 121.47349999999999,
+          "accuracy": 2.0,
+          "altitude": 0.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2305,121.4735,2.0,0.5\n",
+      "payload_sha256": "a039e60c90c8cfc600f2e9460c59caac43aa5b9d7ce5738f0ca990958295e739",
+      "signature_der_b64": "MEUCICQLEgCkemNLzgN5BD0osJqNP9j35EvF6SugCLEe+2oEAiEAq+G6k2aYAVWGIDMifahYQIDdJKmKvBukmMbWzWSzIJs="
+    },
+    {
+      "name": "sweep-loc-02",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2306,
+          "longitude": 121.4733,
+          "accuracy": 3.0,
+          "altitude": 1.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2306,121.4733,3.0,1.5\n",
+      "payload_sha256": "a102168ce1fc05cc23298cb10fae0597ea40e4ae7b2fd034d46e86513832f899",
+      "signature_der_b64": "MEUCIHltyH9LoVLVAOLp+s71ARO/+3XKTux/r8eUIND7h4a+AiEAoI9+DSre374xRtPUCD+cSWGk0OYzUduymAPOoWiufrM="
+    },
+    {
+      "name": "sweep-loc-03",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2307,
+          "longitude": 121.47309999999999,
+          "accuracy": 4.0,
+          "altitude": null
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2307,121.4731,4.0,none\n",
+      "payload_sha256": "d177f19a72348c9217d9dc9263453f8c877f761a2ac74951d92a116fb0a14af7",
+      "signature_der_b64": "MEQCIDqaXqdw5fM4FgiQcQguuU39dwN9K08isR3P67zj9n86AiBHPP/1wDIlsESK6qMUKPZhr67e2+We3i3yMN7VB1Lg7w=="
+    },
+    {
+      "name": "sweep-loc-04",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2308,
+          "longitude": 121.4729,
+          "accuracy": 5.0,
+          "altitude": 3.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2308,121.4729,5.0,3.5\n",
+      "payload_sha256": "b8b9fa148232fc62f8ceaa80562053e074a1f0088c6e33bfb05a796945d551c5",
+      "signature_der_b64": "MEYCIQCjF/3RiWHvyRnh+jr0l37w/zTVy5ULmCfbwF4WmIWkPwIhANpUBeGEz3ArQpH+K6sSiCWr52E3Vqknhxppi+jS4t8V"
+    },
+    {
+      "name": "sweep-loc-05",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2309,
+          "longitude": 121.47269999999999,
+          "accuracy": 6.0,
+          "altitude": 4.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2309,121.4727,6.0,4.5\n",
+      "payload_sha256": "729cf061977f2a12ad17b0cc3ea6a50000c76f590c5d5516d403dc519d4cbda3",
+      "signature_der_b64": "MEQCIGtSpV+eBtSCmu/6q33Y95BKfx5aEo6POX7Bbxe9rwa2AiB7ho2N3WUDNkkzwk8Pm3Z63aQxChiGfKb5LIwBX/AtGA=="
+    },
+    {
+      "name": "sweep-loc-06",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.230999999999998,
+          "longitude": 121.4725,
+          "accuracy": 7.0,
+          "altitude": null
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.231,121.4725,7.0,none\n",
+      "payload_sha256": "3196bc31ee007a4d2984079d8c782419c4bafb09b8d8a146a9c20e1bb1fff8ab",
+      "signature_der_b64": "MEQCIDVagwb6jWLlKfCz9c64nZp1Z4qvoh7fHFpblpYn8/x9AiB/SnTsCIY2MryrLlGYTOb0+kHot4MepfmMYoO2fG3IQw=="
+    },
+    {
+      "name": "sweep-loc-07",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.231099999999998,
+          "longitude": 121.47229999999999,
+          "accuracy": 8.0,
+          "altitude": 6.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2311,121.4723,8.0,6.5\n",
+      "payload_sha256": "a3a86690d875649820ec949c2dee4db5fe11cae7c7d207f58fc36fc223d079db",
+      "signature_der_b64": "MEUCID26jbBrGNM6QON3ujib+qrpievpLkh26qLGo+4w1NAKAiEA0qETVK4LPhgPSJfphbf4WoefK2Tp2N4xBnrN9rWGP4w="
+    },
+    {
+      "name": "sweep-loc-08",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2312,
+          "longitude": 121.4721,
+          "accuracy": 9.0,
+          "altitude": 7.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2312,121.4721,9.0,7.5\n",
+      "payload_sha256": "d9da4d4961db8d13f4a75596c5cfc3a0826fd5afabfd64b4d8ac0e4b9b58e249",
+      "signature_der_b64": "MEUCIQDrGlzT+RI4tPsmNq9tYpIB1mxLCr+6c6KLTh16fi/kcAIgRrwuFofwvDU7htSwehl1Os2yU1OjZCVe3Qxcx9hOFmM="
+    },
+    {
+      "name": "sweep-loc-09",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2313,
+          "longitude": 121.47189999999999,
+          "accuracy": 10.0,
+          "altitude": null
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2313,121.4719,10.0,none\n",
+      "payload_sha256": "d09465d0d462fa1905c9de5524d1922b677abce3005910777f11340f6a97318c",
+      "signature_der_b64": "MEQCIFbjhUQU0CZ7a/nEnFwqQqAbfxrI5s3LNQ5NpUXxOpTkAiAiSn63/zs4EnELlqS61tql9hchA3BYPwxWQA5+hKUIsQ=="
+    },
+    {
+      "name": "sweep-loc-10",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2314,
+          "longitude": 121.4717,
+          "accuracy": 11.0,
+          "altitude": 9.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2314,121.4717,11.0,9.5\n",
+      "payload_sha256": "ac32952d3c77ac1dddbb124e0d432afe3569ff6f96e4a5e21c6ff6b2d19a2ee3",
+      "signature_der_b64": "MEYCIQCf5SfmoZCVNwt4jDwVqFmRKt4o5DJQuFMnoTBTOrHIgQIhALKP+i+IWZFSzzwLbc58LwuFimmNGSgvQb7w0egpuaQn"
+    },
+    {
+      "name": "sweep-loc-11",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2315,
+          "longitude": 121.47149999999999,
+          "accuracy": 12.0,
+          "altitude": 10.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2315,121.4715,12.0,10.5\n",
+      "payload_sha256": "5811b878eb08053042749951a4184a62601e654da99dde67947eefc7879227d1",
+      "signature_der_b64": "MEQCIE0cPaDgrWe3ddFIrBE7jr2eHaASGK+VzYzdXIB9GI6+AiA3Fi3a0dqbmEGSySv5VQYi1RULs+LKuuaBbb+hMBF0Pw=="
+    },
+    {
+      "name": "sweep-loc10-00",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2304,
+          "longitude": 121.4737,
+          "accuracy": 1.0,
+          "altitude": null
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2304,121.4737,1.0,none\n",
+      "payload_sha256": "2db86ae0ea2fb30b0fceeebbfe278bf086a84bddaa3223b0c0461f26a8800dd0",
+      "signature_der_b64": "MEUCIQDBhrvrVTWCPaTQ+igGnExC39rPCHfAhaEI+qc7RvdpXQIgFn5YnsfTK8WkrL2ryTi7kLKW2Te56owUjfE/IZyntz4="
+    },
+    {
+      "name": "sweep-loc10-01",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2305,
+          "longitude": 121.47349999999999,
+          "accuracy": 2.0,
+          "altitude": 0.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2305,121.47349999999999,2.0,0.5\n",
+      "payload_sha256": "5c460157f22e7f14d3a80fd95418b2a1831abcb1d23762a9760edb5d3ecd0efe",
+      "signature_der_b64": "MEQCICwA4K8ImLeeiWlwIQuwCW9WAux9s26wnpF5WnQ3c4YIAiAsI8xWnh8/DJqqmW1+qWk7ZcQYdlUwtThaJgUNZRKODQ=="
+    },
+    {
+      "name": "sweep-loc10-02",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2306,
+          "longitude": 121.4733,
+          "accuracy": 3.0,
+          "altitude": 1.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2306,121.4733,3.0,1.5\n",
+      "payload_sha256": "3eb415c4b14af08e5facbd8a7f8bc621992f2cbfa016a80c8041476b6aabded3",
+      "signature_der_b64": "MEUCIFaG1VrFZWR+qrM1kilR1KXYZiMvTruG/PL/HXKh48hDAiEA2QvkXUz8Cu7zQZSxOfRFSPvWDfp4z4iDo/TGNFWs8s0="
+    },
+    {
+      "name": "sweep-loc10-03",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2307,
+          "longitude": 121.47309999999999,
+          "accuracy": 4.0,
+          "altitude": null
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2307,121.47309999999999,4.0,none\n",
+      "payload_sha256": "95aa896db4c7228ea5a3c11ee27ed0cdf4837f949fa827d22b7a81ba57c552f2",
+      "signature_der_b64": "MEYCIQDLox2Y2IeV3z9MEPqoQRUozedbmAcGzHeHF/VvsIccywIhAMos/mSetLFJ75N3DCJrIZUbVzDZlrMPP2Eo64nSGq7C"
+    },
+    {
+      "name": "sweep-loc10-04",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2308,
+          "longitude": 121.4729,
+          "accuracy": 5.0,
+          "altitude": 3.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2308,121.4729,5.0,3.5\n",
+      "payload_sha256": "230d1e5393dbc1100144468359c93113b5ef1c9a14648cd5bf6e17ac25e43f6b",
+      "signature_der_b64": "MEUCIC7poSb5alqQYepRZKQF/7mOipDug7hi18BytMxUjxDnAiEAnwawbP6jXHKg2dMvJkw72Uf2zvBnVIvn/gGKtHXMoMI="
+    },
+    {
+      "name": "sweep-loc10-05",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.2309,
+          "longitude": 121.47269999999999,
+          "accuracy": 6.0,
+          "altitude": 4.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.2309,121.47269999999999,6.0,4.5\n",
+      "payload_sha256": "1639c024833a66dbe759c793a7469ce03d198d12c12d9e10f7eb827a3f9d7909",
+      "signature_der_b64": "MEUCIChQ+kyqVSyskbXAOftOGGGkU5473GcGQBRTrFd32l+0AiEA0nPFw1aHOy+1oUq7HeEF7g2EBGyqzinfc2yPf8n+EJ8="
+    },
+    {
+      "name": "sweep-loc10-06",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.230999999999998,
+          "longitude": 121.4725,
+          "accuracy": 7.0,
+          "altitude": null
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.230999999999998,121.4725,7.0,none\n",
+      "payload_sha256": "6763f5a51845754e331d43de6fa4c764a97461b545abf58ac5c9cc4cd48b19a9",
+      "signature_der_b64": "MEYCIQDSlW42EMt/8hEN7o4/LxoxAfUln5oRBvn1vzzLyVnmyQIhALC2l0hmCNFh0BNDOGnhYYEzE/CW3/lNWWT5jr34qZzn"
+    },
+    {
+      "name": "sweep-loc10-07",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A",
+        "location": {
+          "latitude": 31.231099999999998,
+          "longitude": 121.47229999999999,
+          "accuracy": 8.0,
+          "altitude": 6.5
+        }
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=31.231099999999998,121.47229999999999,8.0,6.5\n",
+      "payload_sha256": "889162f3f4fe544e064a4992f333d49eb6b70127e27463939acebbdce1d7140c",
+      "signature_der_b64": "MEUCICM6Vtxqzgkv9tQW4F07r4C5fiwLlmGmAlRv/J6Ldl32AiEAgTI6HhBtNH0NkU9xZ55mfbwjRr+Fu8yM4GFkiG1rPb4="
+    },
+    {
+      "name": "sweep-seq-1",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "c0bd69b1bdb21a175cfed1282eb011b064b093a2f1595c6aaedeac382a241d17",
+      "signature_der_b64": "MEUCIQD/41e9Y8IEDZtLb2dzAzlj0aaxa2k0b5mXetvYLERPWQIgDZIkIGgSL96wONU8frqv+97TlOwLMImXitbflYxIKgg="
+    },
+    {
+      "name": "sweep-seq-2",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 2,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=2\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "9c61d3d96e7860d4705441b2449463b8fb36267f4c4250bc9318341e986a1558",
+      "signature_der_b64": "MEYCIQDZv28y2IShWlicRlizl+AUuTacgNCsLNNM3S8NZFEXxQIhAN9x5m84GzNLP5NdNBUn8tYqr43A9MP42KB35O5Lwieo"
+    },
+    {
+      "name": "sweep-seq-3",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 3,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=3\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "cb9c716825d1ce18b67a5745a6633f0a7617b1df075d51c51dbd17881244239f",
+      "signature_der_b64": "MEQCIHZ7LTfga0X62sMtvmTaEmHUUVzXvC+wlCGrA3Ftod6yAiA0NFv+om+YzicPRBJpi39VCnZswWXSNEoWJagAK3Ao+Q=="
+    },
+    {
+      "name": "sweep-seq-5",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 5,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=5\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "98b5eee1c87811f8b4a65a70f750448a82319e3fadb6383ccaec609541912efc",
+      "signature_der_b64": "MEQCIAbpNOunZfwO4Y+2ne7eM3R8CwJ9kXsYKz/428Qls4K7AiBplvqWBCEyN2Inq+yPqitTKH0lDQJ+fjywECEjwoWq8A=="
+    },
+    {
+      "name": "sweep-seq-8",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 8,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=8\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "f71ad3ca542f596af02f40a1445587eb5b29ab17e3b1434935d4a7815b5f546d",
+      "signature_der_b64": "MEYCIQDsuDSwCtEKiONJE9a2y5nmoHI45V4Ey/lwPyMI8QMBZQIhALDOaSmxc/2XLSYWxviID3qJJNmPOnezaSnbNCf3XGxR"
+    },
+    {
+      "name": "sweep-seq-13",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 13,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=13\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "61eff565ba486662dbd0f8cfec0d2b737aec580257a5c486a91310d457b87bf1",
+      "signature_der_b64": "MEUCIQDPtpcTnjH9eZO96HFwqHzjZQyZnLTjfK4L9BmB6oOtWAIgVl3V74PA8IZx4YHnLXMO1dNEI9VpSIsx7AHRjVnMsl8="
+    },
+    {
+      "name": "sweep-seq-21",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 21,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=21\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "3dbc71e369125599c3fbce8308a29f7a1e40f4f0f870139ebc07539af5e35541",
+      "signature_der_b64": "MEQCIBmcK7mGAbkZ+HuQwW8ndfwaFpYnbAEpqOQYZg1E1tbwAiACcFPQ08og3MB4BZATJ93Q0X+6/WdwGD4MvhelaF/I9g=="
+    },
+    {
+      "name": "sweep-seq-34",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 34,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=34\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "1542c6215a5c75a4acde43ae3522474296c59e8cd15d6553fb770bbf888b0557",
+      "signature_der_b64": "MEUCIQDGn2noTOd8pm7Nlc0r44sUo9LimOHzP91gLXw69JafrQIgEm8H4NICYcYea9KGT1os+Gf4Rd+ehve9fSDjDU+HnL0="
+    },
+    {
+      "name": "sweep-seq-55",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 55,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=55\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "55f4e99eb0d68f40ea657c99f45d27d0b49d6493f64c7b9daf93b72b2b13f66d",
+      "signature_der_b64": "MEUCID73E+K00MMqi98tWJKfK7Rn/HR4GV/h2N2N/X58Je3RAiEAgqx+85dHcIVdl5eCbIDwHnPvF+h/dxU0qdX635QgXK8="
+    },
+    {
+      "name": "sweep-seq-89",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 89,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=89\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "f54775c164c20394e7b5f767ae9644c0ede1a17df589522d15d540e89a55a6dd",
+      "signature_der_b64": "MEYCIQCu2hUVSzsFNLoGT7bO3rAqoJMdvsgPR1C5AtDGmbIYsAIhAOVpm3vDYSq/dJRUsx5KnyaOPS+NVkzAhwrdInxS9jCk"
+    },
+    {
+      "name": "sweep-seq-144",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 144,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=144\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "15c0455ced4aed4eef922217adc63fa44df4ef85f9ca07fd1eb05248edd86d9c",
+      "signature_der_b64": "MEUCIQDWzS3TWEeUM7GrYBI3jco1mktkT14XIJqsnU+l8kU9zQIgY36XDru8pF5gb0PQJlPoezrM8IHE78BTsUDtH+N9KSE="
+    },
+    {
+      "name": "sweep-seq-233",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 233,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=233\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "cfeb7efcb38d88e29b7fe99b888d0035183348ed6d4f5dc0f7a1d9d9b5ade2d1",
+      "signature_der_b64": "MEUCIQCW3EcC1E6oReXb9Hf8ftquU3E9hqkJ+FR1s8zHyl3NEgIgP5WYQHQDJyZt13OnyCv6yOXgjnkdea6aMsSx/aPUq6g="
+    },
+    {
+      "name": "sweep-seq-377",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 377,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=377\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "41d12a8359bc43952054dec67581ae8d2688d0b0b7d3026254183b54c90a9ae9",
+      "signature_der_b64": "MEYCIQC9TtbstehdDxVmxLzfx/yY/L/RT44i2xU4k/uXBOAa/AIhAO4gkHLqdQLJr7ZZWvs0sHkoW25sc+Mq19utz177Lp3P"
+    },
+    {
+      "name": "sweep-seq-610",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 610,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=610\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "aa5a9c6f33550497aa5ce170a0e8912628e9c79d2143d71315a0ae8814befcef",
+      "signature_der_b64": "MEQCICOcyKH0cF7t0H/8Kk+s1MP2ow6OS1f4ahLcytPKOz2cAiBM1Np3AmiC/BAtSkQSpYVLErLXLWL3nqoSX/jt6+mpTQ=="
+    },
+    {
+      "name": "sweep-seq-987",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 987,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=987\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "0fcf5a63c14eb5d3ffa51393cce1ac6e9ac1dc60a344a814d0f6f85620a82930",
+      "signature_der_b64": "MEQCIBly6XJlnpnhWPH94KCKzmo6UrM0nQFSucuEsGU0SgejAiACmv3Ic1tZNurTAvusyyMzCMTcNO6DVKPGSDUi3S2DmA=="
+    },
+    {
+      "name": "sweep-seq-1597",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1597,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1597\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "1747d7cecd62435142a35f4889441a2dd1bdda379f382eeb2271bc8a20b1e125",
+      "signature_der_b64": "MEUCIB1iRb9OTVKcf6TNT9qoflZuVcDA0Y/c/CNp1EmMXcYZAiEA9Icu0IYW5W98110c0t90MoS0KBPygdpNKu++gDqt9ZQ="
+    },
+    {
+      "name": "sweep-seq-2584",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 2584,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=2584\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "c38330261789403171f62597b12677b3df4d6297b2941e4bc419b543147a1199",
+      "signature_der_b64": "MEUCIEckBEqZYd5JucyUvR0P6dKTIZZrDdfeInZxzW+uAopEAiEAzL/Xke7A1oTjt+3WAKMr23BxmCT92xaUbNP7/YerRKQ="
+    },
+    {
+      "name": "sweep-seq-4181",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 4181,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=4181\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "85a31c714afca25f2e8cb51bc0c69d391619242b575ee6d95bd2146c5aa05ce5",
+      "signature_der_b64": "MEUCIQDhS03rmvbCEIIVRA6ju5HmhxFKEzq3KFAGmD3d1QhubwIgen5g2QwvFEfRl241OAN2qkxSWKuhUHBnO/Z9c3FO5cw="
+    },
+    {
+      "name": "sweep-seq-6765",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 6765,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=6765\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "3281b2842bb1cae5460b99ddae6dae9add0d167971266be7330404d9c1a71a2c",
+      "signature_der_b64": "MEYCIQDGuKP3UfvMvJqTBJyY7tZeJBWy82+PmKKYG6TULAuRtAIhAOISiqpjxeyRl9zNO29kN3DBaGifwNEuZwq0PHvFkGfw"
+    },
+    {
+      "name": "sweep-seq-10946",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 10946,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=10946\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "131fdf4d583c279659e2f540faef787e9f57beed3cbb017beaa95b29fbd211a0",
+      "signature_der_b64": "MEUCIFVAyEanWC+M3OQXhhwDTUGBjPc5b0keWmh8LXrnTs6VAiEA+d0AAafx5FLg1PgRwRfhZ554BrOIULgGNodOnn3RARc="
+    },
+    {
+      "name": "sweep-photo-00",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "afd411d98e5dcbe88faacf67b41d89be887d0b01d74e47a6c865b2d8454b6730",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=afd411d98e5dcbe88faacf67b41d89be887d0b01d74e47a6c865b2d8454b6730\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "91095ba3c478737c18d2a16ea963ffe1b256c3f968a9d379c2a1c343a2e016cf",
+      "signature_der_b64": "MEYCIQDB2FeSQxsk0+VBylqN2n4dVsSvkRxQMogW6orzuSsA6AIhAKOIKftv+Vk/rC9HOAPLA5DyP0gnNqTKJ/6yBluSqpYu"
+    },
+    {
+      "name": "sweep-photo-01",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "9e6dbb065c29ce8052addfabf844817acd39577c4420f4fc9cfa9230e11b425d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=9e6dbb065c29ce8052addfabf844817acd39577c4420f4fc9cfa9230e11b425d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "7365b1b3112180c7da2ac3fa10009c9706c27a092883573aac5daa9ae71eca67",
+      "signature_der_b64": "MEYCIQCWuiK+uGfTeFkRwdP9mWScP/DyGz78swwYWwfEDqA/XAIhAKjLYqXdBCXl/L0o0xPxRWArYo8yWVfleFmAqMHarBIB"
+    },
+    {
+      "name": "sweep-photo-02",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "15cd446c6ee5474de09b0f98868a32c7c6aa3d7e08202ca11fdb6b3bc6657021",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=15cd446c6ee5474de09b0f98868a32c7c6aa3d7e08202ca11fdb6b3bc6657021\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "9fc2c69469cae300a81e70b0d7df0429444a667b3a538609be10bf552486b13a",
+      "signature_der_b64": "MEYCIQDY5p3yR6SSxzPEwuAZ/YmkRNnK5j/e7BeQV68luUwglQIhAOcxYtQarMsC5NwjyUBs+AY/u0MgP31XCXjzA6s55k4z"
+    },
+    {
+      "name": "sweep-photo-03",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "4b5ee33d9b185bd0b449a4d5a3b72b96749be33c4dd0f4555d21c598d03e16c3",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=4b5ee33d9b185bd0b449a4d5a3b72b96749be33c4dd0f4555d21c598d03e16c3\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "846cdcb4946eca6445ae252270cc23cca8e7ee5f8a62c3588aa3733e2e724519",
+      "signature_der_b64": "MEYCIQCKe8f5wWCW0XibtDfXX6HM/X4pnzfijJ3SqjW4CEHlsgIhAMbSdbMPrW/8Ol7T3GePSyYlN0lavP4qK5bvl4y1i5nS"
+    },
+    {
+      "name": "sweep-photo-04",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "1169827c7d149b1b9cddcb26c89166a0a2032456f0f9d285bd01f3ff759a4937",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=1169827c7d149b1b9cddcb26c89166a0a2032456f0f9d285bd01f3ff759a4937\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "50b625e2249a6318b9df2f9d52992f9f7484c540e8cb185170ebc28421feb1fe",
+      "signature_der_b64": "MEYCIQChdrSX2gTdgtr+T6VsbQ75vjWOZWTjoYYK4rlUwghIOQIhAK0i6u12MJ522eWrEc6d9BUXXFrAmHh5UBqHcBoZrq7h"
+    },
+    {
+      "name": "sweep-photo-05",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "7ae26ed541448863c963482df087f0c84bc258d67a5ed876803b4ba78beaa0bb",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=7ae26ed541448863c963482df087f0c84bc258d67a5ed876803b4ba78beaa0bb\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "ef20551d25f866d3349d1aae0025bcff0d316893522f9cd577abaca8744fc54c",
+      "signature_der_b64": "MEUCIFtIS5DcUtu97/BYvKnqDmXMvUg7tvWAsb+vnQgmKEWvAiEAirStkSCP+Rf11+N84CImgs85GHtfqgXaioCFGNE5lHI="
+    },
+    {
+      "name": "sweep-photo-06",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "93aa51020543068e3e5f810a0ffcf022c547a86b07f73900cf471c2e28f6b680",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=93aa51020543068e3e5f810a0ffcf022c547a86b07f73900cf471c2e28f6b680\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "2054896d354db38170e504276395f1c196814315ad10ae2d1a0cc86e11feffcc",
+      "signature_der_b64": "MEYCIQDX/daIowW3i1UwSkhp5QYvD6BAanrh7iVk63sHgrL9XQIhAPIVDfh1mjVp2ogUeIVmzj/qvbJMfX0wwLZR77egGVJc"
+    },
+    {
+      "name": "sweep-photo-07",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "3fcd4678e0191af07b2fe0e15a2d5b3cdc1badaa5b93e85e1c06b125391e6e52",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=3fcd4678e0191af07b2fe0e15a2d5b3cdc1badaa5b93e85e1c06b125391e6e52\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "283b94a5c3b745e028ae0ea8a8737e7b461afa8e4ae323d391e0cc2ca21c124c",
+      "signature_der_b64": "MEUCIF7MwX5Skyn8qz3dSNUGNqhQQk0aSUpdkCCCc8bMtUwnAiEA63k+jCry92zLxekYkzI5pJlUIa5eccesfyfdGIn01dQ="
+    },
+    {
+      "name": "sweep-rid-16",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "abababababababab",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=abababababababab\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "8434cab4543b6f39930564d363f69feb6a041615aab96b25a38d2300e57d1caa",
+      "signature_der_b64": "MEUCIBYCdy1VYpWoK1Ws0wp1M56yJSOtLSQ7HzcpJBTreS/5AiEA2WVOJDz8MI8AUm8cEl6NzWN6MwYzObMbuBrxZIrrKzg="
+    },
+    {
+      "name": "sweep-rid-24",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "abababababababababababab",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=abababababababababababab\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "407b3fd6b18fdb7ce075ca198227f32d1292850e6842f4ff68d7d2e3fa42dc58",
+      "signature_der_b64": "MEQCIFSKMW7oUT9Ps1KGLd+gcOXIwTCZEaIag7+IXh323CbKAiAtGMK3AmMDOIgek75DwwZiGd998W4FnKKqfUZYpz/RqA=="
+    },
+    {
+      "name": "sweep-rid-32",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "abababababababababababababababab",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=abababababababababababababababab\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "a1aed1521ec80a75b17c66b36679108a053291ca6f516978c7cade88db316693",
+      "signature_der_b64": "MEYCIQDXmCu4SsfXWGeFVBOR8x4/EAa+n5VbgWyUFnBl4GnNEgIhAKLvAZ860UAF5v/DKugJABfTu/9aCGkfxTfVFcSMpoxu"
+    },
+    {
+      "name": "sweep-rid-40",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "abababababababababababababababababababab",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=abababababababababababababababababababab\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "d0c5f1a1659df25f9191cd115c53316dbdef6712852a11f9431edf7343ed4d05",
+      "signature_der_b64": "MEUCIQCuz+T3jifMipRAnTH4hOjDTTqLCDuwj6FOPvn2zozkOwIgLbqtPEbQWVDsJnI76/1xJ8h0dlTSxoUamLzVIxi4NQI="
+    },
+    {
+      "name": "sweep-rid-48",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "abababababababababababababababababababababababab",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=abababababababababababababababababababababababab\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "6f277ef3e33c522e5cb3311b0853cb5c8fef67a171a87e63c2ddfb188f23900d",
+      "signature_der_b64": "MEUCICCC1eQeUaiTa1idUr+1sngeZYpDnBY+TvGVItR8U6OPAiEA9gwm59gPxUP7Eb7CRVZcMW6u34l+orN4fKMXakhT31g="
+    },
+    {
+      "name": "sweep-rid-56",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "abababababababababababababababababababababababababababab",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=abababababababababababababababababababababababababababab\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "a0e1439920beb274527c41e73186a50cd6dec7d69aa21ee4848dc5d7d6f7a944",
+      "signature_der_b64": "MEQCIHc5R/Rm3SErZfgEHYWpcmZaL1+Vtu8pHUK3QmmyhnVUAiB7jyJjrgy8DVOMPSnynaRYuPa6e+mR3jIn4h26PIoT3g=="
+    },
+    {
+      "name": "sweep-rid-64",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "abababababababababababababababababababababababababababababababab",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=abababababababababababababababababababababababababababababababab\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "39b13e480021bf3782f3bfed18c13caabaeaea6bec60814d54353924d63a5a36",
+      "signature_der_b64": "MEYCIQD9U9Tf1/M6+NAM8ts/DbjjxfwH41xMtcQizgXvAzhq8wIhAJFbnlPtTeaZ7j6HZ2WiYbUueu8glVaxEgMCqrgRPElD"
+    },
+    {
+      "name": "sweep-dev-space",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "site cam 07"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=site cam 07\nlocation=none\n",
+      "payload_sha256": "f48201e6de9b13ec8522c8f50cccc329e778bd7e60d839dde10fa2126455072e",
+      "signature_der_b64": "MEUCIQCtBZPY33aCvHSb1fGtAKJHztW+adULtSQC+p5HCmC+WwIgYVU/9LmIkqaee9kBR1vNNLC4eRg5QA43rDQ+rG1x9Wo="
+    },
+    {
+      "name": "sweep-dev-hyphen",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "WorkCam-PRO-001"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=WorkCam-PRO-001\nlocation=none\n",
+      "payload_sha256": "436eddbc0abd90d6b61271e9df49247879db86f0d28a0a9100e1f105fdff65d7",
+      "signature_der_b64": "MEYCIQDrXY9Ib34j973SnRM9nLZumhe6xL9MwXHfGtl90JyRkQIhAIThXgJKZYdVjoWCRXkv5ZiM0oQJG26HQDSVAdCwkCll"
+    },
+    {
+      "name": "sweep-dev-underscore",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "insp_zone_B2"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=insp_zone_B2\nlocation=none\n",
+      "payload_sha256": "8dcb550d8661c91006b051e68e2c57e286a370ef77e07cbcbb4ad5528646c8da",
+      "signature_der_b64": "MEUCIQCpQ6EaSE6qJZ5zioMW0JyYCsC3haylCQwbF0/v3zqMNgIgOV2Xrpy1JGhTllgfXdP03Jrasd5WyQ2AZVnX6XrUI94="
+    },
+    {
+      "name": "sweep-dev-numeric",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "1234567890"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=1234567890\nlocation=none\n",
+      "payload_sha256": "2d6b94620c8fae3de297559d841f7d1880f316901fe7432015b075286eb9b27e",
+      "signature_der_b64": "MEUCIQDY7zMK+f7qjluyYrtOdSvoka+gce1VZVXdwRSW/FPXtQIgF+3JXcgQKWKsRenDry8sizrWxYqtTOotWDh3DWhoYsg="
+    },
+    {
+      "name": "sweep-dev-mixed",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "A1-b2_C3.d4"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=A1-b2_C3.d4\nlocation=none\n",
+      "payload_sha256": "78207b5a5551eff922196ad91d8ae89feb8c496c8fe49b1da0c834d34e13894b",
+      "signature_der_b64": "MEUCIGeSd1YK+txyTKqi95rIb4v0Bm92bibW+JIVgrQ+68/iAiEAuZlMN1mBk3DvF/jN88We4KSwQqgR4mDw4J/BZCtWIpI="
+    },
+    {
+      "name": "sweep-dev-emoji",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T09:00:00+00:00",
+        "device_reported_time": "2026-11-25T09:00:01+00:00",
+        "device_id": "📷-camera"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T09:00:00+00:00\ndevice_reported_time=2026-11-25T09:00:01+00:00\ndevice_id=📷-camera\nlocation=none\n",
+      "payload_sha256": "afb24126c3b190fe4c519f4e02a58a138eef35ff5fdabe1b47f6507e434f819f",
+      "signature_der_b64": "MEUCIQCxLffffGA4M56CB0lpNbpO3uaCWcWtMkbPUUVig20EmQIgNgbT4HPSKBKipyF/bSfZFxyBasCNuh1f6uGX0mXMOyg="
+    },
+    {
+      "name": "sweep-ts-utc-0000-1.0",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T00:00:00+00:00",
+        "device_reported_time": "2026-11-25T00:00:00+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T00:00:00+00:00\ndevice_reported_time=2026-11-25T00:00:00+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "94de10c9bc37f16b17dff98c0db6c5dd351ec54f8556d5edd9f2f03e9a071b40",
+      "signature_der_b64": "MEUCIQC5yUWIEZuVa06TRRZ9VpJU4qxv6Kv+doay5wfmnmxzaAIgZuXEZVawx5iG+UcEaFqvbUwJyBwcB9a+QBo+pCF2tXU="
+    },
+    {
+      "name": "sweep-ts-utc-0000-1.1",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T00:00:00+00:00",
+        "device_reported_time": "2026-11-25T00:00:00+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T00:00:00+00:00\ndevice_reported_time=2026-11-25T00:00:00+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "0b5b4df075ec888c2018438db3d946f403c939bebb82a92d7e7efcff94262c67",
+      "signature_der_b64": "MEYCIQDJcAA/VVRx6rtOAPwKakX1hOl/xCbwIBZgi3mEt3t+9wIhANCysFI+vD85WVYp+WwqA6FGW3MpCNCZRjd9yyi5N/qy"
+    },
+    {
+      "name": "sweep-ts-utc-2359-1.0",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-12-31T23:59:59+00:00",
+        "device_reported_time": "2026-12-31T23:59:59+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-12-31T23:59:59+00:00\ndevice_reported_time=2026-12-31T23:59:59+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "380859659bf693f926e7586625e16e514599ffef69f9d3a61ad7f3995c4aba6d",
+      "signature_der_b64": "MEYCIQCrvw3ZQ3T4N6xLtbDKSuc6b2yq5tGmcHgeHqw8TU22DQIhAKRP3Wucd2jxkZ6EIXFfpsHrpRv0S+lOARaJUOIerslX"
+    },
+    {
+      "name": "sweep-ts-utc-2359-1.1",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-12-31T23:59:59+00:00",
+        "device_reported_time": "2026-12-31T23:59:59+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-12-31T23:59:59+00:00\ndevice_reported_time=2026-12-31T23:59:59+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "89e5def21b347ea9debcec02c9ef2f94e7fee27b4dbb24e56122b56d33584e6e",
+      "signature_der_b64": "MEUCIQC9alvUS4DUrLBbarifLRMBMuVEYZkq9RYUxd404JJbwQIgBAh8HVu+5MZmoHFTZ8McvBav7cwz/jXV9/bks6j7Ro8="
+    },
+    {
+      "name": "sweep-ts-tokyo-1.0",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T18:00:00+09:00",
+        "device_reported_time": "2026-11-25T18:00:00+09:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T18:00:00+09:00\ndevice_reported_time=2026-11-25T18:00:00+09:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "5cfaf87bba92f24036843ed3c22b72fa4cc097e0aefa7b95cd723de5bfdabb23",
+      "signature_der_b64": "MEYCIQCZdylEAhZzPa8f5qoXw+MLF6mpciDlMqcRdwtl9dpZggIhAMVk4Z3g5koq863k0cVOj3TGcUoer7Gw4bfa24aqUcmI"
+    },
+    {
+      "name": "sweep-ts-tokyo-1.1",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T18:00:00+09:00",
+        "device_reported_time": "2026-11-25T18:00:00+09:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T18:00:00+09:00\ndevice_reported_time=2026-11-25T18:00:00+09:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "2fa4fb51bf3cb9bfd8deabcdfb90dd2545a40acee7085d10a7f3eee5e3af7301",
+      "signature_der_b64": "MEUCIQDn47ESWLOnBttlIEi2bylw2xMzyDqfWD26STEBUhgp2QIgFIwTVwF4CVvAUT3Ymg5K7CHUhmO+mXRxYkEoMFTl9e8="
+    },
+    {
+      "name": "sweep-ts-la-1.0",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T01:30:00-08:00",
+        "device_reported_time": "2026-11-25T01:30:00-08:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T01:30:00-08:00\ndevice_reported_time=2026-11-25T01:30:00-08:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "357578de2dd182cb9fbeba526c8d02acbcf917614b798ca29ba54991155dc9a3",
+      "signature_der_b64": "MEUCICAtrcmpy4WbgXUbx+CCYCD7dvvC1UeLwh8SVnm5xVe4AiEA5GdoGR2BtMkdaZL+nLnAmBFth+rCkjYtFAL1hZVlopk="
+    },
+    {
+      "name": "sweep-ts-la-1.1",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T01:30:00-08:00",
+        "device_reported_time": "2026-11-25T01:30:00-08:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T01:30:00-08:00\ndevice_reported_time=2026-11-25T01:30:00-08:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "38a18e19185aa4d4325b35f4f8a160ba22abbe6f67a24a7438ec8801f3fd1d9f",
+      "signature_der_b64": "MEUCIGl3KxxP7kBH+kd//vCjRQ9mXLFRKJL2MBuSeNvAX51iAiEA9Z3FJE0PUvjHWMuKVG81aiJc3c0Gvm+LBXkOQGTrgMQ="
+    },
+    {
+      "name": "sweep-ts-millis-1.0",
+      "record": {
+        "protocol_version": "1.0",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T12:00:00.500+00:00",
+        "device_reported_time": "2026-11-25T12:00:00.500+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1\nversion=1.0\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T12:00:00.500+00:00\ndevice_reported_time=2026-11-25T12:00:00.500+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "c7b714b8fbb8e96fea1e3fdb09e84a93884b281f322b93ed5c3c58190ced1649",
+      "signature_der_b64": "MEQCIDMwjCHKJPDfI5wy+e8aVC0wq7cionjNgra+DJ6k46NrAiA+ypy0iX54MO5jXvnOysV5KQfrFNOd17ccE4J97D6gbw=="
+    },
+    {
+      "name": "sweep-ts-millis-1.1",
+      "record": {
+        "protocol_version": "1.1",
+        "record_id": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "sequence_number": 1,
+        "previous_record_hash": null,
+        "photo_hash": "dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d",
+        "capture_timestamp": "2026-11-25T12:00:00.500+00:00",
+        "device_reported_time": "2026-11-25T12:00:00.500+00:00",
+        "device_id": "device-A"
+      },
+      "canonical_payload_text": "WorkCam-Sig-v1.1\nversion=1.1\nrecord_id=a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\nsequence_number=1\nprevious_record_hash=none\nphoto_hash=dac6f451810bc38390a3b6e278d686b332a77cf21b2ea95145ad73722b77035d\ncapture_timestamp=2026-11-25T12:00:00.500+00:00\ndevice_reported_time=2026-11-25T12:00:00.500+00:00\ndevice_id=device-A\nlocation=none\n",
+      "payload_sha256": "7e05a14fe41a7b6610e554d1f81250dbfd58fe84f67884bdf2771d08d916b0f3",
+      "signature_der_b64": "MEUCIQDrvoeKvQtkD/GDwMBe8ytNLluCcFsdGJFNWUWJbuF+mgIgNct3rRroid1mHjJdawY3SoBXwxz5H5FxWSW69GoZ//E="
+    }
+  ]
+}
