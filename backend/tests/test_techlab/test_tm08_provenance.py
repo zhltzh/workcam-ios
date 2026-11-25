@@ -97,7 +97,6 @@ def test_every_report_carries_the_honest_boundary():
     for r in (check_exact_duplicate("a" * 64, set()),
               check_exif_consistency({}),
               check_recapture_heuristics({})):
-        assert "cannot prove a photo shows a real scene" in \
-            r.honest_boundary
-        assert "UNDETECTABLE_OFFLINE" in r.honest_boundary \
-            or "UNDETECTABLE" in r.honest_boundary
+        assert "can prove a photo shows a real scene" in \
+            r.honest_boundary          # inside the "No ... can" frame
+        assert "UNDETECTABLE_OFFLINE" in r.honest_boundary
