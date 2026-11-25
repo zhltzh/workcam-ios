@@ -126,8 +126,10 @@ def test_openapi_paths_match_repo_copy(repo_openapi):
 def test_endpoint_inventory_counts(repo_openapi):
     paths = repo_openapi["paths"]
     ops = sum(1 for p in paths.values() for m in p if m in METHODS)
-    assert len(paths) == 47
-    assert ops == 58
+    # RC2 premerge integrated endpoint set: the W026 branch snapshot
+    # (47/58) + W017 photo-batch + W025 storage/thumbnail/stream.
+    assert len(paths) == 65
+    assert ops == 77
 
     def surface(path: str) -> str:
         if path.startswith("/api/v1/sync"):
@@ -152,13 +154,17 @@ def test_endpoint_inventory_counts(repo_openapi):
     assert counts["upload-experimental"] == [7, 7]
     assert counts["sync"] == [2, 2]
     assert counts["devices"] == [5, 5]
-    assert counts["api-v1-business"] == [23, 34]
+    assert counts["api-v1-business"] == [41, 53]
 
 
 def test_openapi_enrichment_marker(repo_openapi):
     marker = repo_openapi.get("x-b02-w026-enrichment")
     assert marker, "enrichment marker must stay in the repo copy"
-    assert marker["baseline"] == "31917e3"
+    # RC2 premerge: the baseline moved from the branch snapshot to the
+    # integrated candidate - any value is fine as long as it names its
+    # provenance and the marker + manually_enriched_fields survive.
+    assert marker["baseline"], "baseline provenance must be recorded"
+    assert "31917e3" in marker["baseline"] or "RC2" in marker["baseline"]
     assert "manually_enriched_fields" in marker
     assert "securitySchemes" in repo_openapi["components"]
 
@@ -313,8 +319,8 @@ def test_trust_semantics_pinned(replayed):
     annotation = steps[("F5", "create-annotation")]
     assert "human-added annotation content" in annotation["note"]
     issue = steps[("F5", "create-issue")]
-    assert issue["note"] == ("severity/status are HUMAN records; "
-                             "no AI assessment implied")
+    assert issue["note"] == ("severity/status/remediation_note are HUMAN "
+                             "records; no AI assessment implied")
     link = steps[("F5", "link-before-photo")]
     assert "does not prove the photos show the same location" in link["note"]
     integrity = steps[("F2", "integrity-view")]
@@ -391,17 +397,21 @@ def test_event_stream_emits_only_project_and_photo(replayed):
 
 def test_sync_payload_must_carry_operation_id(replay_env):
     """BASELINE CONTRACT: executors validate payload.operation_id
-    (required, 1..128). Omitting it is NOT a typed rejection but a
-    500 - a KNOWN GAP recorded in the mismatch report; this test pins
-    the current behavior so any change is a deliberate contract event."""
+    (required, 1..128). The W026-era 500 gap was CLOSED by the W021
+    security fix (ISSUE-W021-03, merged in the RC2 premerge): a
+    payload missing operation_id is now a TYPED rejected receipt -
+    the ledger discipline (rejected ops are recorded, replay-stable)
+    is preserved. This test pins the closed state."""
     H, _ = _fresh_device(replay_env)
     r = replay_env.post("/api/v1/sync/batch", headers=H, json={
         "operations": [{"op": "project_create",
                         "operation_id": "op-x",
                         "payload": {"local_id": "lx",
                                     "name": "No operation id"}}]})
-    assert r.status_code == 500, \
-        "gap closed? update the docs + fixtures + this test"
+    assert r.status_code == 200
+    receipt = r.json()["receipts"][0]
+    assert receipt["status"] == "rejected"
+    assert receipt["error"]["code"] == "invalid_payload"
     r = replay_env.post("/api/v1/sync/batch", headers=H, json={
         "operations": [{"op": "project_create",
                         "operation_id": "op-y",

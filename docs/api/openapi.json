@@ -2,13 +2,13 @@
   "openapi": "3.1.0",
   "info": {
     "title": "WorkCam Verification Service",
-    "description": "WorkCam trusted-photography prototype backend, baseline 31917e3 (W013-R1). Business surface /api/v1 requires an enrolled X-Device-Token; errors use the unified envelope {\"detail\": {\"code\", \"message\", \"details\"}}. This is a PROTOTYPE, not a production authentication service. Paths/methods/schemas are machine-generated from the live app; summaries, descriptions, security annotations and examples are manually enriched (see x-b02-w026-enrichment).",
+    "description": "Prototype verification service for WorkCam trusted photography. This is NOT a production-grade authentication service.",
     "version": "0.1.0"
   },
   "paths": {
     "/health": {
       "get": {
-        "summary": "Service health",
+        "summary": "Health",
         "operationId": "health_health_get",
         "responses": {
           "200": {
@@ -19,13 +19,12 @@
               }
             }
           }
-        },
-        "description": "Liveness probe for the verify core. No auth, no side effects."
+        }
       }
     },
     "/verify": {
       "post": {
-        "summary": "Verify a signature manifest",
+        "summary": "Verify",
         "operationId": "verify_verify_post",
         "requestBody": {
           "content": {
@@ -58,14 +57,13 @@
               }
             }
           }
-        },
-        "description": "Runs structure, version, photo-hash, ECDSA and key-registry checks and returns the aggregated evidence status. photo_base64 is optional; without it photo_hash_valid is null."
+        }
       }
     },
     "/register-key": {
       "post": {
-        "summary": "Register public key (TEST only)",
-        "description": "Development/test endpoint. Takes parameters as QUERY arguments (public_key_b64, device_id, allow_test_registration=true). Refuses overwrite; disabled in production WORKCAM_ENV=production.",
+        "summary": "Register Key",
+        "description": "Register a public key with a device_id.\n\nSECURITY: This endpoint is for DEVELOPMENT/TESTING ONLY.\n- Requires explicit allow_test_registration=true parameter\n- In production, this endpoint must be DISABLED\n- Production will use App Attest formal registration flow\n- Does NOT allow overwriting existing registrations\n- Returns error if device_id conflicts with existing registration",
         "operationId": "register_key_register_key_post",
         "parameters": [
           {
@@ -121,8 +119,8 @@
     },
     "/store-record": {
       "post": {
-        "summary": "Store a record for replay detection",
-        "description": "Strict validation (mandatory photo bytes, valid signature, registered key, matching hash) before occupying a record_id.",
+        "summary": "Store Record",
+        "description": "Store a record for replay detection.\n\nSECURITY: This endpoint enforces strict validation:\n- photo_base64 is MANDATORY (cannot be None or empty)\n- Signature must be mathematically valid\n- Public key must be registered\n- Device identity must be consistent\n- Photo hash MUST match the manifest's photo_hash\n\nInvalid evidence will NOT occupy the record_id.\n\nZero-byte photos are supported if explicitly provided and hash matches,\nbut must be distinguished from missing photos.\n\nThis is a development/testing endpoint, NOT a production-grade\ntrusted registration service.",
         "operationId": "store_record_store_record_post",
         "requestBody": {
           "content": {
@@ -158,8 +156,8 @@
     },
     "/check-record/{record_id}": {
       "get": {
-        "summary": "Check stored record",
-        "description": "Returns whether a record_id is present in the replay store.",
+        "summary": "Check Record",
+        "description": "Check if a record exists in the store.\nThis is a development/testing endpoint.",
         "operationId": "check_record_check_record__record_id__get",
         "parameters": [
           {
@@ -199,8 +197,8 @@
         "tags": [
           "time-anchor-experimental"
         ],
-        "summary": "Create a time anchor",
-        "description": "Signs the submitted batch digest with the server key. Proves existence BEFORE server time only.",
+        "summary": "Create Anchor",
+        "description": "Create a time anchor for a batch of offline records.\n\nEXPERIMENTAL: This endpoint is for research only.\n\nThe server will:\n1. Record the current time\n2. Generate a random challenge\n3. Sign the anchor data\n4. Return the signed receipt\n\nIMPORTANT: The server time proves the records existed BEFORE this time,\nbut does NOT prove when they were actually created.\n\nReturns:\n    TimeAnchorResponse with signed receipt\n\nRaises:\n    HTTPException: If validation fails (400), conflict (409), or persistence error (500)",
         "operationId": "create_anchor_time_anchor_anchor_post",
         "requestBody": {
           "content": {
@@ -241,8 +239,8 @@
         "tags": [
           "time-anchor-experimental"
         ],
-        "summary": "Verify an anchor receipt",
-        "description": "Signature + (optionally) storage verification with trust analysis.",
+        "summary": "Verify Anchor",
+        "description": "Verify a time anchor receipt.\n\nEXPERIMENTAL: This endpoint is for research only.\n\nChecks:\n1. key_id is registered (reject unknown keys)\n2. Signature is valid using the correct public key\n3. verification_status matches signed value (prevent elevation)\n4. All signed fields match stored values\n5. Receipt exists in server storage (requires server)\n\nArgs:\n    receipt: The receipt to verify\n    check_storage: If True, also check against server storage.\n                  If False, only verify signature offline.\n\nReturns:\n    TimeAnchorVerification with trust level analysis",
         "operationId": "verify_anchor_time_anchor_verify_post",
         "parameters": [
           {
@@ -297,8 +295,8 @@
         "tags": [
           "time-anchor-experimental"
         ],
-        "summary": "Server anchor public key",
-        "description": "PEM public key + key_id. Test key - not for production.",
+        "summary": "Get Public Key",
+        "description": "Get the server's public key for verifying anchor signatures.\n\nEXPERIMENTAL: This endpoint is for research only.\n\nReturns:\n    Public key in PEM format with key_id",
         "operationId": "get_public_key_time_anchor_public_key_get",
         "responses": {
           "200": {
@@ -317,8 +315,8 @@
         "tags": [
           "time-anchor-experimental"
         ],
-        "summary": "Fetch a stored receipt",
-        "description": "Returns the stored signed receipt by anchor_id.",
+        "summary": "Get Receipt",
+        "description": "Get an anchor receipt by anchor_id.\n\nEXPERIMENTAL: This endpoint is for research only.\n\nReturns:\n    TimeAnchorReceipt if found\n\nRaises:\n    HTTPException: If anchor not found",
         "operationId": "get_receipt_time_anchor_receipt__anchor_id__get",
         "parameters": [
           {
@@ -360,8 +358,8 @@
         "tags": [
           "time-anchor-experimental"
         ],
-        "summary": "Anchor service health",
-        "description": "Liveness probe; states EXPERIMENTAL.",
+        "summary": "Health",
+        "description": "Health check for time anchor service.",
         "operationId": "health_time_anchor_health_get",
         "responses": {
           "200": {
@@ -380,8 +378,8 @@
         "tags": [
           "upload-experimental"
         ],
-        "summary": "Upload auth: get nonce",
-        "description": "Single-use server nonce (60 s) for a device to sign. Requires WORKCAM_UPLOAD_EXPERIMENTAL=1 and WORKCAM_UPLOAD_AUTH=1.",
+        "summary": "Auth Challenge",
+        "description": "P2 identity flow step 1: server issues a single-use nonce for the\nenrolled device. The device then signs the nonce with its P-256 key\n(the SAME key as evidence signing - one identity).",
         "operationId": "auth_challenge_upload_experimental_auth_challenge_post",
         "parameters": [
           {
@@ -428,8 +426,8 @@
         "tags": [
           "upload-experimental"
         ],
-        "summary": "Upload auth: prove key",
-        "description": "Verifies {device_token, nonce, signature_b64} against the enrolled public key. Private keys never leave the device.",
+        "summary": "Auth Verify",
+        "description": "P2 identity flow step 2: {device_token, nonce, signature_b64} ->\nverifies the nonce signature with the ENROLLED public key. Private\nkeys never leave the device. W013: routes through the SQLite-backed\nchallenge store (device_identity.verify_challenge_signature).",
         "operationId": "auth_verify_upload_experimental_auth_verify_post",
         "requestBody": {
           "content": {
@@ -470,7 +468,7 @@
         "tags": [
           "upload-experimental"
         ],
-        "summary": "Register an upload batch",
+        "summary": "Register Batch",
         "operationId": "register_batch_upload_experimental_batches_post",
         "parameters": [
           {
@@ -519,8 +517,7 @@
               }
             }
           }
-        },
-        "description": "Idempotent-by-content resumable upload. Opt-in only; 503 unless WORKCAM_UPLOAD_EXPERIMENTAL=1; hard 503 in production."
+        }
       }
     },
     "/upload/experimental/batches/{batch_id}/chunks/{index}": {
@@ -528,7 +525,7 @@
         "tags": [
           "upload-experimental"
         ],
-        "summary": "Upload one chunk",
+        "summary": "Put Chunk",
         "operationId": "put_chunk_upload_experimental_batches__batch_id__chunks__index__put",
         "parameters": [
           {
@@ -585,8 +582,7 @@
               }
             }
           }
-        },
-        "description": "Raw bytes body; content-length must match the plan; duplicate identical delivery is an idempotent ack, different bytes 409."
+        }
       }
     },
     "/upload/experimental/batches/{batch_id}": {
@@ -594,7 +590,7 @@
         "tags": [
           "upload-experimental"
         ],
-        "summary": "Batch status",
+        "summary": "Batch Status",
         "operationId": "batch_status_upload_experimental_batches__batch_id__get",
         "parameters": [
           {
@@ -626,8 +622,7 @@
               }
             }
           }
-        },
-        "description": "Lists missing/received chunk indexes and completeness."
+        }
       }
     },
     "/upload/experimental/batches/{batch_id}/complete": {
@@ -635,7 +630,7 @@
         "tags": [
           "upload-experimental"
         ],
-        "summary": "Complete a batch",
+        "summary": "Complete Batch",
         "operationId": "complete_batch_upload_experimental_batches__batch_id__complete_post",
         "parameters": [
           {
@@ -667,8 +662,7 @@
               }
             }
           }
-        },
-        "description": "Recomposes in chunk order, re-hashes everything; whole-batch SHA mismatch is a 409 that keeps chunks for re-upload."
+        }
       }
     },
     "/upload/experimental/batches/{batch_id}/content": {
@@ -676,8 +670,8 @@
         "tags": [
           "upload-experimental"
         ],
-        "summary": "Download assembled file",
-        "description": "Streams assembled.bin after COMPLETE; byte-level verification.",
+        "summary": "Batch Content",
+        "description": "Stream the assembled file back (byte-level verification for the\nclient). Only available after COMPLETE; production-disabled like\nevery other route here.",
         "operationId": "batch_content_upload_experimental_batches__batch_id__content_get",
         "parameters": [
           {
@@ -712,12 +706,708 @@
         }
       }
     },
+    "/api/v1/photos/batch/tags": {
+      "post": {
+        "tags": [
+          "b02-photo-batch"
+        ],
+        "summary": "Batch Tags",
+        "operationId": "batch_tags_api_v1_photos_batch_tags_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagsBatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photos/batch/category": {
+      "post": {
+        "tags": [
+          "b02-photo-batch"
+        ],
+        "summary": "Batch Category",
+        "operationId": "batch_category_api_v1_photos_batch_category_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryBatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photos/batch/note": {
+      "post": {
+        "tags": [
+          "b02-photo-batch"
+        ],
+        "summary": "Batch Note",
+        "operationId": "batch_note_api_v1_photos_batch_note_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteBatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photos/batch/move": {
+      "post": {
+        "tags": [
+          "b02-photo-batch"
+        ],
+        "summary": "Batch Move",
+        "description": "Move photos to an AUTHORIZED project (caller-owned + active).\n\nWHOLE-BATCH PRE-VALIDATION (task constraint): every photo and the\ntarget project are checked BEFORE any row is written; any violation\nrejects the entire batch with a typed error and per-photo details -\na rejected move never leaves a half-moved set. After pre-validation\nthe per-photo ledger flow takes over (idempotent replays, retryable\nfailures).\n\nGuard rails (evidence discipline):\n  - photos linked to an inspection issue are NOT movable (moving\n    would strand a cross-project before/after association, which\n    the W013 single-link path forbids)\n  - photos sitting in an ARCHIVED project are NOT movable\n    (archived = frozen work product)\n  - moving to the photo's current project is an idempotent no-op\n  - only mvp_photos.project_id changes - evidence links, originals\n    bindings, annotations and their verification state are untouched",
+        "operationId": "batch_move_api_v1_photos_batch_move_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveBatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photos/batch/watermark": {
+      "post": {
+        "tags": [
+          "b02-photo-batch"
+        ],
+        "summary": "Batch Watermark",
+        "description": "Render the SAME watermark template+fields over a set of photos.\n\nReuses the W011 render path (render_watermark_for_photo): the\noriginal bytes are read-only, the server resolves each photo's\nevidence status itself, and per-photo idempotency is the W011\n(photo, template, params-hash, original-sha) key - re-running an\nalready-rendered photo returns the SAME derivative.\n\nExecutions happen OUTSIDE the ledger transaction (rendering is\nCPU-heavy; the W011 engine manages its own transactions). The\nledger row is written after a successful render, so an interrupted\nbatch replays stored receipts and re-renders only the missing ones\n(the W011 idempotency probe makes even a double render harmless).",
+        "operationId": "batch_watermark_api_v1_photos_batch_watermark_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WatermarkBatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photos/batch/export": {
+      "post": {
+        "tags": [
+          "b02-photo-batch"
+        ],
+        "summary": "Batch Export",
+        "description": "Build an export package (ZIP: manifest.json + originals by\ncontent hash + guide) and register it for download.\n\nPer-photo resume semantics: a photo's manifest ENTRY is the batch\nledger's stored result. Retrying the failed subset under the same\nbatch_id re-uses the stored entries (no re-execution) and builds a\nNEW export containing every photo - the client ends up with one\ncomplete package. Duplicate content is stored ONCE (content-addressed\noriginals/{sha256}.jpg), mirroring the duplicate-detection view.\nThe export NEVER contains tokens, enrollment codes or key material.",
+        "operationId": "batch_export_api_v1_photos_batch_export_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportBatchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photo-exports/{export_id}/download": {
+      "get": {
+        "tags": [
+          "b02-photo-batch"
+        ],
+        "summary": "Download Export",
+        "operationId": "download_export_api_v1_photo_exports__export_id__download_get",
+        "parameters": [
+          {
+            "name": "export_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Export Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photo-batches/{batch_id}": {
+      "get": {
+        "tags": [
+          "b02-photo-batch"
+        ],
+        "summary": "Batch Receipts",
+        "description": "Stored receipts for one batch (the resume view). Only\nSUCCEEDED/replayed photos live in the ledger; a photo absent here\nwas either never processed or failed - both stay retryable under\nthe same batch_id.",
+        "operationId": "batch_receipts_api_v1_photo_batches__batch_id__get",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Batch Id"
+            }
+          },
+          {
+            "name": "op_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(tag_add|tag_remove|category|note|move|watermark|export)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Op Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photos/{photo_id}/business": {
+      "get": {
+        "tags": [
+          "b02-photo-batch"
+        ],
+        "summary": "Photo Business",
+        "description": "Business-metadata view for one photo: tags, category, note.\nDeliberately SEPARATE from the photo/evidence representation - the\nevidence view (GET /photos/{id}) never mixes these in.",
+        "operationId": "photo_business_api_v1_photos__photo_id__business_get",
+        "parameters": [
+          {
+            "name": "photo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Photo Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photos/search": {
+      "get": {
+        "tags": [
+          "b02-photo-batch"
+        ],
+        "summary": "Search Photos",
+        "description": "Filter + search across ALL of the caller's photos with a STABLE\nkeyset pagination.\n\nStability (task requirement): the page key is (sort_value,\nphoto_id) - a total order on the result set. New rows inserted\nbetween page pulls can never shift already-returned rows: they\neither sort before the current cursor (already passed - the client\nsees them on the NEXT query) or after (normal forward flow). No\noffset is used, so there is no skip/duplicate window at all.\n\nFilters compose with AND. `q` matches the original filename, the\nbusiness note or any tag (case-insensitive substring, LIKE\nmetacharacters escaped). captured_from/to compare the\nclient-claimed captured_at lexically (ISO-8601) - sorting by it is\nallowed, trusting it is not.",
+        "operationId": "search_photos_api_v1_photos_search_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "issue_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(open|in_progress|resolved|closed|none|linked)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Issue Status"
+            }
+          },
+          {
+            "name": "captured_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Captured From"
+            }
+          },
+          {
+            "name": "captured_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Captured To"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(captured_at|created_at|filename|byte_size)$",
+              "default": "captured_at",
+              "title": "Sort"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(asc|desc)$",
+              "default": "desc",
+              "title": "Order"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "exclusiveMinimum": 0,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 512
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photos/duplicates": {
+      "get": {
+        "tags": [
+          "b02-photo-batch"
+        ],
+        "summary": "Find Duplicates",
+        "description": "Content-addressed duplicate detection: photos are grouped by\ntheir original_sha256 (SHA-256 IS the identity, W007 rule) across\nALL of the caller's projects. Duplicates are REPORTED, never\ndeleted - originals are immutable evidence and deletion is a human\ndecision outside this API.\n\nGroup-level keyset pagination keyed on original_sha256.",
+        "operationId": "find_duplicates_api_v1_photos_duplicates_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "exclusiveMinimum": 0,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 512
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
     "/api/v1/projects": {
       "post": {
         "tags": [
           "mvp-v1"
         ],
-        "summary": "Create a project",
+        "summary": "Create Project",
         "operationId": "create_project_api_v1_projects_post",
         "requestBody": {
           "required": true,
@@ -749,7 +1439,6 @@
             }
           }
         },
-        "description": "Owner-scoped project record. 201 on success. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -760,7 +1449,7 @@
         "tags": [
           "mvp-v1"
         ],
-        "summary": "List my projects",
+        "summary": "List Projects",
         "operationId": "list_projects_api_v1_projects_get",
         "parameters": [
           {
@@ -817,7 +1506,6 @@
             }
           }
         },
-        "description": "Offset pagination: limit (default 20, clamped to 100), offset, status filter (active|archived|all). Stable order created_at DESC, project_id. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -830,7 +1518,7 @@
         "tags": [
           "mvp-v1"
         ],
-        "summary": "Get one project",
+        "summary": "Get Project",
         "operationId": "get_project_api_v1_projects__project_id__get",
         "parameters": [
           {
@@ -867,14 +1555,13 @@
           {
             "deviceToken": []
           }
-        ],
-        "description": "401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md)."
+        ]
       },
       "patch": {
         "tags": [
           "mvp-v1"
         ],
-        "summary": "Patch a project",
+        "summary": "Patch Project",
         "operationId": "patch_project_api_v1_projects__project_id__patch",
         "parameters": [
           {
@@ -917,7 +1604,6 @@
             }
           }
         },
-        "description": "Partial update; archived projects are immutable (409); empty patch 400. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -930,7 +1616,7 @@
         "tags": [
           "mvp-v1"
         ],
-        "summary": "Archive a project",
+        "summary": "Archive Project",
         "operationId": "archive_project_api_v1_projects__project_id__archive_post",
         "parameters": [
           {
@@ -963,7 +1649,6 @@
             }
           }
         },
-        "description": "Idempotent: re-archiving returns the same state. Archived projects accept no writes; photos/evidence are preserved (evidence retention). 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -976,7 +1661,7 @@
         "tags": [
           "mvp-v1"
         ],
-        "summary": "Register photo metadata",
+        "summary": "Register Photo",
         "operationId": "register_photo_api_v1_projects__project_id__photos_post",
         "parameters": [
           {
@@ -1019,7 +1704,6 @@
             }
           }
         },
-        "description": "Metadata-only registration (bytes go to the W007 original endpoint). Idempotent on (project, idempotency_key): same content replays the same photo with _idempotent_replay=true (201); different content 409 idempotency_conflict. captured_at/device_id are client-claimed DATA (trust_notes in response). 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -1030,7 +1714,7 @@
         "tags": [
           "mvp-v1"
         ],
-        "summary": "List project photos",
+        "summary": "List Photos",
         "operationId": "list_photos_api_v1_projects__project_id__photos_get",
         "parameters": [
           {
@@ -1085,7 +1769,6 @@
             }
           }
         },
-        "description": "Offset pagination, stable order created_at DESC, photo_id. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -1098,7 +1781,7 @@
         "tags": [
           "mvp-v1"
         ],
-        "summary": "Get photo metadata",
+        "summary": "Get Photo",
         "operationId": "get_photo_api_v1_photos__photo_id__get",
         "parameters": [
           {
@@ -1131,7 +1814,6 @@
             }
           }
         },
-        "description": "Ownership chains through the photo's project. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -1144,8 +1826,8 @@
         "tags": [
           "mvp-v1"
         ],
-        "summary": "Server-side verification write-back",
-        "description": "Client submits MATERIAL ({manifest[, photo_base64]} or {receipt}); the server runs the existing trusted paths and writes the computed status. Binding guards: reference_mismatch / hash_binding_mismatch (400, no state change). Re-runnable. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
+        "summary": "Verify Evidence Link",
+        "description": "Server-side verification of a registered evidence link.\n\nThe client submits the verification MATERIAL (manifest / anchor\nreceipt); the server runs the EXISTING trusted verification paths\n(W002 signature service, W003 anchor service - unmodified) and\nwrites the resulting status back. Clients still cannot submit a\nstatus: the computed value is the only thing that lands in the DB.\n\nTraceability + binding guards (fail fast, 400 - no state change):\n  - signature_manifest: manifest.record_id MUST equal the link's\n    evidence_reference, and manifest.photo_hash MUST equal the\n    photo's original_sha256 (anti cross-photo misbinding)\n  - time_anchor: receipt.batch_id MUST equal the evidence_reference",
         "operationId": "verify_evidence_link_api_v1_photos__photo_id__evidence_links__evidence_link_id__verify_post",
         "parameters": [
           {
@@ -1211,7 +1893,7 @@
         "tags": [
           "mvp-v1"
         ],
-        "summary": "Link evidence to a photo",
+        "summary": "Create Evidence Link",
         "operationId": "create_evidence_link_api_v1_photos__photo_id__evidence_links_post",
         "parameters": [
           {
@@ -1254,7 +1936,6 @@
             }
           }
         },
-        "description": "Creates a link starting at unverified. The request has no status field by design - clients can never submit a trusted status. original_sha256 is bound at link time (anti cross-photo misbinding). 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -1265,7 +1946,7 @@
         "tags": [
           "mvp-v1"
         ],
-        "summary": "List evidence links",
+        "summary": "List Evidence Links",
         "operationId": "list_evidence_links_api_v1_photos__photo_id__evidence_links_get",
         "parameters": [
           {
@@ -1298,7 +1979,6 @@
             }
           }
         },
-        "description": "Order created_at DESC. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -1311,8 +1991,8 @@
         "tags": [
           "mvp-originals"
         ],
-        "summary": "Upload original bytes",
-        "description": "Raw photo bytes as body. Hash-while-streaming; the body must hash to the photo's registered original_sha256 (400 hash_mismatch). Idempotent for identical bytes; a bound photo rejects different content (409 binding_conflict). 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
+        "summary": "Upload Original",
+        "description": "Store the ORIGINAL bytes for an owned photo record and bind it.\n\nThe body is the raw photo bytes. Integrity is verified DURING the\nwrite (hash-while-streaming): a mismatch with the photo's REGISTERED\noriginal_sha256 rejects the request and persists NOTHING.\n\nIdempotent: same photo + same content -> same binding; a photo may\nbe re-uploaded with identical bytes freely.\nImmutable: different content for an ALREADY-BOUND photo is 409\n(the photo's registered hash defines the object; changing it is\nevidence tampering, not an update).",
         "operationId": "upload_original_api_v1_photos__photo_id__original_put",
         "parameters": [
           {
@@ -1355,8 +2035,8 @@
         "tags": [
           "mvp-originals"
         ],
-        "summary": "Download original bytes",
-        "description": "Content-addressed store; X-Original-Sha256 header for local re-verification. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
+        "summary": "Download Original",
+        "description": "Authorized download of the ORIGINAL bytes. Ownership chains\nthrough the photo's project (cross-subject -> 404 identical to\nnot-found). No disk path is ever exposed - the object is addressed\nby the photo's registered hash and read from the content-addressed\nstore.",
         "operationId": "download_original_api_v1_photos__photo_id__original_get",
         "parameters": [
           {
@@ -1401,8 +2081,8 @@
         "tags": [
           "mvp-originals"
         ],
-        "summary": "Integrity + evidence chain view",
-        "description": "Separates storage integrity (bytes exist and match) from evidence state (server-verified claims). photo_authenticity_proven is always false - storage never claims authenticity. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
+        "summary": "Original Integrity",
+        "description": "Storage integrity + the photo's evidence chain, in one view:\n\n  storage says: do the bytes exist and match the hash\n  evidence says: has the server verified anything about origin\n\nThese are SEPARATE claims (P0 requirement) - a stored, intact object\nis 'file integrity verified', never 'authentic photo'.",
         "operationId": "original_integrity_api_v1_photos__photo_id__original_integrity_get",
         "parameters": [
           {
@@ -1447,8 +2127,8 @@
         "tags": [
           "mvp-sync"
         ],
-        "summary": "Submit an offline operation batch",
-        "description": "Max 50 operations, executed IN ORDER with per-op receipts (applied|duplicate|rejected). operation_id + request-hash ledger in the business DB: same replay -> stored receipt (duplicate), different content -> rejected op_id_conflict; deterministic rejections are ledgered too. NOTE: each op's payload must carry its own operation_id (executors validate payload.operation_id). 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
+        "summary": "Sync Batch",
+        "description": "Submit an offline-queued batch of operations.\n\nEach operation executes IN ORDER and gets an individual receipt\n(partial success); idempotent replays return the STORED receipt\nwithout re-execution. Authentication and ownership apply to the\nCALLER on every operation - replaying someone's captured batch with\nyour own token cannot touch their resources (their owner_token is\nnot in the payload; ownership is resolved server-side).",
         "operationId": "sync_batch_api_v1_sync_batch_post",
         "requestBody": {
           "content": {
@@ -1492,8 +2172,8 @@
         "tags": [
           "mvp-sync"
         ],
-        "summary": "Pull incremental events",
-        "description": "Restart-stable cursor: restart-stable AUTOINCREMENT seq. High-water window: rows inserted mid-pull land on the NEXT page. entity_type filter: project|photo|evidence_link|original (baseline 31917e3 emits project and photo events only - see the contract report). Owner-isolated. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
+        "summary": "Pull Events",
+        "description": "Incremental pull for the caller's OWN events only.\n\nThe cursor is the last seq the client has seen. Restart-stable:\nseq is AUTOINCREMENT in the business DB. Pagination correctness\nunder concurrent inserts: the page query filters seq > cursor and\nseq <= cursor + page_high_water (captured BEFORE reading), so rows\ninserted mid-pull appear in the NEXT page, never cause a skip or\nduplicate.",
         "operationId": "pull_events_api_v1_sync_events_get",
         "parameters": [
           {
@@ -1527,7 +2207,7 @@
               "anyOf": [
                 {
                   "type": "string",
-                  "pattern": "^(project|photo|evidence_link|original)$"
+                  "pattern": "^(project|photo|evidence_link|original|annotation|issue)$"
                 },
                 {
                   "type": "null"
@@ -1569,7 +2249,7 @@
         "tags": [
           "device-admin"
         ],
-        "summary": "Enroll a device",
+        "summary": "Enroll",
         "operationId": "enroll_api_v1_devices_enroll_post",
         "requestBody": {
           "content": {
@@ -1600,13 +2280,7 @@
               }
             }
           }
-        },
-        "description": "Requires the out-of-band enrollment code. Returns a RANDOM server-issued token (W012 security change - tokens are never derived from public keys). Idempotent per public key. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
-        "security": [
-          {
-            "deviceToken": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/devices/{device_token}/revoke": {
@@ -1614,7 +2288,7 @@
         "tags": [
           "device-admin"
         ],
-        "summary": "Revoke a device",
+        "summary": "Revoke",
         "operationId": "revoke_api_v1_devices__device_token__revoke_post",
         "parameters": [
           {
@@ -1657,7 +2331,6 @@
             }
           }
         },
-        "description": "Admin-code (X-Admin-Code) gated. Instant effect; idempotent. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "adminCode": []
@@ -1670,7 +2343,7 @@
         "tags": [
           "device-admin"
         ],
-        "summary": "Device status",
+        "summary": "Status",
         "operationId": "status_api_v1_devices__device_token__get",
         "parameters": [
           {
@@ -1703,7 +2376,6 @@
             }
           }
         },
-        "description": "Admin-code gated; returns fingerprint, never the stored public key. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "adminCode": []
@@ -1716,8 +2388,8 @@
         "tags": [
           "device-admin"
         ],
-        "summary": "Issue a proof-of-possession nonce",
-        "description": "Single-use nonce (60 s) for the enrolled device to sign. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
+        "summary": "Challenge",
+        "description": "Prove-of-possession flow (W005 semantics, DB-backed nonce):\nissue a single-use nonce for the enrolled device to sign.",
         "operationId": "challenge_api_v1_devices_challenge_post",
         "responses": {
           "200": {
@@ -1741,8 +2413,8 @@
         "tags": [
           "device-admin"
         ],
-        "summary": "Verify nonce signature",
-        "description": "Checks the P-256 signature with the enrolled public key; private keys never travel. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
+        "summary": "Challenge Verify",
+        "description": "{device_token, nonce, signature_b64} -> verifies with the\nENROLLED public key. Private keys never leave the device.",
         "operationId": "challenge_verify_api_v1_devices_challenge_verify_post",
         "requestBody": {
           "content": {
@@ -1788,7 +2460,7 @@
         "tags": [
           "mvp-derivatives"
         ],
-        "summary": "Render a watermark derivative",
+        "summary": "Create Watermark Derivative",
         "operationId": "create_watermark_derivative_api_v1_photos__photo_id__derivatives_watermark_post",
         "parameters": [
           {
@@ -1831,7 +2503,6 @@
             }
           }
         },
-        "description": "Reads the REAL original bytes (must be uploaded first). evidence_status is RESOLVED SERVER-SIDE from verified evidence links and overrides any client claim. Idempotent on (photo, template, params-hash, original-sha). 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -1844,7 +2515,7 @@
         "tags": [
           "mvp-derivatives"
         ],
-        "summary": "List derivatives",
+        "summary": "List Derivatives",
         "operationId": "list_derivatives_api_v1_photos__photo_id__derivatives_get",
         "parameters": [
           {
@@ -1881,8 +2552,7 @@
           {
             "deviceToken": []
           }
-        ],
-        "description": "401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md)."
+        ]
       }
     },
     "/api/v1/derivatives/{derivative_id}/download": {
@@ -1890,7 +2560,7 @@
         "tags": [
           "mvp-derivatives"
         ],
-        "summary": "Download derivative bytes",
+        "summary": "Download Derivative",
         "operationId": "download_derivative_api_v1_derivatives__derivative_id__download_get",
         "parameters": [
           {
@@ -1923,7 +2593,6 @@
             }
           }
         },
-        "description": "X-Derivative-Sha256 / X-Original-Sha256 headers. A derivative is never the trusted evidence. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -1936,7 +2605,7 @@
         "tags": [
           "mvp-reports"
         ],
-        "summary": "Generate a report (snapshot)",
+        "summary": "Create Report",
         "operationId": "create_report_api_v1_projects__project_id__reports_post",
         "parameters": [
           {
@@ -1979,7 +2648,6 @@
             }
           }
         },
-        "description": "Render PDF from a point-in-time snapshot; existing reports are never mutated (regeneration creates a new row). Photo bytes are embedded with downscaling bound (P5); originals stay untouched. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -1990,7 +2658,7 @@
         "tags": [
           "mvp-reports"
         ],
-        "summary": "List reports",
+        "summary": "List Reports",
         "operationId": "list_reports_api_v1_projects__project_id__reports_get",
         "parameters": [
           {
@@ -2027,8 +2695,7 @@
           {
             "deviceToken": []
           }
-        ],
-        "description": "401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md)."
+        ]
       }
     },
     "/api/v1/reports/{report_id}": {
@@ -2036,7 +2703,7 @@
         "tags": [
           "mvp-reports"
         ],
-        "summary": "Report detail",
+        "summary": "Report Detail",
         "operationId": "report_detail_api_v1_reports__report_id__get",
         "parameters": [
           {
@@ -2069,7 +2736,6 @@
             }
           }
         },
-        "description": "Includes the immutable snapshot view (per-photo entries and issue snapshot). 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -2082,7 +2748,7 @@
         "tags": [
           "mvp-reports"
         ],
-        "summary": "Download report PDF",
+        "summary": "Download Report",
         "operationId": "download_report_api_v1_reports__report_id__download_get",
         "parameters": [
           {
@@ -2115,7 +2781,6 @@
             }
           }
         },
-        "description": "X-Report-Sha256 header; sha asserted before serving. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -2128,8 +2793,8 @@
         "tags": [
           "mvp-reports"
         ],
-        "summary": "Build ZIP delivery package",
-        "description": "report.pdf + originals/ + derivatives/ + evidence/ + manifest.json + verification-guide.txt with per-file SHA-256. Never exports tokens/enrollment codes/key material. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
+        "summary": "Create Delivery Package",
+        "description": "ZIP delivery package: report.pdf + originals/ + derivatives/ +\nmanifest.json + verification-guide.txt. Options control inclusion.\nSensitive material (tokens, enrollment codes, keys) is NEVER\nexported. Returns the ZIP inline (bytes) with a manifest header.",
         "operationId": "create_delivery_package_api_v1_reports__report_id__delivery_package_post",
         "parameters": [
           {
@@ -2184,7 +2849,7 @@
         "tags": [
           "mvp-inspection"
         ],
-        "summary": "Create an annotation",
+        "summary": "Create Annotation",
         "operationId": "create_annotation_api_v1_photos__photo_id__annotations_post",
         "parameters": [
           {
@@ -2227,7 +2892,6 @@
             }
           }
         },
-        "description": "Normalized coords (0..1) on the EXIF-transposed display frame. Per-photo cap 50 active (413). Types: arrow|rectangle|circle|freehand|text|number_marker. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -2238,7 +2902,7 @@
         "tags": [
           "mvp-inspection"
         ],
-        "summary": "List annotations",
+        "summary": "List Annotations",
         "operationId": "list_annotations_api_v1_photos__photo_id__annotations_get",
         "parameters": [
           {
@@ -2281,7 +2945,6 @@
             }
           }
         },
-        "description": "Active layer by default; include_inactive=true returns soft-deleted history. Human-added content. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -2294,7 +2957,7 @@
         "tags": [
           "mvp-inspection"
         ],
-        "summary": "Patch an annotation",
+        "summary": "Patch Annotation",
         "operationId": "patch_annotation_api_v1_annotations__annotation_id__patch",
         "parameters": [
           {
@@ -2337,7 +3000,6 @@
             }
           }
         },
-        "description": "Optimistic revision (expected_revision); soft-deleted annotations are immutable (409 annotation_deleted). 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -2348,7 +3010,7 @@
         "tags": [
           "mvp-inspection"
         ],
-        "summary": "Soft-delete an annotation",
+        "summary": "Delete Annotation",
         "operationId": "delete_annotation_api_v1_annotations__annotation_id__delete",
         "parameters": [
           {
@@ -2381,7 +3043,6 @@
             }
           }
         },
-        "description": "is_active=0, history preserved; still queryable with include_inactive=true. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -2394,7 +3055,7 @@
         "tags": [
           "mvp-inspection"
         ],
-        "summary": "Create an issue",
+        "summary": "Create Issue",
         "operationId": "create_issue_api_v1_projects__project_id__issues_post",
         "parameters": [
           {
@@ -2437,7 +3098,6 @@
             }
           }
         },
-        "description": "severity in low|medium|high|critical; status starts open. Human records - no AI assessment implied. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -2448,7 +3108,7 @@
         "tags": [
           "mvp-inspection"
         ],
-        "summary": "List issues",
+        "summary": "List Issues",
         "operationId": "list_issues_api_v1_projects__project_id__issues_get",
         "parameters": [
           {
@@ -2513,7 +3173,6 @@
             }
           }
         },
-        "description": "Optional status/severity filters. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -2526,7 +3185,7 @@
         "tags": [
           "mvp-inspection"
         ],
-        "summary": "Issue detail",
+        "summary": "Issue Detail",
         "operationId": "issue_detail_api_v1_issues__issue_id__get",
         "parameters": [
           {
@@ -2559,7 +3218,6 @@
             }
           }
         },
-        "description": "Full history + linked photos by role. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -2570,7 +3228,7 @@
         "tags": [
           "mvp-inspection"
         ],
-        "summary": "Patch an issue",
+        "summary": "Patch Issue",
         "operationId": "patch_issue_api_v1_issues__issue_id__patch",
         "parameters": [
           {
@@ -2613,7 +3271,6 @@
             }
           }
         },
-        "description": "Optimistic revision; severity/status changes append history; closed issues are immutable (409 issue_closed). 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -2626,8 +3283,8 @@
         "tags": [
           "mvp-inspection"
         ],
-        "summary": "Link a photo by role",
-        "description": "role in before|progress|after; one photo per role (replace). Manual association - proves neither same-location nor acceptance. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
+        "summary": "Link Issue Photo",
+        "description": "Manually link a photo to an issue by role. The comparison is a\nHUMAN association - the API response says so.",
         "operationId": "link_issue_photo_api_v1_issues__issue_id__photos_post",
         "parameters": [
           {
@@ -2680,7 +3337,7 @@
         "tags": [
           "mvp-inspection"
         ],
-        "summary": "Comparison view",
+        "summary": "Issue Photos",
         "operationId": "issue_photos_api_v1_issues__issue_id__photos_get",
         "parameters": [
           {
@@ -2717,8 +3374,7 @@
           {
             "deviceToken": []
           }
-        ],
-        "description": "401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md)."
+        ]
       }
     },
     "/api/v1/issues/{issue_id}/photos/{photo_id}/{role}": {
@@ -2726,7 +3382,7 @@
         "tags": [
           "mvp-inspection"
         ],
-        "summary": "Unlink a photo",
+        "summary": "Unlink Issue Photo",
         "operationId": "unlink_issue_photo_api_v1_issues__issue_id__photos__photo_id___role__delete",
         "parameters": [
           {
@@ -2777,7 +3433,6 @@
             }
           }
         },
-        "description": "Removes the role link; appends history. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
         "security": [
           {
             "deviceToken": []
@@ -2790,8 +3445,8 @@
         "tags": [
           "mvp-inspection"
         ],
-        "summary": "Render before/after comparison",
-        "description": "Side-by-side JPEG derivative from two originals (read-only). X-Comparison-Sha256 header. Same-location/acceptance NOT proven. 401 unauthorized: missing/unknown/revoked X-Device-Token, or a legacy token derived from the public key (code legacy_token_must_re_enroll). 404 not_found: resource does not exist OR belongs to another owner - identical responses, no existence oracle. Business errors use the envelope {\"detail\": {\"code\", \"message\", \"details\"}} (see docs/api/b02-w026-api-reference.md).",
+        "summary": "Comparison Image",
+        "description": "Generate a before/after side-by-side derivative. Reads the two\noriginals (never modifies them), draws each with its label, and\nreturns the composed JPEG.",
         "operationId": "comparison_image_api_v1_issues__issue_id__comparison_image_post",
         "parameters": [
           {
@@ -2814,6 +3469,389 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photos/{photo_id}/original-stream": {
+      "put": {
+        "tags": [
+          "b02-w025-storage"
+        ],
+        "summary": "Upload Original Stream",
+        "description": "Store the original bytes WITHOUT buffering the whole body in\nmemory (the legacy `await request.body()` path must hold the full\nfile; this endpoint hashes and writes chunk-by-chunk, so a 500 MB\nphoto costs ~256 KB of heap instead of 500 MB).\n\nSemantics identical to the legacy PUT: claimed hash from the\nphoto's registered original_sha256, mismatch -> 400 + nothing\npersisted, idempotent replay on identical bytes, never overwrites\nan existing object.",
+        "operationId": "upload_original_stream_api_v1_photos__photo_id__original_stream_put",
+        "parameters": [
+          {
+            "name": "photo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Photo Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photos/{photo_id}/thumbnail": {
+      "get": {
+        "tags": [
+          "b02-w025-storage"
+        ],
+        "summary": "Get Thumbnail",
+        "description": "Get-or-generate this photo's thumbnail. Content-addressed by the\nORIGINAL's hash: photos sharing the same original share one cache\nfile (free dedup). The original is opened read-only.",
+        "operationId": "get_thumbnail_api_v1_photos__photo_id__thumbnail_get",
+        "parameters": [
+          {
+            "name": "photo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Photo Id"
+            }
+          },
+          {
+            "name": "edge",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 512,
+              "title": "Edge"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/storage/stats": {
+      "get": {
+        "tags": [
+          "b02-w025-storage"
+        ],
+        "summary": "Storage Stats Api",
+        "operationId": "storage_stats_api_api_v1_storage_stats_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/storage/dedup": {
+      "get": {
+        "tags": [
+          "b02-w025-storage"
+        ],
+        "summary": "Storage Dedup Api",
+        "operationId": "storage_dedup_api_api_v1_storage_dedup_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/storage/audit": {
+      "get": {
+        "tags": [
+          "b02-w025-storage"
+        ],
+        "summary": "Storage Audit Api",
+        "operationId": "storage_audit_api_api_v1_storage_audit_get",
+        "parameters": [
+          {
+            "name": "fix_temps",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Fix Temps"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/storage/cache/prune": {
+      "post": {
+        "tags": [
+          "b02-w025-storage"
+        ],
+        "summary": "Cache Prune Api",
+        "operationId": "cache_prune_api_api_v1_storage_cache_prune_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PruneRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/storage/quota": {
+      "put": {
+        "tags": [
+          "b02-w025-storage"
+        ],
+        "summary": "Quota Upsert Api",
+        "operationId": "quota_upsert_api_api_v1_storage_quota_put",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuotaUpsert"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "b02-w025-storage"
+        ],
+        "summary": "Quota Check Api",
+        "operationId": "quota_check_api_api_v1_storage_quota_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -3072,6 +4110,37 @@
         ],
         "title": "AnnotationPatch"
       },
+      "CategoryBatchRequest": {
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Batch Id"
+          },
+          "photo_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Photo Ids"
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Category",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_id",
+          "photo_ids"
+        ],
+        "title": "CategoryBatchRequest"
+      },
       "CheckStatus": {
         "type": "string",
         "enum": [
@@ -3079,8 +4148,7 @@
           "failed",
           "not_checked"
         ],
-        "title": "CheckStatus",
-        "description": "Enum values as in app/models/capture.py (CheckStatus)."
+        "title": "CheckStatus"
       },
       "ComparisonRequest": {
         "properties": {
@@ -3130,8 +4198,7 @@
           "not_attested",
           "unknown"
         ],
-        "title": "DeviceAttestationStatus",
-        "description": "Enum values as in app/models/capture.py (DeviceAttestationStatus)."
+        "title": "DeviceAttestationStatus"
       },
       "EnrollRequest": {
         "properties": {
@@ -3197,6 +4264,36 @@
         "title": "EvidenceStatus",
         "description": "Evidence trust levels (from highest to lowest):\n\nFULLY_ATTESTED: All checks passed including device attestation and time anchor.\n                This is the highest trust level, rarely achieved in practice.\n\nCRYPTOGRAPHICALLY_VALID: Signature math valid, photo hash matches, key registered.\n                        BUT device attestation is unknown/unverified.\n                        This does NOT prove the device is genuine.\n\nSIGNATURE_VALID: Signature math valid, but photo not verified or key not registered.\n\nPARTIAL: Some checks passed, some incomplete.\n\nUNVERIFIED: Checks could not be performed.\n\nINVALID: One or more checks failed."
       },
+      "ExportBatchRequest": {
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Batch Id"
+          },
+          "photo_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Photo Ids"
+          },
+          "include_originals": {
+            "type": "boolean",
+            "title": "Include Originals",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_id",
+          "photo_ids"
+        ],
+        "title": "ExportBatchRequest"
+      },
       "GpsSource": {
         "type": "string",
         "enum": [
@@ -3248,6 +4345,13 @@
             "type": "string",
             "maxLength": 128,
             "title": "Assigned To",
+            "default": ""
+          },
+          "remediation_note": {
+            "type": "string",
+            "maxLength": 5000,
+            "title": "Remediation Note",
+            "description": "HUMAN-entered remediation recommendation; rendered as MANUAL INPUT in reports",
             "default": ""
           }
         },
@@ -3333,6 +4437,18 @@
             ],
             "title": "Assigned To"
           },
+          "remediation_note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remediation Note"
+          },
           "expected_revision": {
             "type": "integer",
             "minimum": 1.0,
@@ -3373,8 +4489,47 @@
           "unregistered",
           "unknown"
         ],
-        "title": "KeyRegistrationStatus",
-        "description": "Enum values as in app/models/capture.py (KeyRegistrationStatus)."
+        "title": "KeyRegistrationStatus"
+      },
+      "LidarMeasurementRef": {
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Record Id"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Description",
+            "default": ""
+          },
+          "related_issue_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Related Issue Id"
+          },
+          "data_status": {
+            "type": "string",
+            "maxLength": 32,
+            "title": "Data Status",
+            "default": "DEVICE_PENDING"
+          }
+        },
+        "type": "object",
+        "required": [
+          "record_id"
+        ],
+        "title": "LidarMeasurementRef",
+        "description": "Reference to a B02-W016 LiDAR analyzer record. The report only\ncites the record id and its device-data status - it never renders a\nmeasurement value as verified or certified."
       },
       "LocationData": {
         "properties": {
@@ -3416,6 +4571,69 @@
           "horizontal_accuracy"
         ],
         "title": "LocationData"
+      },
+      "MoveBatchRequest": {
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Batch Id"
+          },
+          "photo_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Photo Ids"
+          },
+          "target_project_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Target Project Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_id",
+          "photo_ids",
+          "target_project_id"
+        ],
+        "title": "MoveBatchRequest"
+      },
+      "NoteBatchRequest": {
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Batch Id"
+          },
+          "photo_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Photo Ids"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 5000,
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_id",
+          "photo_ids",
+          "note"
+        ],
+        "title": "NoteBatchRequest"
       },
       "PhotoRegister": {
         "properties": {
@@ -3468,16 +4686,7 @@
           "captured_at",
           "device_id"
         ],
-        "title": "PhotoRegister",
-        "example": {
-          "idempotency_key": "client-generated-unique-key",
-          "original_sha256": "64-lowercase-hex",
-          "original_filename": "IMG_0001.jpg",
-          "mime_type": "image/jpeg",
-          "byte_size": 1234567,
-          "captured_at": "2026-11-23T08:00:00Z",
-          "device_id": "iPhone15,3"
-        }
+        "title": "PhotoRegister"
       },
       "ProjectCreate": {
         "properties": {
@@ -3504,12 +4713,7 @@
         "required": [
           "name"
         ],
-        "title": "ProjectCreate",
-        "example": {
-          "name": "Bridge N-12",
-          "description": "Main span",
-          "site_address": "Nanjing"
-        }
+        "title": "ProjectCreate"
       },
       "ProjectPatch": {
         "properties": {
@@ -3553,6 +4757,49 @@
         },
         "type": "object",
         "title": "ProjectPatch"
+      },
+      "PruneRequest": {
+        "properties": {
+          "scope": {
+            "type": "string",
+            "title": "Scope",
+            "description": "thumbnails | derivatives | all",
+            "default": "all"
+          },
+          "dry_run": {
+            "type": "boolean",
+            "title": "Dry Run",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "PruneRequest"
+      },
+      "QuotaUpsert": {
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Project Id"
+          },
+          "quota_bytes": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Quota Bytes"
+          },
+          "policy": {
+            "type": "string",
+            "title": "Policy",
+            "default": "report_only"
+          }
+        },
+        "type": "object",
+        "required": [
+          "project_id",
+          "quota_bytes"
+        ],
+        "title": "QuotaUpsert"
       },
       "RegisterBody": {
         "properties": {
@@ -3651,6 +4898,33 @@
               }
             ],
             "title": "Include Evidence Appendix"
+          },
+          "inspector_name": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Inspector Name",
+            "default": ""
+          },
+          "inspector_title": {
+            "type": "string",
+            "maxLength": 128,
+            "title": "Inspector Title",
+            "default": ""
+          },
+          "project_metadata": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Project Metadata"
+          },
+          "lidar_measurements": {
+            "items": {
+              "$ref": "#/components/schemas/LidarMeasurementRef"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Lidar Measurements"
           }
         },
         "type": "object",
@@ -3821,6 +5095,50 @@
         ],
         "title": "SyncOp",
         "description": "One queued client operation (discriminated by 'op')."
+      },
+      "TagsBatchRequest": {
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Batch Id"
+          },
+          "photo_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Photo Ids"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "add",
+              "remove"
+            ],
+            "title": "Action"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_id",
+          "photo_ids",
+          "action",
+          "tags"
+        ],
+        "title": "TagsBatchRequest"
       },
       "TimeAnchorReceipt": {
         "properties": {
@@ -4250,28 +5568,54 @@
           "summary",
           "details"
         ],
-        "title": "VerifyResponse",
-        "description": "Aggregated verification verdict; see EvidenceStatus/TimeTrustLevel enum docs. Manually enriched example values.",
-        "example": {
-          "evidence_status": "signature_valid",
-          "cryptographic_signature_valid": true,
-          "photo_hash_valid": null,
-          "key_registration_status": "unregistered",
-          "device_identity_consistent": null,
-          "device_attestation_status": "unknown",
-          "time_trust_level": "device_reported",
-          "summary": "Signature mathematically valid but public key not registered. Cannot verify device identity.",
-          "details": [
-            {
-              "check": "structure",
-              "status": "passed",
-              "message": "Manifest structure valid"
-            }
-          ],
-          "warnings": [
-            "Public key is not registered..."
-          ]
-        }
+        "title": "VerifyResponse"
+      },
+      "WatermarkBatchRequest": {
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Batch Id"
+          },
+          "photo_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Photo Ids"
+          },
+          "template": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Template"
+          },
+          "fields": {
+            "$ref": "#/components/schemas/WatermarkFields"
+          },
+          "company_logo_b64": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Logo B64"
+          }
+        },
+        "type": "object",
+        "required": [
+          "batch_id",
+          "photo_ids",
+          "template",
+          "fields"
+        ],
+        "title": "WatermarkBatchRequest"
       },
       "WatermarkFields": {
         "properties": {
@@ -4575,7 +5919,7 @@
     }
   },
   "x-b02-w026-enrichment": {
-    "baseline": "31917e3",
+    "baseline": "RC2-premerge (31917e3 + W014/W015/W017/W021/W025/W026/W027 integrated)",
     "generator": "backend/scripts/b02_w026_export_openapi.py",
     "note": "The path/method inventory and all JSON schemas are the live /openapi.json export of app.main:app, unmodified. Fields listed below were added manually for handoff readability; they annotate, never contradict, the machine truth.",
     "manually_enriched_fields": [
@@ -4587,44 +5931,9 @@
       "paths.<p>.<m>.responses.<status>.description",
       "components.securitySchemes",
       "components.schemas.<name>.description"
+    ],
+    "notes": [
+      "RC2 premerge: security annotations re-applied programmatically to the integrated endpoint set; new W017 batch and W025 storage endpoints carry the same deviceToken scheme"
     ]
-  },
-  "tags": [
-    {
-      "name": "time-anchor-experimental",
-      "description": "EXPERIMENTAL time anchoring (W003): signed server-time receipts for offline batches. Research only, not production."
-    },
-    {
-      "name": "upload-experimental",
-      "description": "EXPERIMENTAL chunked upload (W003/W005): resumable batches, device auth wrap, opt-in gates; hard-disabled in production."
-    },
-    {
-      "name": "mvp-v1",
-      "description": "Business core (W006): projects, photos, evidence links. All routes require X-Device-Token (enrolled device); cross-owner access is 404-identical to not-found."
-    },
-    {
-      "name": "mvp-originals",
-      "description": "Original-photo storage (W007): byte upload/download with hash binding; integrity + evidence-chain view."
-    },
-    {
-      "name": "mvp-sync",
-      "description": "Offline sync (W008/W013-R1): versioned batch endpoint with an idempotency ledger (operation_id + request hash) and a restart-stable incremental event cursor."
-    },
-    {
-      "name": "device-admin",
-      "description": "Device administration (W009): out-of-band-code enrollment, admin-code-gated revoke/status, challenge-response proof of possession."
-    },
-    {
-      "name": "mvp-derivatives",
-      "description": "Watermark derivatives (W011): rendered copies with server-resolved evidence status; the original is never modified."
-    },
-    {
-      "name": "mvp-reports",
-      "description": "Reports (W012): immutable snapshot PDF generation, download and ZIP delivery packages."
-    },
-    {
-      "name": "mvp-inspection",
-      "description": "Annotations & inspection issues (W013): human-added overlay annotations, issue tracking with optimistic revisions, before/after comparison derivatives."
-    }
-  ]
+  }
 }
