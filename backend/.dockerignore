@@ -1,0 +1,17 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+data/
+data-docker/
+logs/
+tests/
+techlab/
+scripts/
+docs/
+*.md
+.env
+.env.*
+.github/
+.pytest_cache/
+.git/

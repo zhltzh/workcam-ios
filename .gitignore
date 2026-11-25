@@ -35,5 +35,12 @@ xcuserdata/
 *.provisionprofile
 *.p8
 .env.*
+!.env.example
+!.env.development.example
+!.env.production.example
+
+# local deployment artifacts (b02-w027)
+logs/
+backend/data-docker/
 
 tools/tech-lab/exports/

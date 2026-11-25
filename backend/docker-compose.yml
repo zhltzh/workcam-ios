@@ -1,0 +1,25 @@
+# WorkCam backend - local container stack (LOOPBACK-ONLY binding).
+# docker compose up --build
+# The service is published on 127.0.0.1 ONLY. Never change the port
+# mapping below to 0.0.0.0 - this service must not be reachable from
+# outside the machine (see docs/mvp/w009-deployment.md).
+# NOT built/verified on this machine (no Docker Desktop installed) -
+# see docs/deploy/local-deployment.md for the verification status.
+services:
+  workcam-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: workcam-verify:local
+    container_name: workcam-backend
+    environment:
+      WORKCAM_ENV: production
+      WORKCAM_BUSINESS_DB: /data/business/workcam.db
+      # Enrollment code MUST come from the host environment or a
+      # secrets file - NEVER hardcode it here.
+      # WORKCAM_ENROLLMENT_CODE: ${WORKCAM_ENROLLMENT_CODE}
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./data-docker:/data
+    restart: unless-stopped
