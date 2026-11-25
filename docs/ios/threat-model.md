@@ -18,3 +18,35 @@ LiDAR Lab raycasts are estimates, not raw depth-derived distance or verified eng
 Depth observations remain unverified estimates. Confidence filtering does not establish accuracy. Corrupt experimental archive is preserved rather than silently replaced. Local JSON and CSV are unsigned, user-editable experiment records.
 
 Exported signature validity alone does not prove Secure Enclave provenance or capture authenticity. Public package contains personal photo/metadata; user initiates sharing. Fixed-vector export acceptance is desktop-only. Hardware key origin still requires device-side observations.
+
+Pending transaction recovery preserves incomplete or unreadable originals and
+never replaces an existing committed destination. Recovery verifies record
+integrity. A recovered unsigned record has no signing claim, and signature
+verification alone does not establish remote hardware provenance.
+
+### WC-M023 local sync outbox
+
+The standalone outbox file contains operation IDs and caller-provided bodies.
+Callers must keep credentials out of those bodies and control where the file is
+stored. Local acknowledgments do not establish server acceptance or evidence
+verification. Network authentication and credential lifecycle are Not Implemented.
+
+A detached DER file alongside unsigned pending metadata is inconsistent.
+Recovery retains the original and the conflicting artifact in staging.
+Remote hardware provenance remains NOT_ATTESTED.
+
+## Offline project artifacts
+
+Treat project names and annotation notes as user-provided content. Treat project
+timestamps as unverified device time. New originals use evidence capture.
+Project membership and marker sidecars are mutable local metadata outside
+the signature. Legacy project JPEGs and delivery files carry no signature claim. The JPEG and PDF outputs
+include fixed unverified labels. The original-share action sends the camera
+JPEG with its embedded metadata. The system share sheet can transfer data out
+of the app sandbox. Temporary export files can persist until system cleanup.
+
+Night 03 archive state changes only the project record and preserves photos
+and evidence. Watermark output is marked derivative and unverified, with
+device timestamps explicitly unverified. Camera flash and lens controls
+report only locally enumerated capability. Evidence detail uses the existing
+local inspection path and displays NOT_ATTESTED for remote hardware origin.

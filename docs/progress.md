@@ -255,3 +255,126 @@ Local files /tmp/workcam-r1-device-export; directory enumeration /tmp/workcam-r1
 DESKTOP_VERIFIED on BOTH actual exported records: exact allowlist photo.jpg,record.json,payload.bin,public-key.x963,signature.der; device payload.bin byte-for-byte equals independently reconstructed v1.1 canonical payload; SHA256 matches photo/manifest/record; X9.63 key and DER match manifest; key hash equals publicKeyID/device_id; OpenSSL SHA256 P256 verifies both signatures. XOR first byte on photo copy fails hash; substituting modified hash into payload fails original signature. Original evidence untouched. Report /tmp/workcam-r1-export-verification.json. OpenSSL public-key conversion and dgst commands are as documented in prior section; ran against device payload.bin this time, not reconstructed file. Only five explicit public files present; record schema contains no private-key reference/token. Not Windows W005-R1 executable; verifier is independent OpenSSL.
 
 P0 deployment/real photo/export/math verification chain now has actual evidence. Remaining P2 hardware origin is DEVICE_PENDING: source uses SecureEnclave.P256.Signing.PrivateKey with no software fallback, and prior phone screenshot verifies matches installation key; no recorded first-key-creation telemetry/attestation. Cannot equate public signature validity to proven hardware origin. P3 LiDAR real known1m×5, orientation, recovery and P4 verified flight mode/new capture/kill-relaunch still pending. UI failure/empty-export behavior desktop-tested, not induced destructively on device. P0-P4 not all complete; M007 plan not started.
+
+## 2026-11-25 WorkCam Mac Batch 02
+
+基线 4676a30，隔离分支 codex/workcam-mac-batch-02。GitHub 连接器确认 PR #6、#9 为 open draft 且 #9 基于 #6。初次受限构建出现 sandbox_apply 与 SwiftUI StateMacro 错误。同命令在普通 macOS 权限下重试，基线 Debug/Release 成功。独立 worktree 候选同样执行以下命令。
+
+```sh
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamBatch02-Debug CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamBatch02-Release CODE_SIGNING_ALLOWED=NO build
+xcrun swiftc -module-cache-path /tmp/workcam-batch02-module-cache Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/workcam-batch02-evidence-tests && /tmp/workcam-batch02-evidence-tests test-vectors/fixed-vectors.json
+xcrun swiftc -module-cache-path /tmp/workcam-batch02-module-cache Features/TechLab/DepthGeometry.swift Features/TechLab/LabArchive.swift Tests/Lidar/main.swift -o /tmp/workcam-batch02-lidar-tests && /tmp/workcam-batch02-lidar-tests
+xcrun devicectl list devices --timeout 5
+```
+
+设备枚举超时。无签名候选未安装，未产生本轮真机证据。详细状态见 WORKCAM-MAC-BATCH-02-REPORT.md。
+
+候选 Debug 与 Release 均 BUILD SUCCEEDED，日志为 /tmp/workcam-batch02-Debug-candidate.log 与 /tmp/workcam-batch02-Release-candidate.log。macOS 证据回归六组通过，包含暂存恢复、重复恢复及不完整原图保留。LiDAR 桌面回归三组通过，覆盖合成坐标几何、归档和 CSV、v1→v2 迁移。
+
+## 2026-11-25 Mac 研发统一调度回归
+
+当前 managed worktree 起始为 detached 4676a30，工作区干净。创建 codex/workcam-mvp-integration 并继承已审计的 97b0c84。命令与实测如下。
+
+```sh
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamUnified-Debug CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamUnified-Release CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamUnified-Signed build
+xcrun swiftc -module-cache-path /tmp/workcam-unified-module-cache Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/workcam-unified-evidence && /tmp/workcam-unified-evidence test-vectors/fixed-vectors.json
+xcrun swiftc -module-cache-path /tmp/workcam-unified-lidar-cache Features/TechLab/DepthGeometry.swift Features/TechLab/LabArchive.swift Tests/Lidar/main.swift -o /tmp/workcam-unified-lidar && /tmp/workcam-unified-lidar
+xcrun devicectl list devices --timeout 10
+```
+
+无签名 Debug/Release 和签名 Debug 均 BUILD SUCCEEDED。桌面证据回归 6 组及 LiDAR 回归 3 组通过。设备枚举识别到已配对物理 iPhone。以上结果对应 97b0c84 继承基线。
+
+配对设备连接复查命令为 `xcrun devicectl device info lockState --device "$wc_device" --timeout 10`，其中变量取自设备枚举的物理 iPhone 行。CoreDevice 4000，设备连接未建立。本轮未安装、启动候选或生成真机截图。已脱敏记录，设备标识仅留于本地临时日志。
+## 2026-11-25 · WC-M023–M024 QA
+
+从 97b0c8445793f2ed4110db84d80c540468a4b5d5 创建 codex/workcam-batch02-qa。实际命令如下。
+
+```sh
+git ls-remote origin refs/heads/dev/windows-prototype-w014
+for c in Debug Release; do
+  xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration "$c" -destination 'generic/platform=iOS' -derivedDataPath "/tmp/workcam-batch02-qa-$c" CODE_SIGNING_ALLOWED=NO build
+done
+xcrun swiftc -parse-as-library -module-cache-path /tmp/workcam-batch02-qa-modules Core/Sync/SyncOutbox.swift Tests/Sync/main.swift -o /tmp/workcam-batch02-qa-sync && /tmp/workcam-batch02-qa-sync
+```
+
+- Debug、Release 首次受限构建因 SwiftUI StateMacro 插件失败。解除沙箱限制重跑后均为 BUILD SUCCEEDED，日志 /tmp/workcam-batch02-qa-{Debug,Release}-retry.log。两份为 generic iOS 无签名构建。真机安装、权限、稳定性、性能与异常场景待 00 协调。
+- Git CLI 无法解析 github.com。GitHub 连接器可读取 [Windows W013 分支头](https://github.com/zhltzh/workcam-ios/commit/31917e34dd45df095853db31faf242de3adac914) 和 [W014 同名分支头](https://github.com/zhltzh/workcam-ios/commit/23ca20af715735bb8730d0bfbd793cf6d1dcfb36)。后者提交主题为设计色板更新，部署候选 SHA 仍需交接。GitHub compare 本地基线与 W014 返回 404，联合冲突尚未验证。
+- [W013 PR #19](https://github.com/zhltzh/workcam-ios/pull/19) 描述旧推导 token 拒绝、同公钥重注册保持身份及数据归属、SQLite 吊销与挑战路径收敛。该描述需在部署的固定 SHA 复验。验收需比较重新注册前后资源归属，验证旧凭据和已吊销凭据拒绝、重启后状态保持，以及 [W008 PR #14](https://github.com/zhltzh/workcam-ios/pull/14) 所述相同操作 ID 重传、不同内容冲突和批次部分确认。缺已审查部署和私网地址。
+- 本地 Mock 队列桌面测试退出 0，覆盖重读、重复入队、ID 冲突和部分确认。队列独立编译验证，尚未接入 App target。Windows 网络同步、认证、事件游标和业务写入 Not Implemented。
+
+总控复核 `xcrun xctrace list devices`，物理 iPhone 位于 Devices Offline。模拟器用以下命令通过 Debug 构建、安装和启动。截图在启动过渡后重新拍摄并目视核对首页。
+
+```sh
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/WorkCamUnified-Simulator CODE_SIGNING_ALLOWED=NO build
+xcrun simctl list devices booted
+xcrun simctl install "$wc_sim" /tmp/WorkCamUnified-Simulator/Build/Products/Debug-iphonesimulator/WorkCam.app
+xcrun simctl launch "$wc_sim" com.example.workcam.dev
+xcrun simctl io "$wc_sim" screenshot /Users/zhaohui/.codex/visualizations/2026/11/24/01a20f8b-b70f-7793-b626-b9e0f03bf6b2/workcam-baseline-simulator.png
+xcrun swiftc -parse-as-library -module-cache-path /tmp/workcam-unified-module-cache Core/Sync/SyncOutbox.swift Tests/Sync/main.swift -o /tmp/workcam-unified-sync && /tmp/workcam-unified-sync
+```
+
+`wc_sim` 取已启动的 iPhone 18 Pro 模拟器。Mock 队列在集成分支复跑通过，未接入 App target。Git CLI `git ls-remote --heads origin` 返回传输超时，远端分支与 PR 用 GitHub 连接器核验。
+
+## 2026-11-25 · M014–M016 core handoff
+
+```sh
+xcodebuild -version
+xcrun swiftc -module-cache-path /tmp/workcam-core-cache Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/workcam-core-evidence && /tmp/workcam-core-evidence test-vectors/fixed-vectors.json
+xcrun swiftc -module-cache-path /tmp/workcam-core-cache Features/TechLab/DepthGeometry.swift Features/TechLab/LabArchive.swift Tests/Lidar/main.swift -o /tmp/workcam-core-lidar && /tmp/workcam-core-lidar
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamCore-Debug CODE_SIGNING_ALLOWED=NO build > /tmp/workcam-core-Debug.log 2>&1
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamCore-Release CODE_SIGNING_ALLOWED=NO build > /tmp/workcam-core-Release.log 2>&1
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamCore-Debug CODE_SIGNING_ALLOWED=NO build > /tmp/workcam-core-Debug-retry.log 2>&1
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamCore-Release CODE_SIGNING_ALLOWED=NO build > /tmp/workcam-core-Release-retry.log 2>&1
+git diff --check
+```
+
+Xcode 27.2 (27B52). Both macOS fixture suites passed. Evidence tests cover signed recovery, missing/mismatched/orphan DER, collision preservation and repeat recovery. Initial sandboxed iOS builds exited 65 with a malformed SwiftUI macro plugin response. Both unsigned retry builds outside the sandbox exited 0. Signed deployment and iPhone execution pending coordination with WorkCam 00. W016 analyzer SHA and invocation unavailable in local refs. Device and CSV steps are in [M014–M016 acceptance](ios/m014-m016-acceptance.md).
+
+## 2026-11-25 · M018–M022 offline project candidate
+
+- M018/M020: English project creation, rename, gallery, photo detail, original share and project camera save. Uses the existing AVFoundation permission flow. Project capture is local and unsigned. W017 retention and bulk operations: Not Implemented.
+- M019: single project/date/unverified JPEG derivative. W011 device-time wording and original preservation applied. W011 template/field parity, content-addressed derivative records and geometry comparison: Not Implemented.
+- M021: one editable human-added numbered marker and note per photo, with normalized coordinates after orientation correction. Remaining W013 shapes, issue history, before/after and W014 sync: Not Implemented.
+- M022: site photo A4 PDF, one photo per page, marker and note, page count and unverified footer. Other W012 layouts and evidence appendix, W015 delivery ZIP and six samples: Not Implemented.
+
+Builds used a clean writable staging copy of the requested baseline and these changes. The first sandboxed Debug run failed because the SwiftUI macro plugin server produced a malformed response. With escalated execution, both commands succeeded:
+
+```sh
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /private/tmp/wc-ui-Debug CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -destination 'generic/platform=iOS' -derivedDataPath /private/tmp/wc-ui-Release CODE_SIGNING_ALLOWED=NO build
+```
+
+Unsigned builds establish compilation only. Device capture, offline persistence
+after restart, rendered output and device share are pending coordinated testing.
+
+### 三组增量的集成回归
+
+纳入 QA 2af79cb、核心 b8f4b5a、界面 2536165。总控将项目拍摄连到统一证据存储，项目只保留事务引用。按上节四条基线命令中的无签名 Debug、Release、模拟器构建与证据回归原样复跑。三种构建均 BUILD SUCCEEDED（日志 /tmp/workcam-unified-integrated-{Debug,Release,Simulator}.log）。证据回归七组通过，包含完整签名、缺失/不匹配/孤立 DER、目标冲突和重试。App 功能验收仍需真机。测试开关符号扫描命令为 `nm "$wc_binary" | rg -c 'tamperReport|LidarLabView'`，扫描 Debug、Release App 内 WorkCam 开头的可执行文件及 dylib；基线 Debug 有匹配，Release 无匹配。
+
+候选在启动的 iPhone 18 Pro 模拟器执行 `xcrun simctl install "$wc_sim" /tmp/WorkCamUnified-Simulator/Build/Products/Debug-iphonesimulator/WorkCam.app` 与 `xcrun simctl launch --terminate-running-process "$wc_sim" com.example.workcam.dev` 成功。用 `xcrun simctl io "$wc_sim" screenshot "$wc_png"` 重拍启动后的首页，目视确认 Projects。路径见统一报告。
+
+## 2026-11-25 WorkCam Night 03
+
+Independent codex/workcam-mac-night-03 from 08cc07b. An early compile rejected
+an NSNumber for the Swift flash-mode array. Changed to the typed enum and
+rebuilt. Final code including Quick Look passed all four Xcode builds.
+
+```sh
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamNight03-Debug CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamNight03-Release CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/WorkCamNight03-Sim CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamNight03-Signed build
+xcrun swiftc -module-cache-path /tmp/night03-module Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/night03-evidence && /tmp/night03-evidence test-vectors/fixed-vectors.json
+xcrun swiftc -module-cache-path /tmp/night03-module Features/TechLab/DepthGeometry.swift Features/TechLab/LabArchive.swift Tests/Lidar/main.swift -o /tmp/night03-lidar && /tmp/night03-lidar
+xcrun swiftc -parse-as-library -module-cache-path /tmp/night03-module Core/Sync/SyncOutbox.swift Tests/Sync/main.swift -o /tmp/night03-sync && /tmp/night03-sync
+xcrun swiftc -module-cache-path /tmp/night03-module Core/Security/Evidence.swift Core/Storage/CaptureStore.swift "$wc_test/main.swift" -o "$wc_test/test" && "$wc_test/test"
+xcrun xctrace list devices
+```
+
+Evidence regression 7 groups passed, LiDAR 3 groups passed, and Mock outbox
+passed. The temporary archive fixture decoded legacy JSON without an archive
+flag and verified archive-flag round trip with stable ID and name. Physical
+iPhone listed offline. Xcode logs /tmp/workcam-night03-{Debug,Release,Sim,Signed}.log.

@@ -119,3 +119,52 @@ try FileManager.default.createDirectory(at: emptyExportRoot, withIntermediateDir
 defer { try? FileManager.default.removeItem(at: emptyExportRoot) }
 do { _ = try EvidenceStore.exportPackages(sourceRoot: emptyExportRoot); fatalError("empty export accepted") }
 catch EvidenceError.noExportableRecords { print("PASS empty export reports explicit error") }
+let pendingID = UUID().uuidString.lowercased()
+let complete = emptyExportRoot.appendingPathComponent(".pending-" + pendingID)
+let recovered = emptyExportRoot.appendingPathComponent(pendingID)
+let incomplete = emptyExportRoot.appendingPathComponent(".pending-" + UUID().uuidString)
+for directory in [complete, incomplete] {
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
+    try photo.write(to: directory.appendingPathComponent("photo.jpg"))
+}
+let pendingRecord = EvidenceRecord(photoID: pendingID, sha256: evidenceHash(photo), status: "Unsigned")
+try JSONEncoder().encode(pendingRecord).write(to: complete.appendingPathComponent("record.json"))
+let promoted = try EvidenceStore.recoverPending(in: emptyExportRoot)
+let rerun = try EvidenceStore.recoverPending(in: emptyExportRoot)
+let recoveredPhoto = try Data(contentsOf: recovered.appendingPathComponent("photo.jpg"))
+let incompletePhoto = try Data(contentsOf: incomplete.appendingPathComponent("photo.jpg"))
+precondition(promoted == 1 && rerun == 0 && recoveredPhoto == photo && incompletePhoto == photo)
+print("PASS complete capture restored, retry idempotent, incomplete original preserved")
+
+let signedStage = emptyExportRoot.appendingPathComponent(".pending-" + record.photoID)
+let signedFinal = emptyExportRoot.appendingPathComponent(record.photoID)
+let signatureFile = signedStage.appendingPathComponent("signature.der")
+let metadataFile = signedStage.appendingPathComponent("record.json")
+try FileManager.default.createDirectory(at: signedStage, withIntermediateDirectories: false)
+try photo.write(to: signedStage.appendingPathComponent("photo.jpg"))
+try JSONEncoder().encode(record).write(to: metadataFile)
+
+func expectStagePreserved() throws {
+    let count = try EvidenceStore.recoverPending(in: emptyExportRoot)
+    let original = try Data(contentsOf: signedStage.appendingPathComponent("photo.jpg"))
+    precondition(count == 0 && original == photo)
+}
+
+try expectStagePreserved()
+try Data([0]).write(to: signatureFile)
+try expectStagePreserved()
+try exportedSignature.write(to: signatureFile)
+try FileManager.default.createDirectory(at: signedFinal, withIntermediateDirectories: false)
+try oneByteChanged.write(to: signedFinal.appendingPathComponent("photo.jpg"))
+try expectStagePreserved()
+let destinationOriginal = try Data(contentsOf: signedFinal.appendingPathComponent("photo.jpg"))
+precondition(destinationOriginal == oneByteChanged)
+try FileManager.default.removeItem(at: signedFinal)
+try JSONEncoder().encode(unsigned).write(to: metadataFile)
+try expectStagePreserved()
+try JSONEncoder().encode(record).write(to: metadataFile)
+let signedPromoted = try EvidenceStore.recoverPending(in: emptyExportRoot)
+let signedRerun = try EvidenceStore.recoverPending(in: emptyExportRoot)
+let restoredSignature = try Data(contentsOf: signedFinal.appendingPathComponent("signature.der"))
+precondition(signedPromoted == 1 && signedRerun == 0 && restoredSignature == exportedSignature)
+print("PASS signed recovery, missing/mismatched/orphan DER, collision, and retry")

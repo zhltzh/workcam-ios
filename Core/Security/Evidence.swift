@@ -71,6 +71,49 @@ struct EvidenceRecord: Codable {
 }
 
 struct EvidenceStore {
+    private static let writeLock = NSLock()
+
+    /// Resume promotion of complete transactions. Incomplete or unreadable stages
+    /// remain on disk, including their original photo, for later inspection.
+    @discardableResult
+    static func recoverPending(in root: URL) throws -> Int {
+        writeLock.lock()
+        defer { writeLock.unlock() }
+        return try promotePending(in: root)
+    }
+
+    private static func promotePending(in root: URL) throws -> Int {
+        let files = FileManager.default
+        let prefix = ".pending-"
+        var promoted = 0
+        for stage in try files.contentsOfDirectory(at: root, includingPropertiesForKeys: nil) {
+            let name = stage.lastPathComponent
+            guard name.hasPrefix(prefix) else { continue }
+            let id = String(name.dropFirst(prefix.count))
+            guard UUID(uuidString: id) != nil else { continue }
+            let destination = root.appendingPathComponent(id, isDirectory: true)
+            guard !files.fileExists(atPath: destination.path),
+                  let metadata = try? Data(contentsOf: stage.appendingPathComponent("record.json")),
+                  let record = try? JSONDecoder().decode(EvidenceRecord.self, from: metadata),
+                  record.photoID == id,
+                  let photo = try? Data(contentsOf: stage.appendingPathComponent("photo.jpg")),
+                  (try? verify(record, photo: photo)) != nil else { continue }
+            let signatureFile = stage.appendingPathComponent("signature.der")
+            if let manifest = record.manifest {
+                guard let signature = Data(base64Encoded: manifest.signature),
+                      (try? Data(contentsOf: signatureFile)) == signature else { continue }
+            } else if files.fileExists(atPath: signatureFile.path) {
+                continue
+            }
+            // moveItem rejects an existing destination. A failed move leaves the
+            // stage available for a future attempt.
+            if (try? files.moveItem(at: stage, to: destination)) != nil {
+                promoted += 1
+            }
+        }
+        return promoted
+    }
+
     static func root() throws -> URL {
         let base = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         var url = base.appendingPathComponent("Evidence", isDirectory: true)
@@ -84,6 +127,7 @@ struct EvidenceStore {
     /// Exports copies of public evidence only; never reads or exports private-key references.
     static func exportPackages(sourceRoot: URL? = nil) throws -> URL {
         let source = try sourceRoot ?? root()
+        try recoverPending(in: source)
         let output = FileManager.default.temporaryDirectory.appendingPathComponent("WorkCam-Evidence-" + UUID().uuidString)
         try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
         var exportedCount = 0
@@ -109,9 +153,12 @@ struct EvidenceStore {
         return output
     }
 
-    static func capture(_ data: Data) throws -> URL {
+    static func capture(_ data: Data, recordID: UUID = UUID()) throws -> URL {
+        writeLock.lock()
+        defer { writeLock.unlock() }
         let root = try root()
-        let id = UUID().uuidString.lowercased()
+        _ = try? promotePending(in: root)
+        let id = recordID.uuidString.lowercased()
         let stage = root.appendingPathComponent(".pending-" + id, isDirectory: true)
         try FileManager.default.createDirectory(at: stage, withIntermediateDirectories: false)
         let photo = stage.appendingPathComponent("photo.jpg")
@@ -128,10 +175,10 @@ struct EvidenceStore {
                 device_id: evidenceHash(publicData), signature: "", public_key: publicData.base64EncodedString())
             let signature = try key.signature(for: manifest.payload())
             manifest.signature = signature.derRepresentation.base64EncodedString()
+            try signature.derRepresentation.write(to: stage.appendingPathComponent("signature.der"), options: [.atomic, .completeFileProtection])
             record.manifest = manifest
             record.publicKeyID = evidenceHash(publicData)
             record.status = "Signed — local verification pending"
-            try signature.derRepresentation.write(to: stage.appendingPathComponent("signature.der"), options: [.atomic, .completeFileProtection])
         } catch {
             record.failure = String(describing: error)
         }
@@ -182,9 +229,12 @@ struct EvidenceStore {
         } catch { return "Verification Failed: \(directory.lastPathComponent) — \(error)" }
     }
 
+    #if DEBUG
     static func tamperReport() -> String {
         do {
-            let directories = try FileManager.default.contentsOfDirectory(at: root(), includingPropertiesForKeys: nil)
+            let directory = try root()
+            try recoverPending(in: directory)
+            let directories = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
             guard let directory = directories.first(where: { !$0.lastPathComponent.hasPrefix(".") }),
                   var record = try? JSONDecoder().decode(EvidenceRecord.self, from: Data(contentsOf: directory.appendingPathComponent("record.json"))),
                   record.manifest != nil else { return "Tamper test requires signed evidence" }
@@ -209,9 +259,13 @@ struct EvidenceStore {
         } catch { return "Tamper test setup failed: \(error)" }
     }
 
+    #endif
+
     static func report() -> String {
         do {
-            let directories = try FileManager.default.contentsOfDirectory(at: root(), includingPropertiesForKeys: nil).sorted { $0.lastPathComponent < $1.lastPathComponent }
+            let directory = try root()
+            try recoverPending(in: directory)
+            let directories = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil).sorted { $0.lastPathComponent < $1.lastPathComponent }
             if directories.isEmpty { return "No evidence records" }
             return directories.map { url in
                 url.lastPathComponent.hasPrefix(".pending-") ? "Incomplete record isolated: \(url.lastPathComponent)" : inspect(url)

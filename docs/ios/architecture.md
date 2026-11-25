@@ -18,3 +18,42 @@ Debug-only LiDAR Lab uses an isolated ARSCNView session, explicit user Start, sc
 M1-R1 partial: depth modes unproject display-mapped depth pixel centers with scaled intrinsics and camera transform; high-confidence depth only, no fallback. Experimental rows are atomically archived separately from evidence. Schema and matrix compatibility concerns recorded in progress.md.
 
 WC-M-006 public evidence export creates explicit copies of JPEG, EvidenceRecord, exact canonical payload, X9.63 public key and DER signature. Export verifies source mathematics first; no private key access in export path. Dedicated fixed-vector allowlist/byte/tamper tests added.
+
+Evidence capture, re-verification and export retry promotion of complete pending
+transactions. Promotion checks the directory identifier, original hash, and
+signed record plus detached DER when present. Write and promotion are serialized
+within the app process. Incomplete pending originals remain isolated for inspection.
+
+### WC-M023 local sync outbox
+
+The standalone Swift outbox atomically persists ordered operation IDs and opaque
+bodies. One actor owns each file. A caller supplies the stable ID and removes an
+operation only after an accepted or already-applied acknowledgment. The desktop
+fixture uses Mock bodies. App wiring, network transport, and event cursors are
+Not Implemented.
+
+An unsigned pending record with a detached DER file stays isolated for
+inspection. The committed-record inspector applies the same consistency check.
+
+## Offline project capture
+
+Projects use UUID directories under Application Support/WorkProjects. Project
+metadata is JSON. A new directory is staged then renamed into place. Project
+capture reserves a project reference and commits the original through the same
+evidence store used by standalone capture. The project list resolves each
+reference after evidence promotion. The original is stored once. A reference
+without a committed original stays out of the list and can resolve when
+recovery promotes a complete transaction. Older project JPEGs remain readable.
+The timestamp represents the device clock at the time of save.
+
+A human-added marker and note use a separate JSON sidecar. ImageIO applies
+orientation before resolving normalized coordinates. The watermark and A4
+site-photo PDF render from the originals and sidecars into separate temporary
+share files. Exported originals retain the camera JPEG bytes.
+
+Night 03 adds rear lens discovery and serialized input switching, a bounded
+thumbnail for the most recent saved capture, project archive metadata with
+legacy decoding, and local evidence inspection in project photo detail.
+Watermark preferences are stored locally. Rendering reads the original into
+an orientation-corrected bounded image and writes a separate protected JPEG.
+Site Photo PDF supports A4 and US Letter with system Quick Look previews.
