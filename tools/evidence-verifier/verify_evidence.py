@@ -406,8 +406,16 @@ def build_record_report(
 def find_orphan_files(pkg_dir: Path, pkg: PackageManifest) -> list[str]:
     """Files physically present in the package but NOT referenced by
     package.json. A package carrying extra unlisted payloads is not
-    consistent with its manifest -> package-level failure."""
+    consistent with its manifest -> package-level failure.
+
+    TM05/TM06 chain conventions are part of the PACKAGE STRUCTURE
+    (chain + external checkpoint + its verification key + the optional
+    server-side App Attest result) and are whitelisted here - they are
+    inputs to the trust bridge, not unlisted payloads."""
     referenced = {"package.json"}
+    referenced.update({
+        "chain.json", "checkpoint.json", "checkpoint-key.pem",
+        "attestation.json"})
     for rec in pkg.records:
         referenced.add(rec.photo_file.replace("\\", "/"))
         referenced.add(rec.manifest_file.replace("\\", "/"))
