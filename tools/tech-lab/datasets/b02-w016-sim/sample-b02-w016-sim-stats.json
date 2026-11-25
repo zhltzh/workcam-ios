@@ -1,0 +1,2001 @@
+{
+  "schema": "b02-w016-lidar-stats/1",
+  "data_label": "DESKTOP_SIMULATION",
+  "csv_format": "mac_v2",
+  "factors_derived_from_condition": false,
+  "accounting": {
+    "rows_received": 134,
+    "valid_rows": 133,
+    "invalid_rows": 1,
+    "attempts": 133,
+    "valid_samples_total": 112,
+    "failures_total": 21,
+    "failure_reasons": {
+      "measurement_missing": 1,
+      "depth_missing": 13,
+      "no_return": 7
+    },
+    "outliers_reported": 3,
+    "modes_present": [
+      "raycast",
+      "scene_depth",
+      "smoothed_depth"
+    ],
+    "parser_warnings": 2
+  },
+  "matrix_check": {
+    "match": false,
+    "declared_total": 132,
+    "actual_total": 133,
+    "invalid_rows_not_counted_in_matrix": 1,
+    "duplicate_ids_in_checklist": 0,
+    "per_mode": {
+      "raycast": {
+        "declared": 68,
+        "actual": 69,
+        "diff": 1,
+        "match": false
+      },
+      "scene_depth": {
+        "declared": 32,
+        "actual": 32,
+        "diff": 0,
+        "match": true
+      },
+      "smoothed_depth": {
+        "declared": 32,
+        "actual": 32,
+        "diff": 0,
+        "match": true
+      }
+    },
+    "per_cell_diffs": [
+      {
+        "cell": "raycast/normal/1m",
+        "declared": 4,
+        "actual": 5,
+        "diff": 1
+      }
+    ],
+    "completion": {
+      "rows_received": 134,
+      "checklist_total": 132,
+      "completed_ids": 132,
+      "missing_count": 0,
+      "missing_ids_preview": [],
+      "extra_ids": [],
+      "completion_pct": 100.0
+    }
+  },
+  "by_mode": {
+    "raycast": {
+      "attempts": 69,
+      "valid_samples": 54,
+      "failures": 15,
+      "failure_reasons": {
+        "measurement_missing": 1,
+        "depth_missing": 7,
+        "no_return": 7
+      },
+      "success_rate": 0.782608695652174,
+      "failure_rate": 0.21739130434782608,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.1132037037037037,
+      "mean_abs_error_m": 0.13809259259259254,
+      "rmse_m": 0.8194739844016472,
+      "median_abs_error_m": 0.013499999999999956,
+      "p95_abs_error_m": 0.0903500000000001,
+      "max_abs_error_m": 6.0,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "scene_depth": {
+      "attempts": 32,
+      "valid_samples": 29,
+      "failures": 3,
+      "failure_reasons": {
+        "depth_missing": 3
+      },
+      "success_rate": 0.90625,
+      "failure_rate": 0.09375,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.059758620689655144,
+      "mean_abs_error_m": 0.06334482758620688,
+      "rmse_m": 0.24472496878093078,
+      "median_abs_error_m": 0.01100000000000012,
+      "p95_abs_error_m": 0.07339999999999994,
+      "max_abs_error_m": 1.3099999999999996,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "smoothed_depth": {
+      "attempts": 32,
+      "valid_samples": 29,
+      "failures": 3,
+      "failure_reasons": {
+        "depth_missing": 3
+      },
+      "success_rate": 0.90625,
+      "failure_rate": 0.09375,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.00972413793103446,
+      "mean_abs_error_m": 0.011793103448275812,
+      "rmse_m": 0.017019258867935236,
+      "median_abs_error_m": 0.006000000000000005,
+      "p95_abs_error_m": 0.03840000000000004,
+      "max_abs_error_m": 0.040999999999999925,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    }
+  },
+  "by_mode_condition": {
+    "raycast/glass": {
+      "attempts": 8,
+      "valid_samples": 1,
+      "failures": 7,
+      "failure_reasons": {
+        "depth_missing": 7
+      },
+      "success_rate": 0.125,
+      "failure_rate": 0.875,
+      "sufficient_samples": false,
+      "mean_signed_error_m": null,
+      "mean_abs_error_m": null,
+      "rmse_m": null,
+      "median_abs_error_m": null,
+      "p95_abs_error_m": null,
+      "max_abs_error_m": null,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "raycast/low_light": {
+      "attempts": 16,
+      "valid_samples": 16,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.3893749999999999,
+      "mean_abs_error_m": 0.3976249999999999,
+      "rmse_m": 1.5002608939781108,
+      "median_abs_error_m": 0.01849999999999996,
+      "p95_abs_error_m": 1.5472499999999998,
+      "max_abs_error_m": 6.0,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "raycast/normal": {
+      "attempts": 21,
+      "valid_samples": 20,
+      "failures": 1,
+      "failure_reasons": {
+        "measurement_missing": 1
+      },
+      "success_rate": 0.9523809523809523,
+      "failure_rate": 0.047619047619047616,
+      "sufficient_samples": true,
+      "mean_signed_error_m": -0.028549999999999957,
+      "mean_abs_error_m": 0.03084999999999995,
+      "rmse_m": 0.10548246299741013,
+      "median_abs_error_m": 0.005999999999999894,
+      "p95_abs_error_m": 0.03965000000000023,
+      "max_abs_error_m": 0.47,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "raycast/oblique": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.02612499999999998,
+      "mean_abs_error_m": 0.02612499999999998,
+      "rmse_m": 0.03442927533364592,
+      "median_abs_error_m": 0.020499999999999963,
+      "p95_abs_error_m": 0.06409999999999999,
+      "max_abs_error_m": 0.07600000000000007,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "raycast/reflective": {
+      "attempts": 8,
+      "valid_samples": 1,
+      "failures": 7,
+      "failure_reasons": {
+        "no_return": 7
+      },
+      "success_rate": 0.125,
+      "failure_rate": 0.875,
+      "sufficient_samples": false,
+      "mean_signed_error_m": null,
+      "mean_abs_error_m": null,
+      "rmse_m": null,
+      "median_abs_error_m": null,
+      "p95_abs_error_m": null,
+      "max_abs_error_m": null,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "raycast/textureless": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.017124999999999987,
+      "mean_abs_error_m": 0.017874999999999933,
+      "rmse_m": 0.02429763362963562,
+      "median_abs_error_m": 0.016999999999999904,
+      "p95_abs_error_m": 0.04330000000000008,
+      "max_abs_error_m": 0.051000000000000156,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "scene_depth/glass": {
+      "attempts": 8,
+      "valid_samples": 5,
+      "failures": 3,
+      "failure_reasons": {
+        "depth_missing": 3
+      },
+      "success_rate": 0.625,
+      "failure_rate": 0.375,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.047599999999999955,
+      "mean_abs_error_m": 0.047599999999999955,
+      "rmse_m": 0.05435807207765922,
+      "median_abs_error_m": 0.051000000000000156,
+      "p95_abs_error_m": 0.07719999999999994,
+      "max_abs_error_m": 0.08099999999999996,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "scene_depth/low_light": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.017624999999999988,
+      "mean_abs_error_m": 0.02062500000000002,
+      "rmse_m": 0.02375657803640923,
+      "median_abs_error_m": 0.017999999999999905,
+      "p95_abs_error_m": 0.03815000000000008,
+      "max_abs_error_m": 0.04200000000000004,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "scene_depth/normal": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.16087499999999993,
+      "mean_abs_error_m": 0.169875,
+      "rmse_m": 0.4632087812207362,
+      "median_abs_error_m": 0.008000000000000063,
+      "p95_abs_error_m": 0.8550000000000002,
+      "max_abs_error_m": 1.3099999999999996,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "scene_depth/textureless": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.008374999999999994,
+      "mean_abs_error_m": 0.009374999999999994,
+      "rmse_m": 0.01135231253974268,
+      "median_abs_error_m": 0.006500000000000061,
+      "p95_abs_error_m": 0.01954999999999984,
+      "max_abs_error_m": 0.021999999999999797,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "smoothed_depth/glass": {
+      "attempts": 8,
+      "valid_samples": 5,
+      "failures": 3,
+      "failure_reasons": {
+        "depth_missing": 3
+      },
+      "success_rate": 0.625,
+      "failure_rate": 0.375,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.0274,
+      "mean_abs_error_m": 0.0274,
+      "rmse_m": 0.031549960380323774,
+      "median_abs_error_m": 0.03600000000000003,
+      "p95_abs_error_m": 0.04079999999999995,
+      "max_abs_error_m": 0.040999999999999925,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "smoothed_depth/low_light": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.007999999999999965,
+      "mean_abs_error_m": 0.011749999999999913,
+      "rmse_m": 0.01484924240491745,
+      "median_abs_error_m": 0.010000000000000009,
+      "p95_abs_error_m": 0.026299999999999914,
+      "max_abs_error_m": 0.026999999999999913,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "smoothed_depth/normal": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.0017500000000000016,
+      "mean_abs_error_m": 0.003749999999999948,
+      "rmse_m": 0.004330127018922178,
+      "median_abs_error_m": 0.0040000000000000036,
+      "p95_abs_error_m": 0.006650000000000079,
+      "max_abs_error_m": 0.007000000000000117,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "smoothed_depth/textureless": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.008374999999999952,
+      "mean_abs_error_m": 0.010124999999999953,
+      "rmse_m": 0.01373408169482031,
+      "median_abs_error_m": 0.007000000000000006,
+      "p95_abs_error_m": 0.025499999999999915,
+      "max_abs_error_m": 0.028999999999999915,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    }
+  },
+  "by_mode_material": {
+    "raycast/glass": {
+      "attempts": 8,
+      "valid_samples": 1,
+      "failures": 7,
+      "failure_reasons": {
+        "depth_missing": 7
+      },
+      "success_rate": 0.125,
+      "failure_rate": 0.875,
+      "sufficient_samples": false,
+      "mean_signed_error_m": null,
+      "mean_abs_error_m": null,
+      "rmse_m": null,
+      "median_abs_error_m": null,
+      "p95_abs_error_m": null,
+      "max_abs_error_m": null,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "raycast/matte_white": {
+      "attempts": 45,
+      "valid_samples": 44,
+      "failures": 1,
+      "failure_reasons": {
+        "measurement_missing": 1
+      },
+      "success_rate": 0.9777777777777777,
+      "failure_rate": 0.022222222222222223,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.13336363636363635,
+      "mean_abs_error_m": 0.16336363636363632,
+      "rmse_m": 0.907600958571552,
+      "median_abs_error_m": 0.013499999999999956,
+      "p95_abs_error_m": 0.07405000000000003,
+      "max_abs_error_m": 6.0,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "raycast/mirror": {
+      "attempts": 8,
+      "valid_samples": 1,
+      "failures": 7,
+      "failure_reasons": {
+        "no_return": 7
+      },
+      "success_rate": 0.125,
+      "failure_rate": 0.875,
+      "sufficient_samples": false,
+      "mean_signed_error_m": null,
+      "mean_abs_error_m": null,
+      "rmse_m": null,
+      "median_abs_error_m": null,
+      "p95_abs_error_m": null,
+      "max_abs_error_m": null,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "raycast/textureless": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.017124999999999987,
+      "mean_abs_error_m": 0.017874999999999933,
+      "rmse_m": 0.02429763362963562,
+      "median_abs_error_m": 0.016999999999999904,
+      "p95_abs_error_m": 0.04330000000000008,
+      "max_abs_error_m": 0.051000000000000156,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "scene_depth/glass": {
+      "attempts": 8,
+      "valid_samples": 5,
+      "failures": 3,
+      "failure_reasons": {
+        "depth_missing": 3
+      },
+      "success_rate": 0.625,
+      "failure_rate": 0.375,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.047599999999999955,
+      "mean_abs_error_m": 0.047599999999999955,
+      "rmse_m": 0.05435807207765922,
+      "median_abs_error_m": 0.051000000000000156,
+      "p95_abs_error_m": 0.07719999999999994,
+      "max_abs_error_m": 0.08099999999999996,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "scene_depth/matte_white": {
+      "attempts": 16,
+      "valid_samples": 16,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.08924999999999997,
+      "mean_abs_error_m": 0.09525,
+      "rmse_m": 0.3279685579442029,
+      "median_abs_error_m": 0.010500000000000065,
+      "p95_abs_error_m": 0.35899999999999993,
+      "max_abs_error_m": 1.3099999999999996,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "scene_depth/textureless": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.008374999999999994,
+      "mean_abs_error_m": 0.009374999999999994,
+      "rmse_m": 0.01135231253974268,
+      "median_abs_error_m": 0.006500000000000061,
+      "p95_abs_error_m": 0.01954999999999984,
+      "max_abs_error_m": 0.021999999999999797,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "smoothed_depth/glass": {
+      "attempts": 8,
+      "valid_samples": 5,
+      "failures": 3,
+      "failure_reasons": {
+        "depth_missing": 3
+      },
+      "success_rate": 0.625,
+      "failure_rate": 0.375,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.0274,
+      "mean_abs_error_m": 0.0274,
+      "rmse_m": 0.031549960380323774,
+      "median_abs_error_m": 0.03600000000000003,
+      "p95_abs_error_m": 0.04079999999999995,
+      "max_abs_error_m": 0.040999999999999925,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "smoothed_depth/matte_white": {
+      "attempts": 16,
+      "valid_samples": 16,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.0048749999999999835,
+      "mean_abs_error_m": 0.0077499999999999306,
+      "rmse_m": 0.010937321427113643,
+      "median_abs_error_m": 0.004999999999999893,
+      "p95_abs_error_m": 0.02549999999999991,
+      "max_abs_error_m": 0.026999999999999913,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "smoothed_depth/textureless": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.008374999999999952,
+      "mean_abs_error_m": 0.010124999999999953,
+      "rmse_m": 0.01373408169482031,
+      "median_abs_error_m": 0.007000000000000006,
+      "p95_abs_error_m": 0.025499999999999915,
+      "max_abs_error_m": 0.028999999999999915,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    }
+  },
+  "by_mode_lighting": {
+    "raycast/low_light": {
+      "attempts": 16,
+      "valid_samples": 16,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.3893749999999999,
+      "mean_abs_error_m": 0.3976249999999999,
+      "rmse_m": 1.5002608939781108,
+      "median_abs_error_m": 0.01849999999999996,
+      "p95_abs_error_m": 1.5472499999999998,
+      "max_abs_error_m": 6.0,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "raycast/normal": {
+      "attempts": 53,
+      "valid_samples": 38,
+      "failures": 15,
+      "failure_reasons": {
+        "measurement_missing": 1,
+        "depth_missing": 7,
+        "no_return": 7
+      },
+      "success_rate": 0.7169811320754716,
+      "failure_rate": 0.2830188679245283,
+      "sufficient_samples": true,
+      "mean_signed_error_m": -0.003078947368421035,
+      "mean_abs_error_m": 0.028815789473684163,
+      "rmse_m": 0.0811929151692696,
+      "median_abs_error_m": 0.009999999999999898,
+      "p95_abs_error_m": 0.08215,
+      "max_abs_error_m": 0.47,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "scene_depth/low_light": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.017624999999999988,
+      "mean_abs_error_m": 0.02062500000000002,
+      "rmse_m": 0.02375657803640923,
+      "median_abs_error_m": 0.017999999999999905,
+      "p95_abs_error_m": 0.03815000000000008,
+      "max_abs_error_m": 0.04200000000000004,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "scene_depth/normal": {
+      "attempts": 24,
+      "valid_samples": 21,
+      "failures": 3,
+      "failure_reasons": {
+        "depth_missing": 3
+      },
+      "success_rate": 0.875,
+      "failure_rate": 0.125,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.07580952380952377,
+      "mean_abs_error_m": 0.0796190476190476,
+      "rmse_m": 0.287211884619468,
+      "median_abs_error_m": 0.009000000000000008,
+      "p95_abs_error_m": 0.08099999999999996,
+      "max_abs_error_m": 1.3099999999999996,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "smoothed_depth/low_light": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.007999999999999965,
+      "mean_abs_error_m": 0.011749999999999913,
+      "rmse_m": 0.01484924240491745,
+      "median_abs_error_m": 0.010000000000000009,
+      "p95_abs_error_m": 0.026299999999999914,
+      "max_abs_error_m": 0.026999999999999913,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "smoothed_depth/normal": {
+      "attempts": 24,
+      "valid_samples": 21,
+      "failures": 3,
+      "failure_reasons": {
+        "depth_missing": 3
+      },
+      "success_rate": 0.875,
+      "failure_rate": 0.125,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.010380952380952364,
+      "mean_abs_error_m": 0.011809523809523773,
+      "rmse_m": 0.017776388834631156,
+      "median_abs_error_m": 0.006000000000000005,
+      "p95_abs_error_m": 0.040000000000000036,
+      "max_abs_error_m": 0.040999999999999925,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    }
+  },
+  "by_mode_pose": {
+    "raycast/oblique_30": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.02612499999999998,
+      "mean_abs_error_m": 0.02612499999999998,
+      "rmse_m": 0.03442927533364592,
+      "median_abs_error_m": 0.020499999999999963,
+      "p95_abs_error_m": 0.06409999999999999,
+      "max_abs_error_m": 0.07600000000000007,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "raycast/perpendicular": {
+      "attempts": 61,
+      "valid_samples": 46,
+      "failures": 15,
+      "failure_reasons": {
+        "measurement_missing": 1,
+        "depth_missing": 7,
+        "no_return": 7
+      },
+      "success_rate": 0.7540983606557377,
+      "failure_rate": 0.2459016393442623,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.12834782608695652,
+      "mean_abs_error_m": 0.1575652173913043,
+      "rmse_m": 0.887761571986337,
+      "median_abs_error_m": 0.012499999999999956,
+      "p95_abs_error_m": 0.10349999999999993,
+      "max_abs_error_m": 6.0,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "scene_depth/perpendicular": {
+      "attempts": 32,
+      "valid_samples": 29,
+      "failures": 3,
+      "failure_reasons": {
+        "depth_missing": 3
+      },
+      "success_rate": 0.90625,
+      "failure_rate": 0.09375,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.059758620689655144,
+      "mean_abs_error_m": 0.06334482758620688,
+      "rmse_m": 0.24472496878093078,
+      "median_abs_error_m": 0.01100000000000012,
+      "p95_abs_error_m": 0.07339999999999994,
+      "max_abs_error_m": 1.3099999999999996,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "smoothed_depth/perpendicular": {
+      "attempts": 32,
+      "valid_samples": 29,
+      "failures": 3,
+      "failure_reasons": {
+        "depth_missing": 3
+      },
+      "success_rate": 0.90625,
+      "failure_rate": 0.09375,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.00972413793103446,
+      "mean_abs_error_m": 0.011793103448275812,
+      "rmse_m": 0.017019258867935236,
+      "median_abs_error_m": 0.006000000000000005,
+      "p95_abs_error_m": 0.03840000000000004,
+      "max_abs_error_m": 0.040999999999999925,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    }
+  },
+  "by_mode_distance": {
+    "raycast/0.5m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": -0.1185,
+      "mean_abs_error_m": 0.1205,
+      "rmse_m": 0.23502553052806838,
+      "median_abs_error_m": 0.0040000000000000036,
+      "p95_abs_error_m": 0.4001,
+      "max_abs_error_m": 0.47,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "raycast/1m": {
+      "attempts": 25,
+      "valid_samples": 17,
+      "failures": 8,
+      "failure_reasons": {
+        "depth_missing": 4,
+        "no_return": 4
+      },
+      "success_rate": 0.68,
+      "failure_rate": 0.32,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.015294117647058798,
+      "mean_abs_error_m": 0.017411764705882328,
+      "rmse_m": 0.024612287701112883,
+      "median_abs_error_m": 0.0129999999999999,
+      "p95_abs_error_m": 0.0392,
+      "max_abs_error_m": 0.07600000000000007,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "raycast/2m": {
+      "attempts": 8,
+      "valid_samples": 8,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.00037500000000004197,
+      "mean_abs_error_m": 0.017624999999999974,
+      "rmse_m": 0.023175957369653548,
+      "median_abs_error_m": 0.013000000000000012,
+      "p95_abs_error_m": 0.04389999999999994,
+      "max_abs_error_m": 0.052999999999999936,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "raycast/3m": {
+      "attempts": 24,
+      "valid_samples": 18,
+      "failures": 6,
+      "failure_reasons": {
+        "depth_missing": 3,
+        "no_return": 3
+      },
+      "success_rate": 0.75,
+      "failure_rate": 0.25,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.014611111111111106,
+      "mean_abs_error_m": 0.02205555555555552,
+      "rmse_m": 0.03469630143593597,
+      "median_abs_error_m": 0.013500000000000068,
+      "p95_abs_error_m": 0.06090000000000004,
+      "max_abs_error_m": 0.11699999999999999,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "raycast/5m": {
+      "attempts": 8,
+      "valid_samples": 7,
+      "failures": 1,
+      "failure_reasons": {
+        "measurement_missing": 1
+      },
+      "success_rate": 0.875,
+      "failure_rate": 0.125,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.8658571428571429,
+      "mean_abs_error_m": 0.877285714285714,
+      "rmse_m": 2.267970111921987,
+      "median_abs_error_m": 0.01499999999999968,
+      "p95_abs_error_m": 4.2189000000000005,
+      "max_abs_error_m": 6.0,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "scene_depth/1m": {
+      "attempts": 16,
+      "valid_samples": 14,
+      "failures": 2,
+      "failure_reasons": {
+        "depth_missing": 2
+      },
+      "success_rate": 0.875,
+      "failure_rate": 0.125,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.011714285714285693,
+      "mean_abs_error_m": 0.016571428571428553,
+      "rmse_m": 0.026373688186740733,
+      "median_abs_error_m": 0.010000000000000009,
+      "p95_abs_error_m": 0.05565,
+      "max_abs_error_m": 0.08099999999999996,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "scene_depth/3m": {
+      "attempts": 16,
+      "valid_samples": 15,
+      "failures": 1,
+      "failure_reasons": {
+        "depth_missing": 1
+      },
+      "success_rate": 0.9375,
+      "failure_rate": 0.0625,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.10459999999999997,
+      "mean_abs_error_m": 0.107,
+      "rmse_m": 0.33932098864251425,
+      "median_abs_error_m": 0.016999999999999904,
+      "p95_abs_error_m": 0.4364000000000007,
+      "max_abs_error_m": 1.3099999999999996,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "smoothed_depth/1m": {
+      "attempts": 16,
+      "valid_samples": 15,
+      "failures": 1,
+      "failure_reasons": {
+        "depth_missing": 1
+      },
+      "success_rate": 0.9375,
+      "failure_rate": 0.0625,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.007666666666666637,
+      "mean_abs_error_m": 0.011133333333333306,
+      "rmse_m": 0.015678010077812776,
+      "median_abs_error_m": 0.006000000000000005,
+      "p95_abs_error_m": 0.031199999999999926,
+      "max_abs_error_m": 0.040999999999999925,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    },
+    "smoothed_depth/3m": {
+      "attempts": 16,
+      "valid_samples": 14,
+      "failures": 2,
+      "failure_reasons": {
+        "depth_missing": 2
+      },
+      "success_rate": 0.875,
+      "failure_rate": 0.125,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.011928571428571415,
+      "mean_abs_error_m": 0.012499999999999924,
+      "rmse_m": 0.01834782976656521,
+      "median_abs_error_m": 0.00550000000000006,
+      "p95_abs_error_m": 0.03740000000000003,
+      "max_abs_error_m": 0.040000000000000036,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": null
+    }
+  },
+  "by_cell": {
+    "raycast/glass/1m": {
+      "attempts": 4,
+      "valid_samples": 0,
+      "failures": 4,
+      "failure_reasons": {
+        "depth_missing": 4
+      },
+      "success_rate": 0.0,
+      "failure_rate": 1.0,
+      "sufficient_samples": false,
+      "mean_signed_error_m": null,
+      "mean_abs_error_m": null,
+      "rmse_m": null,
+      "median_abs_error_m": null,
+      "p95_abs_error_m": null,
+      "max_abs_error_m": null,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": "cell"
+    },
+    "raycast/glass/3m": {
+      "attempts": 4,
+      "valid_samples": 1,
+      "failures": 3,
+      "failure_reasons": {
+        "depth_missing": 3
+      },
+      "success_rate": 0.25,
+      "failure_rate": 0.75,
+      "sufficient_samples": false,
+      "mean_signed_error_m": null,
+      "mean_abs_error_m": null,
+      "rmse_m": null,
+      "median_abs_error_m": null,
+      "p95_abs_error_m": null,
+      "max_abs_error_m": null,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": "cell"
+    },
+    "raycast/low_light/1m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.019749999999999934,
+      "mean_abs_error_m": 0.019749999999999934,
+      "rmse_m": 0.02065792826011353,
+      "median_abs_error_m": 0.01849999999999996,
+      "p95_abs_error_m": 0.027799999999999915,
+      "max_abs_error_m": 0.028999999999999915,
+      "repeatability_stddev_m": 0.006994045086119082,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "raycast/low_light/2m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.006000000000000005,
+      "mean_abs_error_m": 0.026499999999999968,
+      "rmse_m": 0.031136794953880484,
+      "median_abs_error_m": 0.020499999999999963,
+      "p95_abs_error_m": 0.049099999999999935,
+      "max_abs_error_m": 0.052999999999999936,
+      "repeatability_stddev_m": 0.03527983371087034,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "raycast/low_light/3m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.009499999999999953,
+      "mean_abs_error_m": 0.017000000000000015,
+      "rmse_m": 0.019836834424877325,
+      "median_abs_error_m": 0.013500000000000068,
+      "p95_abs_error_m": 0.03114999999999986,
+      "max_abs_error_m": 0.03399999999999981,
+      "repeatability_stddev_m": 0.020108041509140865,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "raycast/low_light/5m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 1.5222499999999999,
+      "mean_abs_error_m": 1.5272499999999998,
+      "rmse_m": 3.0002235333388074,
+      "median_abs_error_m": 0.049499999999999655,
+      "p95_abs_error_m": 5.109450000000001,
+      "max_abs_error_m": 6.0,
+      "repeatability_stddev_m": 2.9853187853225993,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "raycast/normal/0.5m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": -0.1185,
+      "mean_abs_error_m": 0.1205,
+      "rmse_m": 0.23502553052806838,
+      "median_abs_error_m": 0.0040000000000000036,
+      "p95_abs_error_m": 0.4001,
+      "max_abs_error_m": 0.47,
+      "repeatability_stddev_m": 0.23436367750428677,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "raycast/normal/1m": {
+      "attempts": 5,
+      "valid_samples": 5,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": -0.0014000000000000013,
+      "mean_abs_error_m": 0.005400000000000005,
+      "rmse_m": 0.005495452665613639,
+      "median_abs_error_m": 0.0050000000000000044,
+      "p95_abs_error_m": 0.006800000000000006,
+      "max_abs_error_m": 0.007000000000000006,
+      "repeatability_stddev_m": 0.005941380311005185,
+      "repeatability_samples": 5,
+      "repeatability_scope": "cell"
+    },
+    "raycast/normal/2m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": -0.005249999999999921,
+      "mean_abs_error_m": 0.00874999999999998,
+      "rmse_m": 0.010234744745229344,
+      "median_abs_error_m": 0.009500000000000064,
+      "p95_abs_error_m": 0.014549999999999919,
+      "max_abs_error_m": 0.014999999999999902,
+      "repeatability_stddev_m": 0.010144785195688835,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "raycast/normal/3m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": -0.010249999999999981,
+      "mean_abs_error_m": 0.010249999999999981,
+      "rmse_m": 0.011821590417536873,
+      "median_abs_error_m": 0.010499999999999954,
+      "p95_abs_error_m": 0.016699999999999937,
+      "max_abs_error_m": 0.016999999999999904,
+      "repeatability_stddev_m": 0.006800735254367724,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "raycast/normal/5m": {
+      "attempts": 4,
+      "valid_samples": 3,
+      "failures": 1,
+      "failure_reasons": {
+        "measurement_missing": 1
+      },
+      "success_rate": 0.75,
+      "failure_rate": 0.25,
+      "sufficient_samples": true,
+      "mean_signed_error_m": -0.009333333333333194,
+      "mean_abs_error_m": 0.01066666666666638,
+      "rmse_m": 0.012301761391497018,
+      "median_abs_error_m": 0.01499999999999968,
+      "p95_abs_error_m": 0.01499999999999968,
+      "max_abs_error_m": 0.01499999999999968,
+      "repeatability_stddev_m": 0.009814954576223327,
+      "repeatability_samples": 3,
+      "repeatability_scope": "cell"
+    },
+    "raycast/oblique/1m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.03150000000000003,
+      "mean_abs_error_m": 0.03150000000000003,
+      "rmse_m": 0.04167733196834945,
+      "median_abs_error_m": 0.02300000000000002,
+      "p95_abs_error_m": 0.06910000000000006,
+      "max_abs_error_m": 0.07600000000000007,
+      "repeatability_stddev_m": 0.031511902513177495,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "raycast/oblique/3m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.020749999999999935,
+      "mean_abs_error_m": 0.020749999999999935,
+      "rmse_m": 0.025174391750348118,
+      "median_abs_error_m": 0.018000000000000016,
+      "p95_abs_error_m": 0.03944999999999983,
+      "max_abs_error_m": 0.041999999999999815,
+      "repeatability_stddev_m": 0.0164595463687996,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "raycast/reflective/1m": {
+      "attempts": 4,
+      "valid_samples": 0,
+      "failures": 4,
+      "failure_reasons": {
+        "no_return": 4
+      },
+      "success_rate": 0.0,
+      "failure_rate": 1.0,
+      "sufficient_samples": false,
+      "mean_signed_error_m": null,
+      "mean_abs_error_m": null,
+      "rmse_m": null,
+      "median_abs_error_m": null,
+      "p95_abs_error_m": null,
+      "max_abs_error_m": null,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": "cell"
+    },
+    "raycast/reflective/3m": {
+      "attempts": 4,
+      "valid_samples": 1,
+      "failures": 3,
+      "failure_reasons": {
+        "no_return": 3
+      },
+      "success_rate": 0.25,
+      "failure_rate": 0.75,
+      "sufficient_samples": false,
+      "mean_signed_error_m": null,
+      "mean_abs_error_m": null,
+      "rmse_m": null,
+      "median_abs_error_m": null,
+      "p95_abs_error_m": null,
+      "max_abs_error_m": null,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": "cell"
+    },
+    "raycast/textureless/1m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.01549999999999993,
+      "mean_abs_error_m": 0.01599999999999993,
+      "rmse_m": 0.01931320791582789,
+      "median_abs_error_m": 0.016999999999999904,
+      "p95_abs_error_m": 0.028099999999999913,
+      "max_abs_error_m": 0.028999999999999915,
+      "repeatability_stddev_m": 0.013304134695650036,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "raycast/textureless/3m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.018750000000000044,
+      "mean_abs_error_m": 0.019749999999999934,
+      "rmse_m": 0.028420942982244672,
+      "median_abs_error_m": 0.013499999999999845,
+      "p95_abs_error_m": 0.04710000000000012,
+      "max_abs_error_m": 0.051000000000000156,
+      "repeatability_stddev_m": 0.024662724910277073,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "scene_depth/glass/1m": {
+      "attempts": 4,
+      "valid_samples": 2,
+      "failures": 2,
+      "failure_reasons": {
+        "depth_missing": 2
+      },
+      "success_rate": 0.5,
+      "failure_rate": 0.5,
+      "sufficient_samples": false,
+      "mean_signed_error_m": null,
+      "mean_abs_error_m": null,
+      "rmse_m": null,
+      "median_abs_error_m": null,
+      "p95_abs_error_m": null,
+      "max_abs_error_m": null,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": "cell"
+    },
+    "scene_depth/glass/3m": {
+      "attempts": 4,
+      "valid_samples": 3,
+      "failures": 1,
+      "failure_reasons": {
+        "depth_missing": 1
+      },
+      "success_rate": 0.75,
+      "failure_rate": 0.25,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.051666666666666604,
+      "mean_abs_error_m": 0.051666666666666604,
+      "rmse_m": 0.05230997355508151,
+      "median_abs_error_m": 0.051000000000000156,
+      "p95_abs_error_m": 0.060899999999999864,
+      "max_abs_error_m": 0.06199999999999983,
+      "repeatability_stddev_m": 0.010016652800877811,
+      "repeatability_samples": 3,
+      "repeatability_scope": "cell"
+    },
+    "scene_depth/low_light/1m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.01924999999999996,
+      "mean_abs_error_m": 0.019749999999999962,
+      "rmse_m": 0.02457132475061121,
+      "median_abs_error_m": 0.017999999999999905,
+      "p95_abs_error_m": 0.038550000000000015,
+      "max_abs_error_m": 0.04200000000000004,
+      "repeatability_stddev_m": 0.017632829230349492,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "scene_depth/low_light/3m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.016000000000000014,
+      "mean_abs_error_m": 0.021500000000000075,
+      "rmse_m": 0.022912878474779283,
+      "median_abs_error_m": 0.02200000000000002,
+      "p95_abs_error_m": 0.03040000000000014,
+      "max_abs_error_m": 0.03100000000000014,
+      "repeatability_stddev_m": 0.01893849694845584,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "scene_depth/normal/1m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": -0.006750000000000006,
+      "mean_abs_error_m": 0.007750000000000007,
+      "rmse_m": 0.008440971508067075,
+      "median_abs_error_m": 0.009500000000000008,
+      "p95_abs_error_m": 0.010000000000000009,
+      "max_abs_error_m": 0.010000000000000009,
+      "repeatability_stddev_m": 0.005852349955359818,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "scene_depth/normal/3m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.3284999999999999,
+      "mean_abs_error_m": 0.33199999999999996,
+      "rmse_m": 0.6550217553638961,
+      "median_abs_error_m": 0.007000000000000117,
+      "p95_abs_error_m": 1.1145499999999997,
+      "max_abs_error_m": 1.3099999999999996,
+      "repeatability_stddev_m": 0.6543610114709869,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "scene_depth/textureless/1m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.007749999999999979,
+      "mean_abs_error_m": 0.009749999999999981,
+      "rmse_m": 0.010874281585465745,
+      "median_abs_error_m": 0.010000000000000009,
+      "p95_abs_error_m": 0.014849999999999919,
+      "max_abs_error_m": 0.014999999999999902,
+      "repeatability_stddev_m": 0.00880814017448252,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "scene_depth/textureless/3m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.009000000000000008,
+      "mean_abs_error_m": 0.009000000000000008,
+      "rmse_m": 0.011811011811017649,
+      "median_abs_error_m": 0.00550000000000006,
+      "p95_abs_error_m": 0.019749999999999848,
+      "max_abs_error_m": 0.021999999999999797,
+      "repeatability_stddev_m": 0.008831760866327712,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "smoothed_depth/glass/1m": {
+      "attempts": 4,
+      "valid_samples": 3,
+      "failures": 1,
+      "failure_reasons": {
+        "depth_missing": 1
+      },
+      "success_rate": 0.75,
+      "failure_rate": 0.25,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.020333333333333314,
+      "mean_abs_error_m": 0.020333333333333314,
+      "rmse_m": 0.026337552404630635,
+      "median_abs_error_m": 0.020000000000000018,
+      "p95_abs_error_m": 0.038899999999999935,
+      "max_abs_error_m": 0.040999999999999925,
+      "repeatability_stddev_m": 0.02050203241957567,
+      "repeatability_samples": 3,
+      "repeatability_scope": "cell"
+    },
+    "smoothed_depth/glass/3m": {
+      "attempts": 4,
+      "valid_samples": 2,
+      "failures": 2,
+      "failure_reasons": {
+        "depth_missing": 2
+      },
+      "success_rate": 0.5,
+      "failure_rate": 0.5,
+      "sufficient_samples": false,
+      "mean_signed_error_m": null,
+      "mean_abs_error_m": null,
+      "rmse_m": null,
+      "median_abs_error_m": null,
+      "p95_abs_error_m": null,
+      "max_abs_error_m": null,
+      "repeatability_stddev_m": null,
+      "repeatability_samples": null,
+      "repeatability_scope": "cell"
+    },
+    "smoothed_depth/low_light/1m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.007749999999999951,
+      "mean_abs_error_m": 0.014249999999999957,
+      "rmse_m": 0.016332482971061036,
+      "median_abs_error_m": 0.012500000000000011,
+      "p95_abs_error_m": 0.02489999999999993,
+      "max_abs_error_m": 0.026999999999999913,
+      "repeatability_stddev_m": 0.016600702796367765,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "smoothed_depth/low_light/3m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.00824999999999998,
+      "mean_abs_error_m": 0.00924999999999987,
+      "rmse_m": 0.013200378782444028,
+      "median_abs_error_m": 0.004999999999999893,
+      "p95_abs_error_m": 0.02244999999999993,
+      "max_abs_error_m": 0.02499999999999991,
+      "repeatability_stddev_m": 0.011898879499067622,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "smoothed_depth/normal/1m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.0007499999999999729,
+      "mean_abs_error_m": 0.0037499999999999756,
+      "rmse_m": 0.004387482193696033,
+      "median_abs_error_m": 0.0044999999999999485,
+      "p95_abs_error_m": 0.005849999999999989,
+      "max_abs_error_m": 0.006000000000000005,
+      "repeatability_stddev_m": 0.004991659710623952,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "smoothed_depth/normal/3m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.00275000000000003,
+      "mean_abs_error_m": 0.00374999999999992,
+      "rmse_m": 0.004272001872658763,
+      "median_abs_error_m": 0.0029999999999998916,
+      "p95_abs_error_m": 0.006550000000000101,
+      "max_abs_error_m": 0.007000000000000117,
+      "repeatability_stddev_m": 0.0037749172176353416,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "smoothed_depth/textureless/1m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.004999999999999977,
+      "mean_abs_error_m": 0.00849999999999998,
+      "rmse_m": 0.010747092630102298,
+      "median_abs_error_m": 0.007000000000000006,
+      "p95_abs_error_m": 0.01734999999999992,
+      "max_abs_error_m": 0.018999999999999906,
+      "repeatability_stddev_m": 0.010984838035522684,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    },
+    "smoothed_depth/textureless/3m": {
+      "attempts": 4,
+      "valid_samples": 4,
+      "failures": 0,
+      "failure_reasons": {},
+      "success_rate": 1.0,
+      "failure_rate": 0.0,
+      "sufficient_samples": true,
+      "mean_signed_error_m": 0.011749999999999927,
+      "mean_abs_error_m": 0.011749999999999927,
+      "rmse_m": 0.016178689687363357,
+      "median_abs_error_m": 0.008499999999999952,
+      "p95_abs_error_m": 0.0267499999999999,
+      "max_abs_error_m": 0.028999999999999915,
+      "repeatability_stddev_m": 0.012841988423397115,
+      "repeatability_samples": 4,
+      "repeatability_scope": "cell"
+    }
+  },
+  "cell_repeatability": [
+    {
+      "cell": "raycast/glass/1m",
+      "attempts": 4,
+      "valid_samples": 0,
+      "repeatability_stddev_m": null
+    },
+    {
+      "cell": "raycast/glass/3m",
+      "attempts": 4,
+      "valid_samples": 1,
+      "repeatability_stddev_m": null
+    },
+    {
+      "cell": "raycast/low_light/1m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.006994045086119082
+    },
+    {
+      "cell": "raycast/low_light/2m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.03527983371087034
+    },
+    {
+      "cell": "raycast/low_light/3m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.020108041509140865
+    },
+    {
+      "cell": "raycast/low_light/5m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 2.9853187853225993
+    },
+    {
+      "cell": "raycast/normal/0.5m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.23436367750428677
+    },
+    {
+      "cell": "raycast/normal/1m",
+      "attempts": 5,
+      "valid_samples": 5,
+      "repeatability_stddev_m": 0.005941380311005185
+    },
+    {
+      "cell": "raycast/normal/2m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.010144785195688835
+    },
+    {
+      "cell": "raycast/normal/3m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.006800735254367724
+    },
+    {
+      "cell": "raycast/normal/5m",
+      "attempts": 4,
+      "valid_samples": 3,
+      "repeatability_stddev_m": 0.009814954576223327
+    },
+    {
+      "cell": "raycast/oblique/1m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.031511902513177495
+    },
+    {
+      "cell": "raycast/oblique/3m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.0164595463687996
+    },
+    {
+      "cell": "raycast/reflective/1m",
+      "attempts": 4,
+      "valid_samples": 0,
+      "repeatability_stddev_m": null
+    },
+    {
+      "cell": "raycast/reflective/3m",
+      "attempts": 4,
+      "valid_samples": 1,
+      "repeatability_stddev_m": null
+    },
+    {
+      "cell": "raycast/textureless/1m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.013304134695650036
+    },
+    {
+      "cell": "raycast/textureless/3m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.024662724910277073
+    },
+    {
+      "cell": "scene_depth/glass/1m",
+      "attempts": 4,
+      "valid_samples": 2,
+      "repeatability_stddev_m": null
+    },
+    {
+      "cell": "scene_depth/glass/3m",
+      "attempts": 4,
+      "valid_samples": 3,
+      "repeatability_stddev_m": 0.010016652800877811
+    },
+    {
+      "cell": "scene_depth/low_light/1m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.017632829230349492
+    },
+    {
+      "cell": "scene_depth/low_light/3m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.01893849694845584
+    },
+    {
+      "cell": "scene_depth/normal/1m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.005852349955359818
+    },
+    {
+      "cell": "scene_depth/normal/3m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.6543610114709869
+    },
+    {
+      "cell": "scene_depth/textureless/1m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.00880814017448252
+    },
+    {
+      "cell": "scene_depth/textureless/3m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.008831760866327712
+    },
+    {
+      "cell": "smoothed_depth/glass/1m",
+      "attempts": 4,
+      "valid_samples": 3,
+      "repeatability_stddev_m": 0.02050203241957567
+    },
+    {
+      "cell": "smoothed_depth/glass/3m",
+      "attempts": 4,
+      "valid_samples": 2,
+      "repeatability_stddev_m": null
+    },
+    {
+      "cell": "smoothed_depth/low_light/1m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.016600702796367765
+    },
+    {
+      "cell": "smoothed_depth/low_light/3m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.011898879499067622
+    },
+    {
+      "cell": "smoothed_depth/normal/1m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.004991659710623952
+    },
+    {
+      "cell": "smoothed_depth/normal/3m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.0037749172176353416
+    },
+    {
+      "cell": "smoothed_depth/textureless/1m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.010984838035522684
+    },
+    {
+      "cell": "smoothed_depth/textureless/3m",
+      "attempts": 4,
+      "valid_samples": 4,
+      "repeatability_stddev_m": 0.012841988423397115
+    }
+  ],
+  "failure_rows": [
+    {
+      "test_id": "B02-W016-raycast-normal-5m-R2",
+      "mode": "raycast",
+      "condition": "normal",
+      "distance_true_m": 5.0,
+      "failure": "measurement_missing"
+    },
+    {
+      "test_id": "B02-W016-raycast-glass-1m-R1",
+      "mode": "raycast",
+      "condition": "glass",
+      "distance_true_m": 1.0,
+      "failure": "depth_missing"
+    },
+    {
+      "test_id": "B02-W016-raycast-glass-1m-R2",
+      "mode": "raycast",
+      "condition": "glass",
+      "distance_true_m": 1.0,
+      "failure": "depth_missing"
+    },
+    {
+      "test_id": "B02-W016-raycast-glass-1m-R3",
+      "mode": "raycast",
+      "condition": "glass",
+      "distance_true_m": 1.0,
+      "failure": "depth_missing"
+    },
+    {
+      "test_id": "B02-W016-raycast-glass-1m-R4",
+      "mode": "raycast",
+      "condition": "glass",
+      "distance_true_m": 1.0,
+      "failure": "depth_missing"
+    },
+    {
+      "test_id": "B02-W016-raycast-glass-3m-R1",
+      "mode": "raycast",
+      "condition": "glass",
+      "distance_true_m": 3.0,
+      "failure": "depth_missing"
+    },
+    {
+      "test_id": "B02-W016-raycast-glass-3m-R3",
+      "mode": "raycast",
+      "condition": "glass",
+      "distance_true_m": 3.0,
+      "failure": "depth_missing"
+    },
+    {
+      "test_id": "B02-W016-raycast-glass-3m-R4",
+      "mode": "raycast",
+      "condition": "glass",
+      "distance_true_m": 3.0,
+      "failure": "depth_missing"
+    },
+    {
+      "test_id": "B02-W016-raycast-reflective-1m-R1",
+      "mode": "raycast",
+      "condition": "reflective",
+      "distance_true_m": 1.0,
+      "failure": "no_return"
+    },
+    {
+      "test_id": "B02-W016-raycast-reflective-1m-R2",
+      "mode": "raycast",
+      "condition": "reflective",
+      "distance_true_m": 1.0,
+      "failure": "no_return"
+    },
+    {
+      "test_id": "B02-W016-raycast-reflective-1m-R3",
+      "mode": "raycast",
+      "condition": "reflective",
+      "distance_true_m": 1.0,
+      "failure": "no_return"
+    },
+    {
+      "test_id": "B02-W016-raycast-reflective-1m-R4",
+      "mode": "raycast",
+      "condition": "reflective",
+      "distance_true_m": 1.0,
+      "failure": "no_return"
+    },
+    {
+      "test_id": "B02-W016-raycast-reflective-3m-R1",
+      "mode": "raycast",
+      "condition": "reflective",
+      "distance_true_m": 3.0,
+      "failure": "no_return"
+    },
+    {
+      "test_id": "B02-W016-raycast-reflective-3m-R2",
+      "mode": "raycast",
+      "condition": "reflective",
+      "distance_true_m": 3.0,
+      "failure": "no_return"
+    },
+    {
+      "test_id": "B02-W016-raycast-reflective-3m-R3",
+      "mode": "raycast",
+      "condition": "reflective",
+      "distance_true_m": 3.0,
+      "failure": "no_return"
+    },
+    {
+      "test_id": "B02-W016-scene_depth-glass-1m-R2",
+      "mode": "scene_depth",
+      "condition": "glass",
+      "distance_true_m": 1.0,
+      "failure": "depth_missing"
+    },
+    {
+      "test_id": "B02-W016-scene_depth-glass-1m-R4",
+      "mode": "scene_depth",
+      "condition": "glass",
+      "distance_true_m": 1.0,
+      "failure": "depth_missing"
+    },
+    {
+      "test_id": "B02-W016-scene_depth-glass-3m-R1",
+      "mode": "scene_depth",
+      "condition": "glass",
+      "distance_true_m": 3.0,
+      "failure": "depth_missing"
+    },
+    {
+      "test_id": "B02-W016-smoothed_depth-glass-1m-R4",
+      "mode": "smoothed_depth",
+      "condition": "glass",
+      "distance_true_m": 1.0,
+      "failure": "depth_missing"
+    },
+    {
+      "test_id": "B02-W016-smoothed_depth-glass-3m-R3",
+      "mode": "smoothed_depth",
+      "condition": "glass",
+      "distance_true_m": 3.0,
+      "failure": "depth_missing"
+    },
+    {
+      "test_id": "B02-W016-smoothed_depth-glass-3m-R4",
+      "mode": "smoothed_depth",
+      "condition": "glass",
+      "distance_true_m": 3.0,
+      "failure": "depth_missing"
+    }
+  ],
+  "outliers": [
+    {
+      "test_id": "B02-W016-raycast-normal-0.5m-R4",
+      "mode": "raycast",
+      "condition": "normal",
+      "distance_true_m": 0.5,
+      "distance_measured_m": 0.03,
+      "reasons": [
+        "measured <= 0.05 m"
+      ]
+    },
+    {
+      "test_id": "B02-W016-raycast-low_light-5m-R1",
+      "mode": "raycast",
+      "condition": "low_light",
+      "distance_true_m": 5.0,
+      "distance_measured_m": 11.0,
+      "reasons": [
+        "measured >= 10.0 m",
+        "|error| > 1.0 m"
+      ]
+    },
+    {
+      "test_id": "B02-W016-scene_depth-normal-3m-R2",
+      "mode": "scene_depth",
+      "condition": "normal",
+      "distance_true_m": 3.0,
+      "distance_measured_m": 4.31,
+      "reasons": [
+        "|error| > 1.0 m"
+      ]
+    }
+  ],
+  "invalid_rows": [
+    {
+      "line": 135,
+      "reason": "missing_or_invalid_distance_true_m",
+      "raw": {
+        "batch_id": "B02W016-SYNTHETIC-DESKTOP-SIMULATION",
+        "test_id": "EX-B02W016-INVALID-1",
+        "device_model": "iPhone SYN (desktop)",
+        "ios_version": "17.0",
+        "depth_received": "true",
+        "confidence_end": "0.9",
+        "confidence_start": "0.85",
+        "tracking": "ok",
+        "mode": "raycast",
+        "condition": "normal",
+        "device_time": "2026-11-25T10:00:59+00:00",
+        "distance_true_m": "",
+        "distance_measured_m": "",
+        "absolute_error_m": "",
+        "relative_error": "",
+        "elapsed_s": "0.050",
+        "failure": "",
+        "distance_m": "",
+        "first_device_time": "",
+        "first_tracking": "matte_white",
+        "material": "normal",
+        "lighting": "perpendicular",
+        "pose": ""
+      }
+    }
+  ],
+  "warnings": [
+    "line 134: DUPLICATE test_id 'B02-W016-raycast-normal-1m-R1' (first seen on line 6)",
+    "line 135: missing_or_invalid_distance_true_m - row kept in invalid_rows"
+  ]
+}
