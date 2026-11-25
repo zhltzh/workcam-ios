@@ -1,0 +1,2372 @@
+{
+  "generated_at": "2026-11-25T05:23:55.575860+00:00",
+  "generator": "backend/scripts/b02_w026_generate_fixtures.py",
+  "baseline": "31917e3",
+  "how_produced": "Every request below was actually sent to app.main:app (FastAPI TestClient) on a throwaway business DB; responses are the real JSON/binary outputs, unedited. Nothing is hand-written.",
+  "mock_enrollment_code": "MOCK-ENROLL-CODE-2626",
+  "device_token_used_in_fixtures": "30262dd24f2f8c6e709f9323ca0f2bf2996b6b07a1f32c08a0598c3d4910f771",
+  "binary_note": "__binary__ responses are recorded as {bytes, sha256, media_type}; the byte payloads themselves are not embedded in this JSON.",
+  "scenarios": [
+    {
+      "id": "F1",
+      "name": "Device enrollment & authentication",
+      "steps": [
+        {
+          "step": "enroll",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/devices/enroll",
+            "body": {
+              "public_key_b64": "BD8R2MXxW89MI7ChnTsGYFR2Nr4cVVmNjBNNh/KQI3t3eWWUB0NmyVR9NAt9GHjG19pGfEuIKXvUyzx6oNHdWtA=",
+              "device_id": "mac-dev-001",
+              "enrollment_code": "MOCK-ENROLL-CODE-2626"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 201,
+            "headers": {},
+            "body": {
+              "device_token": "30262dd24f2f8c6e709f9323ca0f2bf2996b6b07a1f32c08a0598c3d4910f771",
+              "key_fingerprint": "f4ff59e4adf0d49f",
+              "note": "store this token on the device; it is the X-Device-Token credential for /api/v1"
+            }
+          }
+        },
+        {
+          "step": "challenge",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/devices/challenge",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "nonce": "b4b558ad7f8a9d284e8aaf7265d2ffcd743deb1231cf422ec8460333ca945070",
+              "expires_s": 60
+            }
+          }
+        },
+        {
+          "step": "challenge-verify",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/devices/challenge/verify",
+            "body": {
+              "device_token": "30262dd24f2f8c6e709f9323ca0f2bf2996b6b07a1f32c08a0598c3d4910f771",
+              "nonce": "b4b558ad7f8a9d284e8aaf7265d2ffcd743deb1231cf422ec8460333ca945070",
+              "signature_b64": "MEUCIQCC3evy+Sw+ci+FIuVUnnOnObUqMiDDGVoUWQNi5bPmdAIgJRZ3R7zmRuGTTVla27Z6kM2xA5v+AL73J+9qXDfMXKo="
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "device_id": "mac-dev-001",
+              "verified": true
+            }
+          }
+        },
+        {
+          "step": "status-admin",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/devices/30262dd24f2f8c6e709f9323ca0f2bf2996b6b07a1f32c08a0598c3d4910f771",
+            "body": null,
+            "headers": {
+              "X-Admin-Code": "MOCK-ENROLL-CODE-2626"
+            }
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "status": "active",
+              "device_id": "mac-dev-001",
+              "key_fingerprint": "f4ff59e4adf0d49f",
+              "enrolled_at": "2026-11-25T05:23:51.802761+00:00",
+              "revoked_at": null,
+              "source": "sqlite"
+            }
+          }
+        },
+        {
+          "step": "status-without-admin",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/devices/30262dd24f2f8c6e709f9323ca0f2bf2996b6b07a1f32c08a0598c3d4910f771",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 401,
+            "headers": {},
+            "body": {
+              "detail": {
+                "code": "unauthorized",
+                "message": "admin actions require X-Admin-Code",
+                "details": {}
+              }
+            }
+          }
+        }
+      ],
+      "note": "Out-of-band enrollment code; random server-issued token; challenge-response proof of possession."
+    },
+    {
+      "id": "F2",
+      "name": "Projects, photo metadata & original bytes",
+      "steps": [
+        {
+          "step": "create-project",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/projects",
+            "body": {
+              "name": "Tower B - Level 3 Retrofit",
+              "description": "Structural retrofit, north facade",
+              "site_address": "Nanjing Jiangbei"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 201,
+            "headers": {},
+            "body": {
+              "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+              "name": "Tower B - Level 3 Retrofit",
+              "description": "Structural retrofit, north facade",
+              "site_address": "Nanjing Jiangbei",
+              "status": "active",
+              "created_at": "2026-11-25T05:23:51.978485+00:00",
+              "updated_at": "2026-11-25T05:23:51.978485+00:00",
+              "archived_at": null
+            }
+          }
+        },
+        {
+          "step": "list-projects",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/projects?limit=10&offset=0&status=active",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "items": [
+                {
+                  "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+                  "name": "Tower B - Level 3 Retrofit",
+                  "description": "Structural retrofit, north facade",
+                  "site_address": "Nanjing Jiangbei",
+                  "status": "active",
+                  "created_at": "2026-11-25T05:23:51.978485+00:00",
+                  "updated_at": "2026-11-25T05:23:51.978485+00:00",
+                  "archived_at": null
+                }
+              ],
+              "total": 1,
+              "limit": 10,
+              "offset": 0
+            }
+          }
+        },
+        {
+          "step": "get-project",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/projects/03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+              "name": "Tower B - Level 3 Retrofit",
+              "description": "Structural retrofit, north facade",
+              "site_address": "Nanjing Jiangbei",
+              "status": "active",
+              "created_at": "2026-11-25T05:23:51.978485+00:00",
+              "updated_at": "2026-11-25T05:23:51.978485+00:00",
+              "archived_at": null
+            }
+          }
+        },
+        {
+          "step": "register-photo-1",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/projects/03c5fe78-2a92-4c4c-9a0c-4c427fb54416/photos",
+            "body": {
+              "idempotency_key": "fixture-photo-1",
+              "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+              "original_filename": "BEFORE_N3_01.jpg",
+              "mime_type": "image/jpeg",
+              "byte_size": 2482,
+              "captured_at": "2026-11-25T09:15:00+00:00",
+              "device_id": "mac-dev-001"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 201,
+            "headers": {},
+            "body": {
+              "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+              "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+              "original_filename": "BEFORE_N3_01.jpg",
+              "mime_type": "image/jpeg",
+              "byte_size": 2482,
+              "captured_at": "2026-11-25T09:15:00+00:00",
+              "received_at": "2026-11-25T05:23:52.149803+00:00",
+              "device_id": "mac-dev-001",
+              "evidence_id": null,
+              "created_at": "2026-11-25T05:23:52.149803+00:00",
+              "trust_notes": {
+                "captured_at": "client-claimed, untrusted",
+                "device_id": "client-claimed, untrusted"
+              }
+            }
+          }
+        },
+        {
+          "step": "photo-replay-same-content",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/projects/03c5fe78-2a92-4c4c-9a0c-4c427fb54416/photos",
+            "body": {
+              "idempotency_key": "fixture-photo-1",
+              "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+              "original_filename": "BEFORE_N3_01.jpg",
+              "mime_type": "image/jpeg",
+              "byte_size": 2482,
+              "captured_at": "2026-11-25T09:15:00+00:00",
+              "device_id": "mac-dev-001"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 201,
+            "headers": {},
+            "body": {
+              "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+              "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+              "original_filename": "BEFORE_N3_01.jpg",
+              "mime_type": "image/jpeg",
+              "byte_size": 2482,
+              "captured_at": "2026-11-25T09:15:00+00:00",
+              "received_at": "2026-11-25T05:23:52.149803+00:00",
+              "device_id": "mac-dev-001",
+              "evidence_id": null,
+              "created_at": "2026-11-25T05:23:52.149803+00:00",
+              "trust_notes": {
+                "captured_at": "client-claimed, untrusted",
+                "device_id": "client-claimed, untrusted"
+              },
+              "_idempotent_replay": true
+            }
+          },
+          "note": "idempotent replay: 201 + _idempotent_replay=true"
+        },
+        {
+          "step": "photo-conflict-same-key-different-content",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/projects/03c5fe78-2a92-4c4c-9a0c-4c427fb54416/photos",
+            "body": {
+              "idempotency_key": "fixture-photo-1",
+              "original_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "original_filename": "OTHER.jpg",
+              "mime_type": "image/jpeg",
+              "byte_size": 7,
+              "captured_at": "2026-11-25T09:15:00+00:00",
+              "device_id": "mac-dev-001"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 409,
+            "headers": {},
+            "body": {
+              "detail": {
+                "code": "idempotency_conflict",
+                "message": "idempotency_key already used with different content in this project",
+                "details": {
+                  "existing_photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297"
+                }
+              }
+            }
+          },
+          "note": "409 idempotency_conflict"
+        },
+        {
+          "step": "register-photo-2",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/projects/03c5fe78-2a92-4c4c-9a0c-4c427fb54416/photos",
+            "body": {
+              "idempotency_key": "fixture-photo-2",
+              "original_sha256": "9974068516415ba4505c1bfd01cdce5b3e74eaf6a3575394d6f805ffaf2e31ba",
+              "original_filename": "AFTER_N3_01.jpg",
+              "mime_type": "image/jpeg",
+              "byte_size": 2295,
+              "captured_at": "2026-11-25T15:40:00+00:00",
+              "device_id": "mac-dev-001"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 201,
+            "headers": {},
+            "body": {
+              "photo_id": "c7de6654-9741-405a-9472-f0b89796657c",
+              "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+              "original_sha256": "9974068516415ba4505c1bfd01cdce5b3e74eaf6a3575394d6f805ffaf2e31ba",
+              "original_filename": "AFTER_N3_01.jpg",
+              "mime_type": "image/jpeg",
+              "byte_size": 2295,
+              "captured_at": "2026-11-25T15:40:00+00:00",
+              "received_at": "2026-11-25T05:23:52.259937+00:00",
+              "device_id": "mac-dev-001",
+              "evidence_id": null,
+              "created_at": "2026-11-25T05:23:52.259937+00:00",
+              "trust_notes": {
+                "captured_at": "client-claimed, untrusted",
+                "device_id": "client-claimed, untrusted"
+              }
+            }
+          }
+        },
+        {
+          "step": "list-photos",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/projects/03c5fe78-2a92-4c4c-9a0c-4c427fb54416/photos?limit=5&offset=0",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "items": [
+                {
+                  "photo_id": "c7de6654-9741-405a-9472-f0b89796657c",
+                  "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+                  "original_sha256": "9974068516415ba4505c1bfd01cdce5b3e74eaf6a3575394d6f805ffaf2e31ba",
+                  "original_filename": "AFTER_N3_01.jpg",
+                  "mime_type": "image/jpeg",
+                  "byte_size": 2295,
+                  "captured_at": "2026-11-25T15:40:00+00:00",
+                  "received_at": "2026-11-25T05:23:52.259937+00:00",
+                  "device_id": "mac-dev-001",
+                  "evidence_id": null,
+                  "created_at": "2026-11-25T05:23:52.259937+00:00",
+                  "trust_notes": {
+                    "captured_at": "client-claimed, untrusted",
+                    "device_id": "client-claimed, untrusted"
+                  }
+                },
+                {
+                  "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+                  "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+                  "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+                  "original_filename": "BEFORE_N3_01.jpg",
+                  "mime_type": "image/jpeg",
+                  "byte_size": 2482,
+                  "captured_at": "2026-11-25T09:15:00+00:00",
+                  "received_at": "2026-11-25T05:23:52.149803+00:00",
+                  "device_id": "mac-dev-001",
+                  "evidence_id": null,
+                  "created_at": "2026-11-25T05:23:52.149803+00:00",
+                  "trust_notes": {
+                    "captured_at": "client-claimed, untrusted",
+                    "device_id": "client-claimed, untrusted"
+                  }
+                }
+              ],
+              "total": 2,
+              "limit": 5,
+              "offset": 0
+            }
+          }
+        },
+        {
+          "step": "get-photo",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/photos/d73945aa-cf1f-45b9-8d45-bf96d828d297",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+              "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+              "original_filename": "BEFORE_N3_01.jpg",
+              "mime_type": "image/jpeg",
+              "byte_size": 2482,
+              "captured_at": "2026-11-25T09:15:00+00:00",
+              "received_at": "2026-11-25T05:23:52.149803+00:00",
+              "device_id": "mac-dev-001",
+              "evidence_id": null,
+              "created_at": "2026-11-25T05:23:52.149803+00:00",
+              "trust_notes": {
+                "captured_at": "client-claimed, untrusted",
+                "device_id": "client-claimed, untrusted"
+              }
+            }
+          }
+        },
+        {
+          "step": "upload-original-1",
+          "request": {
+            "method": "PUT",
+            "path": "/api/v1/photos/d73945aa-cf1f-45b9-8d45-bf96d828d297/original",
+            "body": "<2482 raw bytes>",
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+              "byte_size": 2482,
+              "stored": true,
+              "idempotent_replay": false,
+              "note": "file integrity verified; photo authenticity is NOT claimed by storage"
+            }
+          }
+        },
+        {
+          "step": "upload-original-1-replay",
+          "request": {
+            "method": "PUT",
+            "path": "/api/v1/photos/d73945aa-cf1f-45b9-8d45-bf96d828d297/original",
+            "body": "<2482 raw bytes>",
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+              "byte_size": 2482,
+              "stored": true,
+              "idempotent_replay": true,
+              "note": "file integrity verified; photo authenticity is NOT claimed by storage"
+            }
+          },
+          "note": "idempotent replay"
+        },
+        {
+          "step": "upload-original-2",
+          "request": {
+            "method": "PUT",
+            "path": "/api/v1/photos/c7de6654-9741-405a-9472-f0b89796657c/original",
+            "body": "<2295 raw bytes>",
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "photo_id": "c7de6654-9741-405a-9472-f0b89796657c",
+              "sha256": "9974068516415ba4505c1bfd01cdce5b3e74eaf6a3575394d6f805ffaf2e31ba",
+              "byte_size": 2295,
+              "stored": true,
+              "idempotent_replay": false,
+              "note": "file integrity verified; photo authenticity is NOT claimed by storage"
+            }
+          }
+        },
+        {
+          "step": "upload-original-hash-mismatch",
+          "request": {
+            "method": "PUT",
+            "path": "/api/v1/photos/d73945aa-cf1f-45b9-8d45-bf96d828d297/original",
+            "body": "<14 raw bytes>",
+            "headers": {}
+          },
+          "response": {
+            "status": 400,
+            "headers": {},
+            "body": {
+              "detail": {
+                "code": "hash_mismatch",
+                "message": "uploaded content hashes to dd7046110708421cd0c00f2c1ebcb4e5b4c3790cbd821377e3b9bf0274f7c0ed but the photo's registered original_sha256 is 0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab - object rejected",
+                "details": {}
+              }
+            }
+          },
+          "note": "400 hash_mismatch - body does not hash to the registered original_sha256"
+        },
+        {
+          "step": "download-original",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/photos/d73945aa-cf1f-45b9-8d45-bf96d828d297/original",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "x-original-sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+              "x-object-size": "2482",
+              "content-disposition": "attachment; filename=\"0dec8b18e3d9aa20.jpg\""
+            },
+            "body": {
+              "__binary__": true,
+              "media_type": "application/octet-stream",
+              "bytes": 2482,
+              "sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab"
+            }
+          }
+        },
+        {
+          "step": "integrity-view",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/photos/d73945aa-cf1f-45b9-8d45-bf96d828d297/original/integrity",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "original": {
+                "sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+                "object_status": "stored",
+                "byte_size": 2482,
+                "file_present": true,
+                "file_hash_valid": true,
+                "verified_at": "2026-11-25T05:23:52.455557+00:00",
+                "note": "file integrity verified; photo authenticity is NOT claimed by storage"
+              },
+              "bound_to_photo": true,
+              "evidence": {
+                "link_count": 0,
+                "highest_status": "none",
+                "links": []
+              },
+              "claims": {
+                "file_integrity_verified": true,
+                "photo_authenticity_proven": false,
+                "authenticity_note": "storage verifies bytes only; authenticity requires verified evidence links and is still not 'proof the scene was real'"
+              }
+            }
+          }
+        }
+      ],
+      "note": "Metadata-first registration then raw-byte upload with hash binding; integrity view separates storage from evidence."
+    },
+    {
+      "id": "F3",
+      "name": "Evidence links & server-side verification",
+      "steps": [
+        {
+          "step": "register-key-test",
+          "request": {
+            "method": "POST",
+            "path": "/register-key?public_key_b64=BD8R2MXxW89MI7ChnTsGYFR2Nr4cVVmNjBNNh%2FKQI3t3eWWUB0NmyVR9NAt9GHjG19pGfEuIKXvUyzx6oNHdWtA%3D&device_id=mac-dev-001&allow_test_registration=true",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "public_key_hash": "2c464dd63a3471a9a3b241140dea1277",
+              "registration_status": "registered",
+              "registered_at": "2026-11-25T05:23:52.716516+00:00",
+              "device_id": "mac-dev-001",
+              "environment": "development",
+              "warning": "This is a TEST registration. Production will use App Attest formal registration."
+            }
+          },
+          "note": "POST /register-key takes QUERY parameters (not a JSON body) - implementation fact of the legacy verify surface."
+        },
+        {
+          "step": "verify-manifest",
+          "request": {
+            "method": "POST",
+            "path": "/verify",
+            "body": {
+              "manifest": {
+                "version": "1.0",
+                "record_id": "9b4b8e22-4890-4bbd-bf56-ed255b755bf4",
+                "sequence_number": 0,
+                "previous_record_hash": null,
+                "photo_hash": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+                "capture_timestamp": "2026-11-25T05:23:52.720309+00:00",
+                "device_reported_time": "2026-11-25T05:23:52.720309+00:00",
+                "device_id": "mac-dev-001",
+                "location": null,
+                "signature": "MEYCIQDiqcD8lmkU68SONk8hvmSVgvtU0d+A3qhZ8XhNcChZagIhALz00GzH4e9leNKMwfNwMFf3aHncgbVN6p4Jhsqyw+1S",
+                "public_key": "BD8R2MXxW89MI7ChnTsGYFR2Nr4cVVmNjBNNh/KQI3t3eWWUB0NmyVR9NAt9GHjG19pGfEuIKXvUyzx6oNHdWtA="
+              },
+              "photo_base64": "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UUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFAH/2Q=="
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "evidence_status": "cryptographically_valid",
+              "cryptographic_signature_valid": true,
+              "photo_hash_valid": true,
+              "key_registration_status": "registered",
+              "device_identity_consistent": true,
+              "device_attestation_status": "unknown",
+              "time_trust_level": "device_reported",
+              "summary": "Cryptographically valid: signature and photo hash verified, key registered. BUT device attestation is unknown. Cannot prove device is genuine Apple device with Secure Enclave.",
+              "details": [
+                {
+                  "check": "structure",
+                  "status": "passed",
+                  "message": "Manifest structure valid"
+                },
+                {
+                  "check": "photo_hash",
+                  "status": "passed",
+                  "message": "SHA-256 match"
+                },
+                {
+                  "check": "ecdsa_signature",
+                  "status": "passed",
+                  "message": "Signature valid"
+                }
+              ],
+              "warnings": [
+                "Device attestation (App Attest) is not implemented. device_attestation_status=unknown. Cannot prove device is a genuine Apple device with Secure Enclave.",
+                "Timestamp is device-reported only. time_trust_level=device_reported. No server-side time anchor. Device could have falsified time."
+              ]
+            }
+          },
+          "note": "key registered -> cryptographically_valid"
+        },
+        {
+          "step": "store-record",
+          "request": {
+            "method": "POST",
+            "path": "/store-record",
+            "body": {
+              "manifest": {
+                "version": "1.0",
+                "record_id": "9b4b8e22-4890-4bbd-bf56-ed255b755bf4",
+                "sequence_number": 0,
+                "previous_record_hash": null,
+                "photo_hash": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+                "capture_timestamp": "2026-11-25T05:23:52.720309+00:00",
+                "device_reported_time": "2026-11-25T05:23:52.720309+00:00",
+                "device_id": "mac-dev-001",
+                "location": null,
+                "signature": "MEYCIQDiqcD8lmkU68SONk8hvmSVgvtU0d+A3qhZ8XhNcChZagIhALz00GzH4e9leNKMwfNwMFf3aHncgbVN6p4Jhsqyw+1S",
+                "public_key": "BD8R2MXxW89MI7ChnTsGYFR2Nr4cVVmNjBNNh/KQI3t3eWWUB0NmyVR9NAt9GHjG19pGfEuIKXvUyzx6oNHdWtA="
+              },
+              "photo_base64": "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UUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFAH/2Q=="
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "record_id": "9b4b8e22-4890-4bbd-bf56-ed255b755bf4",
+              "is_new": true,
+              "stored": true,
+              "message": "Record stored",
+              "stored_at": "2026-11-25T05:23:52.739276+00:00"
+            }
+          }
+        },
+        {
+          "step": "create-evidence-link",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/photos/d73945aa-cf1f-45b9-8d45-bf96d828d297/evidence-links",
+            "body": {
+              "evidence_reference": "9b4b8e22-4890-4bbd-bf56-ed255b755bf4",
+              "evidence_type": "signature_manifest"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 201,
+            "headers": {},
+            "body": {
+              "evidence_link_id": "16e49b75-b2ee-4a20-8dbb-18999c40c887",
+              "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "evidence_reference": "9b4b8e22-4890-4bbd-bf56-ed255b755bf4",
+              "evidence_type": "signature_manifest",
+              "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+              "verification_status": "unverified",
+              "failure_reason": "awaiting server-side /verify result for record 9b4b8e22-4890-4bbd-bf56-ed255b755bf4",
+              "verified_at": null,
+              "created_at": "2026-11-25T05:23:52.774764+00:00"
+            }
+          }
+        },
+        {
+          "step": "list-evidence-links",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/photos/d73945aa-cf1f-45b9-8d45-bf96d828d297/evidence-links",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "items": [
+                {
+                  "evidence_link_id": "16e49b75-b2ee-4a20-8dbb-18999c40c887",
+                  "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+                  "evidence_reference": "9b4b8e22-4890-4bbd-bf56-ed255b755bf4",
+                  "evidence_type": "signature_manifest",
+                  "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+                  "verification_status": "unverified",
+                  "failure_reason": "awaiting server-side /verify result for record 9b4b8e22-4890-4bbd-bf56-ed255b755bf4",
+                  "verified_at": null,
+                  "created_at": "2026-11-25T05:23:52.774764+00:00"
+                }
+              ],
+              "total": 1
+            }
+          }
+        },
+        {
+          "step": "verify-evidence-link",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/photos/d73945aa-cf1f-45b9-8d45-bf96d828d297/evidence-links/16e49b75-b2ee-4a20-8dbb-18999c40c887/verify",
+            "body": {
+              "manifest": {
+                "version": "1.0",
+                "record_id": "9b4b8e22-4890-4bbd-bf56-ed255b755bf4",
+                "sequence_number": 0,
+                "previous_record_hash": null,
+                "photo_hash": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+                "capture_timestamp": "2026-11-25T05:23:52.720309+00:00",
+                "device_reported_time": "2026-11-25T05:23:52.720309+00:00",
+                "device_id": "mac-dev-001",
+                "location": null,
+                "signature": "MEYCIQDiqcD8lmkU68SONk8hvmSVgvtU0d+A3qhZ8XhNcChZagIhALz00GzH4e9leNKMwfNwMFf3aHncgbVN6p4Jhsqyw+1S",
+                "public_key": "BD8R2MXxW89MI7ChnTsGYFR2Nr4cVVmNjBNNh/KQI3t3eWWUB0NmyVR9NAt9GHjG19pGfEuIKXvUyzx6oNHdWtA="
+              },
+              "photo_base64": "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UUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFAH/2Q=="
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "evidence_link_id": "16e49b75-b2ee-4a20-8dbb-18999c40c887",
+              "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "evidence_reference": "9b4b8e22-4890-4bbd-bf56-ed255b755bf4",
+              "evidence_type": "signature_manifest",
+              "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+              "verification_status": "cryptographically_valid",
+              "failure_reason": null,
+              "verified_at": "2026-11-25T05:23:52.848777+00:00",
+              "created_at": "2026-11-25T05:23:52.774764+00:00"
+            }
+          },
+          "note": "server-side verification write-back"
+        },
+        {
+          "step": "anchor-batch",
+          "request": {
+            "method": "POST",
+            "path": "/time-anchor/anchor",
+            "body": {
+              "batch_id": "fixture-batch-1",
+              "chain_head_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "chain_tail_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "record_count": 12,
+              "device_reported_start_time": "2026-11-25T08:00:00+00:00",
+              "device_reported_end_time": "2026-11-25T16:00:00+00:00"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "anchor_id": "anchor-4e53de74ce844363b206f9f242c69c4c",
+              "key_id": "test-key-001",
+              "batch_id": "fixture-batch-1",
+              "server_received_at": "2026-11-25T05:23:52.875947+00:00",
+              "challenge": "c9970382f876055e0a531440063316a946a4953c29bd7778e90c626e14af08eb",
+              "server_signature": "MEUCIQCIt/E0YYORLj+BE+Tq1YEE8yhssIzr2iFLvcIkSfKpWgIgFqe1XYgYlKebHLP9fEWT/CuGXK0VBk+f0eK3j3wojYs=",
+              "chain_head_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "chain_tail_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "record_count": 12,
+              "verification_status": "digest_anchored"
+            }
+          },
+          "note": "EXPERIMENTAL time-anchor surface"
+        },
+        {
+          "step": "anchor-verify",
+          "request": {
+            "method": "POST",
+            "path": "/time-anchor/verify?check_storage=true",
+            "body": {
+              "anchor_id": "anchor-4e53de74ce844363b206f9f242c69c4c",
+              "key_id": "test-key-001",
+              "batch_id": "fixture-batch-1",
+              "server_received_at": "2026-11-25T05:23:52.875947+00:00",
+              "challenge": "c9970382f876055e0a531440063316a946a4953c29bd7778e90c626e14af08eb",
+              "server_signature": "MEUCIQCIt/E0YYORLj+BE+Tq1YEE8yhssIzr2iFLvcIkSfKpWgIgFqe1XYgYlKebHLP9fEWT/CuGXK0VBk+f0eK3j3wojYs=",
+              "chain_head_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "chain_tail_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "record_count": 12,
+              "verification_status": "digest_anchored",
+              "device_reported_start_time": "2026-11-25T08:00:00+00:00",
+              "device_reported_end_time": "2026-11-25T16:00:00+00:00",
+              "stored_at": "2026-11-25T05:23:52.875947+00:00"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "valid": true,
+              "anchor_id": "anchor-4e53de74ce844363b206f9f242c69c4c",
+              "key_id": "test-key-001",
+              "server_received_at": "2026-11-25T05:23:52.875947+00:00",
+              "signature_valid": true,
+              "challenge_matches": true,
+              "storage_matches": true,
+              "verification_status": "digest_anchored",
+              "trust_level": "server_anchored",
+              "message": "Receipt is valid. Server signed this digest at server_received_at.",
+              "warnings": [
+                "Server signature proves the digest existed at server_received_at, but does NOT prove when actual photos were taken.",
+                "Device-reported times are unsigned and untrusted.",
+                "Verification status is DIGEST_ANCHORED: server only signed the submitted hashes. It did NOT verify actual records, photos, or chain."
+              ],
+              "signed_fields_verified": true,
+              "unsigned_fields_note": "Unsigned fields (device_reported_start_time, device_reported_end_time, stored_at) are NOT included in the signature and cannot be verified offline. verification_status IS signed to prevent elevation attacks."
+            }
+          },
+          "note": "the client assembles the full receipt (adds unsigned device-reported times + stored_at) before verifying"
+        },
+        {
+          "step": "create-anchor-evidence-link",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/photos/c7de6654-9741-405a-9472-f0b89796657c/evidence-links",
+            "body": {
+              "evidence_reference": "fixture-batch-1",
+              "evidence_type": "time_anchor"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 201,
+            "headers": {},
+            "body": {
+              "evidence_link_id": "a6487c4c-b833-4253-b6e0-a23283fbc401",
+              "photo_id": "c7de6654-9741-405a-9472-f0b89796657c",
+              "evidence_reference": "fixture-batch-1",
+              "evidence_type": "time_anchor",
+              "original_sha256": "9974068516415ba4505c1bfd01cdce5b3e74eaf6a3575394d6f805ffaf2e31ba",
+              "verification_status": "unverified",
+              "failure_reason": "awaiting time-anchor verification for fixture-batch-1",
+              "verified_at": null,
+              "created_at": "2026-11-25T05:23:52.914825+00:00"
+            }
+          }
+        },
+        {
+          "step": "verify-anchor-evidence-link",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/photos/c7de6654-9741-405a-9472-f0b89796657c/evidence-links/a6487c4c-b833-4253-b6e0-a23283fbc401/verify",
+            "body": {
+              "receipt": {
+                "anchor_id": "anchor-4e53de74ce844363b206f9f242c69c4c",
+                "key_id": "test-key-001",
+                "batch_id": "fixture-batch-1",
+                "server_received_at": "2026-11-25T05:23:52.875947+00:00",
+                "challenge": "c9970382f876055e0a531440063316a946a4953c29bd7778e90c626e14af08eb",
+                "server_signature": "MEUCIQCIt/E0YYORLj+BE+Tq1YEE8yhssIzr2iFLvcIkSfKpWgIgFqe1XYgYlKebHLP9fEWT/CuGXK0VBk+f0eK3j3wojYs=",
+                "chain_head_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                "chain_tail_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                "record_count": 12,
+                "verification_status": "digest_anchored",
+                "device_reported_start_time": "2026-11-25T08:00:00+00:00",
+                "device_reported_end_time": "2026-11-25T16:00:00+00:00",
+                "stored_at": "2026-11-25T05:23:52.875947+00:00"
+              }
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "evidence_link_id": "a6487c4c-b833-4253-b6e0-a23283fbc401",
+              "photo_id": "c7de6654-9741-405a-9472-f0b89796657c",
+              "evidence_reference": "fixture-batch-1",
+              "evidence_type": "time_anchor",
+              "original_sha256": "9974068516415ba4505c1bfd01cdce5b3e74eaf6a3575394d6f805ffaf2e31ba",
+              "verification_status": "server_anchored",
+              "failure_reason": null,
+              "verified_at": "2026-11-25T05:23:52.957101+00:00",
+              "created_at": "2026-11-25T05:23:52.914825+00:00"
+            }
+          },
+          "note": "valid anchor receipt -> server_anchored"
+        }
+      ],
+      "note": "Trusted statuses are only ever written by the server's own verification runs (W002 signature core, W003 anchors)."
+    },
+    {
+      "id": "F4",
+      "name": "Watermark derivatives",
+      "steps": [
+        {
+          "step": "watermark-render",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/photos/d73945aa-cf1f-45b9-8d45-bf96d828d297/derivatives/watermark",
+            "body": {
+              "template": "construction",
+              "fields": {
+                "show_project_name": true,
+                "project_name": "Tower B",
+                "show_captured_time": true,
+                "captured_time": "2026-11-25T09:15:00+00:00",
+                "captured_time_trust": "device",
+                "show_evidence_status": true,
+                "show_photo_id": true,
+                "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297"
+              }
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 201,
+            "headers": {},
+            "body": {
+              "derivative_id": "0cdbbcc00ace20597fdedca4e27458a180bd",
+              "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "template_name": "construction",
+              "template_version": "1",
+              "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+              "derivative_sha256": "3f7791c0cb258fedcda4c128ccce09b37cfce7dcabb51c093e65b37a4bf970cb",
+              "image_width": 320,
+              "image_height": 240,
+              "created_at": "2026-11-25T05:23:53.058227+00:00",
+              "idempotent_replay": false,
+              "note": "derivative is a DERIVATIVE image, not the trusted original evidence",
+              "geometry": {
+                "template": "construction",
+                "template_version": "1",
+                "image_width": 320,
+                "image_height": 240,
+                "exif_orientation_applied": 1,
+                "font_size": 10,
+                "font_scale": 0.022,
+                "panel": {
+                  "x": 8,
+                  "y": 160,
+                  "w": 212,
+                  "h": 72,
+                  "opacity": 0.6,
+                  "color_rgb": [
+                    245,
+                    245,
+                    245
+                  ]
+                },
+                "text_color_rgb": [
+                  20,
+                  20,
+                  20
+                ],
+                "background_dark": false,
+                "region_luminance": 0.3608,
+                "line_count": 5,
+                "logo": null,
+                "position": "bottom_left",
+                "margin": 8
+              }
+            }
+          }
+        },
+        {
+          "step": "watermark-replay",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/photos/d73945aa-cf1f-45b9-8d45-bf96d828d297/derivatives/watermark",
+            "body": {
+              "template": "construction",
+              "fields": {
+                "show_project_name": true,
+                "project_name": "Tower B",
+                "show_captured_time": true,
+                "captured_time": "2026-11-25T09:15:00+00:00",
+                "captured_time_trust": "device",
+                "show_evidence_status": true,
+                "show_photo_id": true,
+                "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297"
+              }
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 201,
+            "headers": {},
+            "body": {
+              "derivative_id": "0cdbbcc00ace20597fdedca4e27458a180bd",
+              "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "template_name": "construction",
+              "template_version": "1",
+              "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+              "derivative_sha256": "3f7791c0cb258fedcda4c128ccce09b37cfce7dcabb51c093e65b37a4bf970cb",
+              "image_width": 320,
+              "image_height": 240,
+              "created_at": "2026-11-25T05:23:53.058227+00:00",
+              "idempotent_replay": true,
+              "note": "derivative is a DERIVATIVE image, not the trusted original evidence"
+            }
+          },
+          "note": "idempotent_replay=true"
+        },
+        {
+          "step": "list-derivatives",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/photos/d73945aa-cf1f-45b9-8d45-bf96d828d297/derivatives",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "items": [
+                {
+                  "derivative_id": "0cdbbcc00ace20597fdedca4e27458a180bd",
+                  "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+                  "template_name": "construction",
+                  "template_version": "1",
+                  "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+                  "derivative_sha256": "3f7791c0cb258fedcda4c128ccce09b37cfce7dcabb51c093e65b37a4bf970cb",
+                  "image_width": 320,
+                  "image_height": 240,
+                  "created_at": "2026-11-25T05:23:53.058227+00:00"
+                }
+              ],
+              "total": 1,
+              "note": "derivatives are RENDERED copies - the trusted evidence is the immutable original + its evidence links"
+            }
+          }
+        },
+        {
+          "step": "download-derivative",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/derivatives/0cdbbcc00ace20597fdedca4e27458a180bd/download",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "x-derivative-sha256": "3f7791c0cb258fedcda4c128ccce09b37cfce7dcabb51c093e65b37a4bf970cb",
+              "x-original-sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+              "x-derivative-note": "derivative image - not the trusted original evidence",
+              "content-disposition": "attachment; filename=\"watermark-0cdbbcc00ace.jpg\""
+            },
+            "body": {
+              "__binary__": true,
+              "media_type": "image/jpeg",
+              "bytes": 7477,
+              "sha256": "3f7791c0cb258fedcda4c128ccce09b37cfce7dcabb51c093e65b37a4bf970cb"
+            }
+          }
+        }
+      ],
+      "note": "Derivatives render from the REAL original bytes; the evidence status printed is resolved server-side."
+    },
+    {
+      "id": "F5",
+      "name": "Annotations, inspection issues & comparison",
+      "steps": [
+        {
+          "step": "create-annotation",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/photos/d73945aa-cf1f-45b9-8d45-bf96d828d297/annotations",
+            "body": {
+              "annotation_type": "rectangle",
+              "norm_x1": 0.2,
+              "norm_y1": 0.2,
+              "norm_x2": 0.7,
+              "norm_y2": 0.6,
+              "color_hex": "#FF3B30",
+              "stroke_width": 4,
+              "z_order": 0
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 201,
+            "headers": {},
+            "body": {
+              "annotation_id": "1d7a474d-2599-422c-89f7-84af95c354cd",
+              "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "annotation_type": "rectangle",
+              "norm_x1": 0.2,
+              "norm_y1": 0.2,
+              "norm_x2": 0.7,
+              "norm_y2": 0.6,
+              "color_hex": "#FF3B30",
+              "stroke_width": 4,
+              "text_content": null,
+              "marker_number": null,
+              "z_order": 0,
+              "revision": 1,
+              "is_active": true,
+              "created_at": "2026-11-25T05:23:53.216078+00:00",
+              "updated_at": "2026-11-25T05:23:53.216078+00:00",
+              "note": "human-added annotation content"
+            }
+          }
+        },
+        {
+          "step": "list-annotations",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/photos/d73945aa-cf1f-45b9-8d45-bf96d828d297/annotations",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "items": [
+                {
+                  "annotation_id": "1d7a474d-2599-422c-89f7-84af95c354cd",
+                  "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+                  "annotation_type": "rectangle",
+                  "norm_x1": 0.2,
+                  "norm_y1": 0.2,
+                  "norm_x2": 0.7,
+                  "norm_y2": 0.6,
+                  "color_hex": "#FF3B30",
+                  "stroke_width": 4,
+                  "text_content": null,
+                  "marker_number": null,
+                  "z_order": 0,
+                  "revision": 1,
+                  "is_active": true,
+                  "created_at": "2026-11-25T05:23:53.216078+00:00",
+                  "updated_at": "2026-11-25T05:23:53.216078+00:00",
+                  "note": "human-added annotation content"
+                }
+              ],
+              "total": 1,
+              "note": "annotations are human-added content"
+            }
+          }
+        },
+        {
+          "step": "patch-annotation",
+          "request": {
+            "method": "PATCH",
+            "path": "/api/v1/annotations/1d7a474d-2599-422c-89f7-84af95c354cd",
+            "body": {
+              "color_hex": "#00FF00",
+              "expected_revision": 1
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "annotation_id": "1d7a474d-2599-422c-89f7-84af95c354cd",
+              "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "annotation_type": "rectangle",
+              "norm_x1": 0.2,
+              "norm_y1": 0.2,
+              "norm_x2": 0.7,
+              "norm_y2": 0.6,
+              "color_hex": "#00FF00",
+              "stroke_width": 4,
+              "text_content": null,
+              "marker_number": null,
+              "z_order": 0,
+              "revision": 2,
+              "is_active": true,
+              "created_at": "2026-11-25T05:23:53.216078+00:00",
+              "updated_at": "2026-11-25T05:23:53.292373+00:00",
+              "note": "human-added annotation content"
+            }
+          }
+        },
+        {
+          "step": "annotation-revision-conflict",
+          "request": {
+            "method": "PATCH",
+            "path": "/api/v1/annotations/1d7a474d-2599-422c-89f7-84af95c354cd",
+            "body": {
+              "color_hex": "#0000FF",
+              "expected_revision": 1
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 409,
+            "headers": {},
+            "body": {
+              "detail": {
+                "code": "revision_conflict",
+                "message": "expected revision 1, current 2",
+                "details": {
+                  "current_revision": 2
+                }
+              }
+            }
+          },
+          "note": "409 revision_conflict"
+        },
+        {
+          "step": "delete-annotation-soft",
+          "request": {
+            "method": "DELETE",
+            "path": "/api/v1/annotations/1d7a474d-2599-422c-89f7-84af95c354cd",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "annotation_id": "1d7a474d-2599-422c-89f7-84af95c354cd",
+              "deleted": true,
+              "note": "soft delete - history preserved; the annotation stays queryable with include_inactive=true"
+            }
+          },
+          "note": "soft delete; include_inactive=true still shows it"
+        },
+        {
+          "step": "create-issue",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/projects/03c5fe78-2a92-4c4c-9a0c-4c427fb54416/issues",
+            "body": {
+              "title": "Honeycomb on column C-12",
+              "description": "Exposed aggregate after formwork removal",
+              "severity": "high",
+              "location_description": "Grid C-12, level 3",
+              "assigned_to": "foreman-zhang"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 201,
+            "headers": {},
+            "body": {
+              "issue_id": "2f88660a-8182-48fb-91eb-f73beadb36f6",
+              "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+              "title": "Honeycomb on column C-12",
+              "description": "Exposed aggregate after formwork removal",
+              "severity": "high",
+              "status": "open",
+              "location_description": "Grid C-12, level 3",
+              "assigned_to": "foreman-zhang",
+              "revision": 1,
+              "created_at": "2026-11-25T05:23:53.420178+00:00",
+              "updated_at": "2026-11-25T05:23:53.420178+00:00",
+              "resolved_at": null,
+              "note": "severity/status are HUMAN records; no AI assessment implied"
+            }
+          }
+        },
+        {
+          "step": "list-issues",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/projects/03c5fe78-2a92-4c4c-9a0c-4c427fb54416/issues?status=open",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "items": [
+                {
+                  "issue_id": "2f88660a-8182-48fb-91eb-f73beadb36f6",
+                  "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+                  "title": "Honeycomb on column C-12",
+                  "description": "Exposed aggregate after formwork removal",
+                  "severity": "high",
+                  "status": "open",
+                  "location_description": "Grid C-12, level 3",
+                  "assigned_to": "foreman-zhang",
+                  "revision": 1,
+                  "created_at": "2026-11-25T05:23:53.420178+00:00",
+                  "updated_at": "2026-11-25T05:23:53.420178+00:00",
+                  "resolved_at": null,
+                  "note": "severity/status are HUMAN records; no AI assessment implied"
+                }
+              ],
+              "total": 1
+            }
+          }
+        },
+        {
+          "step": "issue-detail",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/issues/2f88660a-8182-48fb-91eb-f73beadb36f6",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "issue_id": "2f88660a-8182-48fb-91eb-f73beadb36f6",
+              "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+              "title": "Honeycomb on column C-12",
+              "description": "Exposed aggregate after formwork removal",
+              "severity": "high",
+              "status": "open",
+              "location_description": "Grid C-12, level 3",
+              "assigned_to": "foreman-zhang",
+              "revision": 1,
+              "created_at": "2026-11-25T05:23:53.420178+00:00",
+              "updated_at": "2026-11-25T05:23:53.420178+00:00",
+              "resolved_at": null,
+              "note": "severity/status are HUMAN records; no AI assessment implied",
+              "history": [
+                {
+                  "id": 1,
+                  "actor_token": "30262dd24f2f8c6e709f9323ca0f2bf2996b6b07a1f32c08a0598c3d4910f771",
+                  "action": "created",
+                  "from_value": null,
+                  "to_value": "high",
+                  "detail": "Honeycomb on column C-12",
+                  "created_at": "2026-11-25T05:23:53.421808+00:00"
+                }
+              ],
+              "photos": []
+            }
+          }
+        },
+        {
+          "step": "patch-issue",
+          "request": {
+            "method": "PATCH",
+            "path": "/api/v1/issues/2f88660a-8182-48fb-91eb-f73beadb36f6",
+            "body": {
+              "severity": "critical",
+              "expected_revision": 1
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "issue_id": "2f88660a-8182-48fb-91eb-f73beadb36f6",
+              "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+              "title": "Honeycomb on column C-12",
+              "description": "Exposed aggregate after formwork removal",
+              "severity": "critical",
+              "status": "open",
+              "location_description": "Grid C-12, level 3",
+              "assigned_to": "foreman-zhang",
+              "revision": 2,
+              "created_at": "2026-11-25T05:23:53.420178+00:00",
+              "updated_at": "2026-11-25T05:23:53.578248+00:00",
+              "resolved_at": null,
+              "note": "severity/status are HUMAN records; no AI assessment implied"
+            }
+          }
+        },
+        {
+          "step": "issue-invalid-transition",
+          "request": {
+            "method": "PATCH",
+            "path": "/api/v1/issues/2f88660a-8182-48fb-91eb-f73beadb36f6",
+            "body": {
+              "status": "closed",
+              "expected_revision": 2
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 409,
+            "headers": {},
+            "body": {
+              "detail": {
+                "code": "invalid_status_transition",
+                "message": "cannot move from 'open' to 'closed'",
+                "details": {
+                  "allowed": [
+                    "in_progress",
+                    "open"
+                  ]
+                }
+              }
+            }
+          },
+          "note": "409 invalid_status_transition: open -> closed is illegal"
+        },
+        {
+          "step": "link-before-photo",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/issues/2f88660a-8182-48fb-91eb-f73beadb36f6/photos",
+            "body": {
+              "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "role": "before"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 201,
+            "headers": {},
+            "body": {
+              "issue_id": "2f88660a-8182-48fb-91eb-f73beadb36f6",
+              "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "role": "before",
+              "added_at": "2026-11-25T05:23:53.701314+00:00",
+              "note": "manual association - does not prove the photos show the same location or that work was accepted"
+            }
+          }
+        },
+        {
+          "step": "link-after-photo",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/issues/2f88660a-8182-48fb-91eb-f73beadb36f6/photos",
+            "body": {
+              "photo_id": "c7de6654-9741-405a-9472-f0b89796657c",
+              "role": "after"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 201,
+            "headers": {},
+            "body": {
+              "issue_id": "2f88660a-8182-48fb-91eb-f73beadb36f6",
+              "photo_id": "c7de6654-9741-405a-9472-f0b89796657c",
+              "role": "after",
+              "added_at": "2026-11-25T05:23:53.760049+00:00",
+              "note": "manual association - does not prove the photos show the same location or that work was accepted"
+            }
+          }
+        },
+        {
+          "step": "issue-photos-view",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/issues/2f88660a-8182-48fb-91eb-f73beadb36f6/photos",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "items": [
+                {
+                  "photo_id": "c7de6654-9741-405a-9472-f0b89796657c",
+                  "role": "after",
+                  "added_at": "2026-11-25T05:23:53.760049+00:00"
+                },
+                {
+                  "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+                  "role": "before",
+                  "added_at": "2026-11-25T05:23:53.701314+00:00"
+                }
+              ],
+              "total": 2,
+              "note": "before/after comparison is a MANUAL association; it does not prove the same location, nor does it constitute acceptance of completed work"
+            }
+          }
+        },
+        {
+          "step": "comparison-image",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/issues/2f88660a-8182-48fb-91eb-f73beadb36f6/comparison-image",
+            "body": {
+              "before_photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+              "after_photo_id": "c7de6654-9741-405a-9472-f0b89796657c"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "x-comparison-sha256": "c4d937e133f9dc4eb08cb360b65ae62bde81b69fb514cd9969614fad6037f469",
+              "x-before-sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+              "x-after-sha256": "9974068516415ba4505c1bfd01cdce5b3e74eaf6a3575394d6f805ffaf2e31ba",
+              "x-comparison-note": "manual before/after association rendered as a derivative; originals unchanged",
+              "content-disposition": "attachment; filename=\"comparison-2f88660a-818.jpg\""
+            },
+            "body": {
+              "__binary__": true,
+              "media_type": "image/jpeg",
+              "bytes": 37990,
+              "sha256": "c4d937e133f9dc4eb08cb360b65ae62bde81b69fb514cd9969614fad6037f469"
+            }
+          },
+          "note": "JPEG bytes; headers carry the derivative sha256"
+        }
+      ],
+      "note": "Human-added annotations and human-recorded issues; optimistic revisions; soft deletes keep history."
+    },
+    {
+      "id": "F6",
+      "name": "Reports, delivery packages & offline sync",
+      "steps": [
+        {
+          "step": "generate-report",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/projects/03c5fe78-2a92-4c4c-9a0c-4c427fb54416/reports",
+            "body": {
+              "report_type": "inspection",
+              "page_size": "a4",
+              "per_page": 2,
+              "photo_ids": [
+                "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+                "c7de6654-9741-405a-9472-f0b89796657c"
+              ],
+              "issue_ids": [
+                "2f88660a-8182-48fb-91eb-f73beadb36f6"
+              ],
+              "operator": "inspector-li",
+              "company_name": "CMS Engineering"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 201,
+            "headers": {},
+            "body": {
+              "report_id": "bd256f4e-6ada-4a19-9414-c91a8ad8af16",
+              "report_number": "WC-20261125-BD256F4E",
+              "report_type": "inspection",
+              "template_version": "1",
+              "page_size": "a4",
+              "per_page": 2,
+              "photo_count": 2,
+              "pdf_sha256": "612bf7a8bfaffc43cdbf008abd5390adbd51269c2df945d1412303e75ff5d9c5",
+              "page_count": 3,
+              "created_at": "2026-11-25T05:23:54.242670+00:00",
+              "note": "report content is a SNAPSHOT at generation time; regeneration creates a new version"
+            }
+          }
+        },
+        {
+          "step": "list-reports",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/projects/03c5fe78-2a92-4c4c-9a0c-4c427fb54416/reports",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "items": [
+                {
+                  "report_id": "bd256f4e-6ada-4a19-9414-c91a8ad8af16",
+                  "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+                  "report_number": "WC-20261125-BD256F4E",
+                  "report_type": "inspection",
+                  "template_version": "1",
+                  "page_size": "a4",
+                  "per_page": 2,
+                  "pdf_sha256": "612bf7a8bfaffc43cdbf008abd5390adbd51269c2df945d1412303e75ff5d9c5",
+                  "page_count": 3,
+                  "status": "complete",
+                  "created_at": "2026-11-25T05:23:54.242670+00:00"
+                }
+              ],
+              "total": 1
+            }
+          }
+        },
+        {
+          "step": "report-detail",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/reports/bd256f4e-6ada-4a19-9414-c91a8ad8af16",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "report_id": "bd256f4e-6ada-4a19-9414-c91a8ad8af16",
+              "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+              "report_number": "WC-20261125-BD256F4E",
+              "report_type": "inspection",
+              "template_version": "1",
+              "page_size": "a4",
+              "per_page": 2,
+              "pdf_sha256": "612bf7a8bfaffc43cdbf008abd5390adbd51269c2df945d1412303e75ff5d9c5",
+              "page_count": 3,
+              "status": "complete",
+              "created_at": "2026-11-25T05:23:54.242670+00:00",
+              "photo_ids": [
+                "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+                "c7de6654-9741-405a-9472-f0b89796657c"
+              ],
+              "snapshot": {
+                "d73945aa-cf1f-45b9-8d45-bf96d828d297": {
+                  "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+                  "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+                  "derivative_sha256": "3f7791c0cb258fedcda4c128ccce09b37cfce7dcabb51c093e65b37a4bf970cb",
+                  "image_width": 320,
+                  "image_height": 240,
+                  "captured_time": "2026-11-25T09:15:00+00:00",
+                  "time_source": "device",
+                  "gps_latitude": null,
+                  "gps_longitude": null,
+                  "gps_source": null,
+                  "gps_accuracy": null,
+                  "notes": null,
+                  "evidence_status": "cryptographically_valid",
+                  "evidence_reference": "9b4b8e22-4890-4bbd-bf56-ed255b755bf4",
+                  "evidence_verified_at": "2026-11-25T05:23:52.848777+00:00"
+                },
+                "c7de6654-9741-405a-9472-f0b89796657c": {
+                  "photo_id": "c7de6654-9741-405a-9472-f0b89796657c",
+                  "original_sha256": "9974068516415ba4505c1bfd01cdce5b3e74eaf6a3575394d6f805ffaf2e31ba",
+                  "derivative_sha256": null,
+                  "image_width": 320,
+                  "image_height": 240,
+                  "captured_time": "2026-11-25T15:40:00+00:00",
+                  "time_source": "device",
+                  "gps_latitude": null,
+                  "gps_longitude": null,
+                  "gps_source": null,
+                  "gps_accuracy": null,
+                  "notes": null,
+                  "evidence_status": "server_anchored",
+                  "evidence_reference": "fixture-batch-1",
+                  "evidence_verified_at": "2026-11-25T05:23:52.957101+00:00"
+                }
+              },
+              "issue_snapshot": [
+                {
+                  "issue_id": "2f88660a-8182-48fb-91eb-f73beadb36f6",
+                  "title": "Honeycomb on column C-12",
+                  "description": "Exposed aggregate after formwork removal",
+                  "severity": "critical",
+                  "status": "open",
+                  "location_description": "Grid C-12, level 3",
+                  "assigned_to": "foreman-zhang",
+                  "created_at": "2026-11-25T05:23:53.420178+00:00",
+                  "updated_at": "2026-11-25T05:23:53.578248+00:00",
+                  "resolved_at": null,
+                  "history": [
+                    {
+                      "action": "created",
+                      "from_value": null,
+                      "to_value": "high",
+                      "detail": "Honeycomb on column C-12",
+                      "created_at": "2026-11-25T05:23:53.421808+00:00"
+                    },
+                    {
+                      "action": "severity_changed",
+                      "from_value": "high",
+                      "to_value": "critical",
+                      "detail": "",
+                      "created_at": "2026-11-25T05:23:53.582108+00:00"
+                    },
+                    {
+                      "action": "photo_linked",
+                      "from_value": null,
+                      "to_value": "before",
+                      "detail": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+                      "created_at": "2026-11-25T05:23:53.706336+00:00"
+                    },
+                    {
+                      "action": "photo_linked",
+                      "from_value": null,
+                      "to_value": "after",
+                      "detail": "c7de6654-9741-405a-9472-f0b89796657c",
+                      "created_at": "2026-11-25T05:23:53.764227+00:00"
+                    }
+                  ],
+                  "photos": [
+                    {
+                      "photo_id": "c7de6654-9741-405a-9472-f0b89796657c",
+                      "role": "after",
+                      "original_sha256": "9974068516415ba4505c1bfd01cdce5b3e74eaf6a3575394d6f805ffaf2e31ba"
+                    },
+                    {
+                      "photo_id": "d73945aa-cf1f-45b9-8d45-bf96d828d297",
+                      "role": "before",
+                      "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "step": "report-download",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/reports/bd256f4e-6ada-4a19-9414-c91a8ad8af16/download",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "x-report-sha256": "612bf7a8bfaffc43cdbf008abd5390adbd51269c2df945d1412303e75ff5d9c5",
+              "content-disposition": "attachment; filename=\"WC-20261125-BD256F4E.pdf\""
+            },
+            "body": {
+              "__binary__": true,
+              "media_type": "application/pdf",
+              "bytes": 11776,
+              "sha256": "612bf7a8bfaffc43cdbf008abd5390adbd51269c2df945d1412303e75ff5d9c5"
+            }
+          },
+          "note": "application/pdf bytes"
+        },
+        {
+          "step": "delivery-package",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/reports/bd256f4e-6ada-4a19-9414-c91a8ad8af16/delivery-package",
+            "body": {
+              "include_originals": true,
+              "include_derivatives": true,
+              "include_evidence": true
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "x-package-sha256": "f70482175cf9bce96a13d31c9d48bc5362f0108a0c030329318271be1ac211dc",
+              "x-file-count": "8",
+              "content-disposition": "attachment; filename=\"WC-20261125-BD256F4E-package.zip\""
+            },
+            "body": {
+              "__binary__": true,
+              "media_type": "application/zip",
+              "bytes": 27916,
+              "sha256": "f70482175cf9bce96a13d31c9d48bc5362f0108a0c030329318271be1ac211dc"
+            }
+          },
+          "note": "application/zip bytes"
+        },
+        {
+          "step": "sync-batch-project",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/sync/batch",
+            "body": {
+              "operations": [
+                {
+                  "op": "project_create",
+                  "operation_id": "fixture-op-1",
+                  "payload": {
+                    "operation_id": "fixture-op-1",
+                    "local_id": "loc-proj-9",
+                    "name": "Offline-created project"
+                  }
+                }
+              ]
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "batch_received": 1,
+              "receipts": [
+                {
+                  "operation_id": "fixture-op-1",
+                  "status": "applied",
+                  "result": {
+                    "server_project_id": "3a510856-61ac-4ebd-99c8-752712d53226",
+                    "revision": 1,
+                    "local_id": "loc-proj-9",
+                    "_id_map_entry": {
+                      "loc-proj-9": "3a510856-61ac-4ebd-99c8-752712d53226"
+                    }
+                  },
+                  "error": null
+                }
+              ],
+              "id_map": {
+                "loc-proj-9": "3a510856-61ac-4ebd-99c8-752712d53226"
+              }
+            }
+          }
+        },
+        {
+          "step": "sync-batch-photo",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/sync/batch",
+            "body": {
+              "operations": [
+                {
+                  "op": "photo_register",
+                  "operation_id": "fixture-op-2",
+                  "payload": {
+                    "operation_id": "fixture-op-2",
+                    "local_id": "loc-photo-9",
+                    "server_project_id": "3a510856-61ac-4ebd-99c8-752712d53226",
+                    "idempotency_key": "fixture-sync-photo",
+                    "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+                    "original_filename": "OFFLINE_9.jpg",
+                    "mime_type": "image/jpeg",
+                    "byte_size": 2482,
+                    "captured_at": "2026-11-25T18:00:00+00:00",
+                    "device_id": "mac-dev-001"
+                  }
+                }
+              ]
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "batch_received": 1,
+              "receipts": [
+                {
+                  "operation_id": "fixture-op-2",
+                  "status": "applied",
+                  "result": {
+                    "server_photo_id": "18ddae6c-83d9-4725-bf93-31c57dc9555b",
+                    "server_project_id": "3a510856-61ac-4ebd-99c8-752712d53226",
+                    "local_id": "loc-photo-9",
+                    "_id_map_entry": {
+                      "loc-photo-9": "18ddae6c-83d9-4725-bf93-31c57dc9555b"
+                    }
+                  },
+                  "error": null
+                }
+              ],
+              "id_map": {
+                "loc-photo-9": "18ddae6c-83d9-4725-bf93-31c57dc9555b"
+              }
+            }
+          },
+          "note": "cross-op dependency via server id from receipts"
+        },
+        {
+          "step": "sync-batch-replay",
+          "request": {
+            "method": "POST",
+            "path": "/api/v1/sync/batch",
+            "body": {
+              "operations": [
+                {
+                  "op": "photo_register",
+                  "operation_id": "fixture-op-2",
+                  "payload": {
+                    "operation_id": "fixture-op-2",
+                    "local_id": "loc-photo-9",
+                    "server_project_id": "3a510856-61ac-4ebd-99c8-752712d53226",
+                    "idempotency_key": "fixture-sync-photo",
+                    "original_sha256": "0dec8b18e3d9aa2050760b9ba0e3cfb0fd34a327671a55a27de9cf205aead1ab",
+                    "original_filename": "OFFLINE_9.jpg",
+                    "mime_type": "image/jpeg",
+                    "byte_size": 2482,
+                    "captured_at": "2026-11-25T18:00:00+00:00",
+                    "device_id": "mac-dev-001"
+                  }
+                }
+              ]
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "batch_received": 1,
+              "receipts": [
+                {
+                  "operation_id": "fixture-op-2",
+                  "status": "duplicate",
+                  "result": {
+                    "server_photo_id": "18ddae6c-83d9-4725-bf93-31c57dc9555b",
+                    "server_project_id": "3a510856-61ac-4ebd-99c8-752712d53226",
+                    "local_id": "loc-photo-9",
+                    "_id_map_entry": {
+                      "loc-photo-9": "18ddae6c-83d9-4725-bf93-31c57dc9555b"
+                    }
+                  },
+                  "error": null
+                }
+              ],
+              "id_map": {
+                "loc-photo-9": "18ddae6c-83d9-4725-bf93-31c57dc9555b"
+              }
+            }
+          },
+          "note": "duplicate receipt from the ledger, zero re-execution"
+        },
+        {
+          "step": "sync-events-pull",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/sync/events?cursor=0&limit=100",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "items": [
+                {
+                  "seq": 1,
+                  "entity_type": "project",
+                  "entity_id": "3a510856-61ac-4ebd-99c8-752712d53226",
+                  "action": "created",
+                  "revision": 1,
+                  "payload_hint": "Offline-created project",
+                  "created_at": "2026-11-25T05:23:54.532285+00:00"
+                },
+                {
+                  "seq": 2,
+                  "entity_type": "photo",
+                  "entity_id": "18ddae6c-83d9-4725-bf93-31c57dc9555b",
+                  "action": "created",
+                  "revision": null,
+                  "payload_hint": "fixture-sync-photo",
+                  "created_at": "2026-11-25T05:23:54.591861+00:00"
+                }
+              ],
+              "cursor": 2,
+              "has_more": false,
+              "limit": 100
+            }
+          }
+        },
+        {
+          "step": "sync-events-filter",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/sync/events?cursor=0&limit=50&entity_type=project",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "items": [
+                {
+                  "seq": 1,
+                  "entity_type": "project",
+                  "entity_id": "3a510856-61ac-4ebd-99c8-752712d53226",
+                  "action": "created",
+                  "revision": 1,
+                  "payload_hint": "Offline-created project",
+                  "created_at": "2026-11-25T05:23:54.532285+00:00"
+                }
+              ],
+              "cursor": 2,
+              "has_more": false,
+              "limit": 50
+            }
+          }
+        }
+      ],
+      "note": "Immutable snapshot reports; batch sync with per-op receipts; incremental event pull."
+    },
+    {
+      "id": "ERRORS",
+      "name": "Typed error envelope catalogue",
+      "steps": [
+        {
+          "step": "missing-token",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/projects",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 401,
+            "headers": {},
+            "body": {
+              "detail": {
+                "code": "unauthorized",
+                "message": "X-Device-Token header required for /api/v1",
+                "details": {}
+              }
+            }
+          }
+        },
+        {
+          "step": "unregistered-token",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/projects",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 401,
+            "headers": {},
+            "body": {
+              "detail": {
+                "code": "unauthorized",
+                "message": "device token is not enrolled",
+                "details": {}
+              }
+            }
+          }
+        },
+        {
+          "step": "legacy-derived-token-refused",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/projects",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 401,
+            "headers": {},
+            "body": {
+              "detail": {
+                "code": "legacy_token_must_re_enroll",
+                "message": "this is a legacy token derived from the public key; re-enroll with the enrollment code to receive a modern random token",
+                "details": {}
+              }
+            }
+          },
+          "note": "W013-R1 P0: derived credential from public material -> refused, must re-enroll for a random token (requires a legacy devices.jsonl record to reach this branch; an unknown token is plain unauthorized)"
+        },
+        {
+          "step": "legacy-random-token-still-valid",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/projects",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "items": [],
+              "total": 0,
+              "limit": 20,
+              "offset": 0
+            }
+          },
+          "note": "read-compat: pre-W012 random legacy tokens stay valid"
+        },
+        {
+          "step": "invalid-uuid",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/projects/not-a-uuid",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 400,
+            "headers": {},
+            "body": {
+              "detail": {
+                "code": "invalid_uuid",
+                "message": "project_id must be a valid UUIDv4",
+                "details": {}
+              }
+            }
+          }
+        },
+        {
+          "step": "cross-owner-404",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/projects/ba8ec801-1f1d-4d95-b903-0d5b4ef803c7",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 404,
+            "headers": {},
+            "body": {
+              "detail": {
+                "code": "not_found",
+                "message": "project not found",
+                "details": {}
+              }
+            }
+          }
+        },
+        {
+          "step": "empty-patch",
+          "request": {
+            "method": "PATCH",
+            "path": "/api/v1/projects/03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+            "body": {},
+            "headers": {}
+          },
+          "response": {
+            "status": 400,
+            "headers": {},
+            "body": {
+              "detail": {
+                "code": "empty_patch",
+                "message": "at least one field must be provided",
+                "details": {}
+              }
+            }
+          }
+        },
+        {
+          "step": "upload-experimental-default-closed",
+          "request": {
+            "method": "POST",
+            "path": "/upload/experimental/batches",
+            "body": {
+              "total_bytes": 10,
+              "total_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              "chunk_size": 5
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 503,
+            "headers": {},
+            "body": {
+              "detail": "experimental upload endpoints are opt-in only: set WORKCAM_UPLOAD_EXPERIMENTAL=1 (never in production)"
+            }
+          },
+          "note": "503 without WORKCAM_UPLOAD_EXPERIMENTAL=1"
+        },
+        {
+          "step": "time-anchor-invalid-batch-id",
+          "request": {
+            "method": "POST",
+            "path": "/time-anchor/anchor",
+            "body": {
+              "batch_id": "bad=batch-id",
+              "chain_head_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "chain_tail_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "record_count": 1,
+              "device_reported_start_time": "2026-11-25T05:23:52.720309+00:00",
+              "device_reported_end_time": "2026-11-25T05:23:52.720309+00:00"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 400,
+            "headers": {},
+            "body": {
+              "detail": "batch_id contains invalid characters"
+            }
+          },
+          "note": "real 400 - the signing-field guard rejects '=' (field injection) and control characters ONLY; spaces and punctuation are ACCEPTED in batch_id (verified by real call)"
+        },
+        {
+          "step": "anchor-response-is-not-a-receipt",
+          "request": {
+            "method": "POST",
+            "path": "/time-anchor/verify?check_storage=true",
+            "body": {
+              "anchor_id": "anchor-3ef78fb4fa339b96e825ac0b5f7d09f6",
+              "key_id": "test-key-001",
+              "batch_id": "err-anchor-1",
+              "server_received_at": "2026-11-25T05:23:55.002239+00:00",
+              "challenge": "3004cca834ba94d3f3d80d85bf38a9b672b2f3580e40eb2fed635594b27dbe88",
+              "server_signature": "MEQCIDc2GL/EkSxkQfCgHJVgPDwZ+FrmcUWULbuFxwWPNEI7AiB43x5aRGEqMBSC32t1YbTJgSHmOm0qS27eqRZ+ohmpcA==",
+              "chain_head_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+              "chain_tail_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "record_count": 2,
+              "verification_status": "digest_anchored"
+            },
+            "headers": {}
+          },
+          "response": {
+            "status": 422,
+            "headers": {},
+            "body": {
+              "detail": [
+                {
+                  "type": "missing",
+                  "loc": [
+                    "body",
+                    "device_reported_start_time"
+                  ],
+                  "msg": "Field required",
+                  "input": {
+                    "anchor_id": "anchor-3ef78fb4fa339b96e825ac0b5f7d09f6",
+                    "key_id": "test-key-001",
+                    "batch_id": "err-anchor-1",
+                    "server_received_at": "2026-11-25T05:23:55.002239+00:00",
+                    "challenge": "3004cca834ba94d3f3d80d85bf38a9b672b2f3580e40eb2fed635594b27dbe88",
+                    "server_signature": "MEQCIDc2GL/EkSxkQfCgHJVgPDwZ+FrmcUWULbuFxwWPNEI7AiB43x5aRGEqMBSC32t1YbTJgSHmOm0qS27eqRZ+ohmpcA==",
+                    "chain_head_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                    "chain_tail_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                    "record_count": 2,
+                    "verification_status": "digest_anchored"
+                  }
+                },
+                {
+                  "type": "missing",
+                  "loc": [
+                    "body",
+                    "device_reported_end_time"
+                  ],
+                  "msg": "Field required",
+                  "input": {
+                    "anchor_id": "anchor-3ef78fb4fa339b96e825ac0b5f7d09f6",
+                    "key_id": "test-key-001",
+                    "batch_id": "err-anchor-1",
+                    "server_received_at": "2026-11-25T05:23:55.002239+00:00",
+                    "challenge": "3004cca834ba94d3f3d80d85bf38a9b672b2f3580e40eb2fed635594b27dbe88",
+                    "server_signature": "MEQCIDc2GL/EkSxkQfCgHJVgPDwZ+FrmcUWULbuFxwWPNEI7AiB43x5aRGEqMBSC32t1YbTJgSHmOm0qS27eqRZ+ohmpcA==",
+                    "chain_head_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                    "chain_tail_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                    "record_count": 2,
+                    "verification_status": "digest_anchored"
+                  }
+                },
+                {
+                  "type": "missing",
+                  "loc": [
+                    "body",
+                    "stored_at"
+                  ],
+                  "msg": "Field required",
+                  "input": {
+                    "anchor_id": "anchor-3ef78fb4fa339b96e825ac0b5f7d09f6",
+                    "key_id": "test-key-001",
+                    "batch_id": "err-anchor-1",
+                    "server_received_at": "2026-11-25T05:23:55.002239+00:00",
+                    "challenge": "3004cca834ba94d3f3d80d85bf38a9b672b2f3580e40eb2fed635594b27dbe88",
+                    "server_signature": "MEQCIDc2GL/EkSxkQfCgHJVgPDwZ+FrmcUWULbuFxwWPNEI7AiB43x5aRGEqMBSC32t1YbTJgSHmOm0qS27eqRZ+ohmpcA==",
+                    "chain_head_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                    "chain_tail_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+                    "record_count": 2,
+                    "verification_status": "digest_anchored"
+                  }
+                }
+              ]
+            }
+          },
+          "note": "real 422: the raw anchor response lacks the receipt's required unsigned fields (device_reported_start_time/end_time, stored_at); the client must assemble them"
+        },
+        {
+          "step": "validation-422-oversize-page",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/projects?limit=99999",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "items": [
+                {
+                  "project_id": "3a510856-61ac-4ebd-99c8-752712d53226",
+                  "name": "Offline-created project",
+                  "description": "",
+                  "site_address": "",
+                  "status": "active",
+                  "created_at": "2026-11-25T05:23:54.532285+00:00",
+                  "updated_at": "2026-11-25T05:23:54.532285+00:00",
+                  "archived_at": null
+                },
+                {
+                  "project_id": "03c5fe78-2a92-4c4c-9a0c-4c427fb54416",
+                  "name": "Tower B - Level 3 Retrofit",
+                  "description": "Structural retrofit, north facade",
+                  "site_address": "Nanjing Jiangbei",
+                  "status": "active",
+                  "created_at": "2026-11-25T05:23:51.978485+00:00",
+                  "updated_at": "2026-11-25T05:23:51.978485+00:00",
+                  "archived_at": null
+                }
+              ],
+              "total": 2,
+              "limit": 100,
+              "offset": 0
+            }
+          },
+          "note": "limit clamped to 100 - this returns 200, not 422 (documented clamp behavior)"
+        },
+        {
+          "step": "rate-limited-429",
+          "request": {
+            "method": "GET",
+            "path": "/api/v1/projects?limit=1",
+            "body": null,
+            "headers": {}
+          },
+          "response": {
+            "status": 429,
+            "headers": {},
+            "body": {
+              "detail": {
+                "code": "rate_limited",
+                "message": "device rate limit exceeded (60/60s window)",
+                "details": {}
+              }
+            }
+          }
+        }
+      ],
+      "note": "Every body below is a REAL response of the running server."
+    }
+  ]
+}
