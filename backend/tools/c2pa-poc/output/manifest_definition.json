@@ -1,0 +1,38 @@
+{
+  "claim_generator_info": [
+    {
+      "name": "workcam-c2pa-poc",
+      "version": "0.1.0",
+      "documentation": "B02-W019 PoC"
+    }
+  ],
+  "format": "image/jpeg",
+  "title": "WorkCam B02-W019 PoC JPEG",
+  "ingredients": [],
+  "assertions": [
+    {
+      "label": "c2pa.actions",
+      "data": {
+        "actions": [
+          {
+            "action": "c2pa.created",
+            "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/digitalCapture",
+            "when": "2026-11-25T10:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "label": "org.workcam.poc.evidence",
+      "data": {
+        "record_id": "b02w019-poc-record-0001",
+        "device_id": "test-device-001",
+        "photo_hash_sha256": "5dde5ba0d20ad2abdf424fbdd3c70984e41b1884fbc154e8161b019664e722df",
+        "capture_timestamp": "2026-11-25T10:00:00Z",
+        "location": "none",
+        "hash_alg": "sha256",
+        "note": "WorkCam evidence fields mapped as a custom assertion (PoC mapping experiment)"
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+.venv-poc/
+output/*.jpg
+output/*.heic
+output/*.tmp
+__pycache__/
