@@ -1,0 +1,118 @@
+{
+  "meta": {
+    "mode": "DESKTOP_SIMULATION",
+    "machine": "single desktop run, not an SLA",
+    "python": "3.12.10"
+  },
+  "phase1": {
+    "scale": {
+      "projects": 10,
+      "photos": 1000,
+      "metadata_target": 10000,
+      "metadata_rows_actual": 2000
+    },
+    "project_create_sync_batch": {
+      "n": 1,
+      "p50": 0.162,
+      "p95": 0.162,
+      "p99": 0.162,
+      "max": 0.162,
+      "mean": 0.162
+    },
+    "ingest": {
+      "photos": 1000,
+      "wall_s": 105.2,
+      "per_photo_upload": {
+        "n": 1000,
+        "p50": 0.064,
+        "p95": 0.09,
+        "p99": 0.105,
+        "max": 0.15,
+        "mean": 0.066
+      },
+      "throughput_per_s": 9.5
+    },
+    "annotations_sync": {
+      "records": 1000,
+      "per_batch_of_50": {
+        "n": 20,
+        "p50": 1.041,
+        "p95": 1.145,
+        "p99": 1.145,
+        "max": 1.145,
+        "mean": 1.049
+      }
+    },
+    "tags_notes_batch": {
+      "records": 1000
+    },
+    "queries": {
+      "projects_list": 0.0253,
+      "search_by_tag_40x": {
+        "n": 40,
+        "p50": 0.028,
+        "p95": 0.043,
+        "p99": 0.045,
+        "max": 0.045,
+        "mean": 0.029
+      },
+      "cursor_page_walk_500": {
+        "pages": 2,
+        "n": 2,
+        "p50": 0.05,
+        "p95": 0.05,
+        "p99": 0.05,
+        "max": 0.05,
+        "mean": 0.048
+      },
+      "photo_detail_30x": {
+        "n": 30,
+        "p50": 0.031,
+        "p95": 0.036,
+        "p99": 0.039,
+        "max": 0.039,
+        "mean": 0.03
+      },
+      "evidence_verify_20x": {
+        "n": 20,
+        "p50": 0.012,
+        "p95": 0.057,
+        "p99": 0.057,
+        "max": 0.057,
+        "mean": 0.014
+      },
+      "concurrent_reads_8x40": {
+        "wall_s": 5.01,
+        "errors": 0,
+        "n": 320,
+        "p50": 0.054,
+        "p95": 0.265,
+        "p99": 1.235,
+        "max": 2.243,
+        "mean": 0.101
+      },
+      "batch_watermark_25x10": {
+        "n": 10,
+        "p50": 2.021,
+        "p95": 2.466,
+        "p99": 2.466,
+        "max": 2.466,
+        "mean": 2.047
+      },
+      "report_generate_2x": {
+        "n": 2,
+        "p50": 0.547,
+        "p95": 0.547,
+        "p99": 0.547,
+        "max": 0.547,
+        "mean": 0.38
+      }
+    },
+    "memory": {
+      "query_suite_peak_mb": 0.3
+    },
+    "disk": {
+      "data_mb": 11.2
+    }
+  }
+}

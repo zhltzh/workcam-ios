@@ -1,0 +1,118 @@
+{
+  "meta": {
+    "mode": "DESKTOP_SIMULATION",
+    "machine": "single desktop run, not an SLA",
+    "python": "3.12.10"
+  },
+  "phase3": {
+    "scale": {
+      "projects": 100,
+      "photos": 10000,
+      "metadata_target": 100000,
+      "metadata_rows_actual": 20000
+    },
+    "project_create_sync_batch": {
+      "n": 2,
+      "p50": 0.857,
+      "p95": 0.857,
+      "p99": 0.857,
+      "max": 0.857,
+      "mean": 0.857
+    },
+    "ingest": {
+      "photos": 10000,
+      "wall_s": 1030.5,
+      "per_photo_upload": {
+        "n": 10000,
+        "p50": 0.062,
+        "p95": 0.09,
+        "p99": 0.13,
+        "max": 0.84,
+        "mean": 0.065
+      },
+      "throughput_per_s": 9.7
+    },
+    "annotations_sync": {
+      "records": 10000,
+      "per_batch_of_50": {
+        "n": 200,
+        "p50": 1.068,
+        "p95": 1.255,
+        "p99": 2.346,
+        "max": 3.093,
+        "mean": 1.054
+      }
+    },
+    "tags_notes_batch": {
+      "records": 10000
+    },
+    "queries": {
+      "projects_list": 0.0284,
+      "search_by_tag_40x": {
+        "n": 40,
+        "p50": 0.063,
+        "p95": 0.091,
+        "p99": 0.092,
+        "max": 0.092,
+        "mean": 0.065
+      },
+      "cursor_page_walk_500": {
+        "pages": 2,
+        "n": 2,
+        "p50": 0.071,
+        "p95": 0.071,
+        "p99": 0.071,
+        "max": 0.071,
+        "mean": 0.054
+      },
+      "photo_detail_30x": {
+        "n": 30,
+        "p50": 0.017,
+        "p95": 0.025,
+        "p99": 0.026,
+        "max": 0.026,
+        "mean": 0.017
+      },
+      "evidence_verify_20x": {
+        "n": 20,
+        "p50": 0.008,
+        "p95": 0.028,
+        "p99": 0.028,
+        "max": 0.028,
+        "mean": 0.008
+      },
+      "concurrent_reads_8x40": {
+        "wall_s": 11.94,
+        "errors": 0,
+        "n": 320,
+        "p50": 0.096,
+        "p95": 1.249,
+        "p99": 2.646,
+        "max": 3.104,
+        "mean": 0.254
+      },
+      "batch_watermark_25x10": {
+        "n": 10,
+        "p50": 2.138,
+        "p95": 2.471,
+        "p99": 2.471,
+        "max": 2.471,
+        "mean": 2.045
+      },
+      "report_generate_2x": {
+        "n": 2,
+        "p50": 0.29,
+        "p95": 0.29,
+        "p99": 0.29,
+        "max": 0.29,
+        "mean": 0.208
+      }
+    },
+    "memory": {
+      "query_suite_peak_mb": 0.3
+    },
+    "disk": {
+      "data_mb": 75.2
+    }
+  }
+}
