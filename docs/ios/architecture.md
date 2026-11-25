@@ -65,3 +65,12 @@ recreate a missing DER from a verified manifest and matching capture intent.
 Annotation sidecars extend the legacy marker with an optional shape and
 normalized points. Screen overlays, JPEG derivatives and PDF pages share the
 same annotation renderer.
+
+Night 05 stages project membership in the same directory as evidence capture
+and publishes the directory with one rename. Project browsing also resolves
+legacy external references and keeps their annotation paths. Multiple
+annotations use an atomic collection sidecar. Legacy single-marker sidecars
+are used only before a collection is saved. The issue store keeps snapshots
+of state, description, severity and photo roles. Delivery archives include
+originals, generated copies, annotation and issue data, reports, evidence
+metadata and SHA-256 inventories.

@@ -198,3 +198,22 @@ let repairedOriginal = try Data(contentsOf: signedFinal.appendingPathComponent("
 let repeatedRepair = try EvidenceStore.recoverPending(in: emptyExportRoot)
 precondition(repairedSidecar == 1 && repairedDER == exportedSignature && repairedOriginal == photo && repeatedRepair == 0)
 print("PASS matching signed intent restores only missing DER after verification, no duplicate")
+
+let failedWriteID = UUID()
+let projectLink = ProjectEvidenceLink(projectID: UUID(), timestamp: 42)
+do {
+    _ = try EvidenceStore.capture(photo, recordID: failedWriteID, projectLink: projectLink,
+                                  storageRoot: emptyExportRoot) { _, _ in
+        throw CocoaError(.fileWriteOutOfSpace)
+    }
+    fatalError("Write failure was accepted")
+} catch let error as CocoaError where error.code == .fileWriteOutOfSpace {}
+let failedWriteStage = emptyExportRoot.appendingPathComponent(".pending-" + failedWriteID.uuidString.lowercased())
+let failedWriteFinal = emptyExportRoot.appendingPathComponent(failedWriteID.uuidString.lowercased())
+let failedRecovery = try EvidenceStore.recoverPending(in: emptyExportRoot)
+precondition(failedRecovery == 0 && !FileManager.default.fileExists(atPath: failedWriteFinal.path))
+precondition(!FileManager.default.fileExists(atPath: failedWriteStage.appendingPathComponent("photo.jpg").path))
+let stagedLink = try JSONDecoder().decode(ProjectEvidenceLink.self, from: Data(contentsOf:
+    failedWriteStage.appendingPathComponent("project-link.json")))
+precondition(stagedLink.projectID == projectLink.projectID)
+print("PASS injected original write failure never publishes project association or evidence")

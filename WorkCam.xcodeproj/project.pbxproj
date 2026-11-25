@@ -16,6 +16,7 @@
 000000000000000000000301 = {isa = PBXBuildFile; fileRef = 000000000000000000000300; };
 000000000000000000000303 = {isa = PBXBuildFile; fileRef = 000000000000000000000302; };
 000000000000000000000305 = {isa = PBXBuildFile; fileRef = 000000000000000000000304; };
+		000000000000000000000503 = {isa = PBXBuildFile; fileRef = 000000000000000000000502; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,8 @@
 000000000000000000000300 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/TechLab/LidarLabView.swift; sourceTree = SOURCE_ROOT; };
 000000000000000000000302 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/TechLab/DepthGeometry.swift; sourceTree = SOURCE_ROOT; };
 000000000000000000000304 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/TechLab/LabArchive.swift; sourceTree = SOURCE_ROOT; };
+        000000000000000000000502 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests/UI/WorkflowTests.swift; sourceTree = SOURCE_ROOT; };
+        000000000000000000000501 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = WorkCamUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,6 +50,7 @@
 		000000000000000000000002 = {
 			isa = PBXGroup;
 			children = (
+                000000000000000000000502,
 				000000000000000000000200 /* Core/Security/Evidence.swift */,
 				000000000000000000000064 /* Core/Camera/CameraController.swift */,
 				000000000000000000000065 /* Core/Storage/CaptureStore.swift */,
@@ -70,6 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000005 /* WorkCam.app */,
+                000000000000000000000501,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -84,6 +89,14 @@
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
+
+/* Begin PBXContainerItemProxy section */
+        000000000000000000000508 = {isa = PBXContainerItemProxy; containerPortal = 000000000000000000000001; proxyType = 1; remoteGlobalIDString = 000000000000000000000006; remoteInfo = WorkCam; };
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+        000000000000000000000509 = {isa = PBXTargetDependency; target = 000000000000000000000006; targetProxy = 000000000000000000000508; };
+/* End PBXTargetDependency section */
 
 /* Begin PBXNativeTarget section */
 		000000000000000000000006 /* WorkCam */ = {
@@ -103,6 +116,17 @@
 			productReference = 000000000000000000000005 /* WorkCam.app */;
 			productType = "com.apple.product-type.application";
 		};
+        000000000000000000000500 = {
+            isa = PBXNativeTarget;
+            buildConfigurationList = 000000000000000000000505;
+            buildPhases = (000000000000000000000504);
+            buildRules = ();
+            dependencies = (000000000000000000000509);
+            name = WorkCamUITests;
+            productName = WorkCamUITests;
+            productReference = 000000000000000000000501;
+            productType = "com.apple.product-type.bundle.ui-testing";
+        };
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -123,6 +147,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+                000000000000000000000500,
 				000000000000000000000006 /* WorkCam */,
 			);
 		};
@@ -155,6 +180,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+        000000000000000000000504 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (000000000000000000000503); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
@@ -216,6 +242,34 @@
 			};
 			name = Release;
 		};
+        000000000000000000000506 = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                GENERATE_INFOPLIST_FILE = YES;
+                IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+                PRODUCT_BUNDLE_IDENTIFIER = com.example.workcam.uitests;
+                PRODUCT_NAME = "$(TARGET_NAME)";
+                SDKROOT = iphoneos;
+                SWIFT_VERSION = 5.0;
+                TARGETED_DEVICE_FAMILY = 1;
+                TEST_TARGET_NAME = WorkCam;
+            };
+            name = Debug;
+        };
+        000000000000000000000507 = {
+            isa = XCBuildConfiguration;
+            buildSettings = {
+                GENERATE_INFOPLIST_FILE = YES;
+                IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+                PRODUCT_BUNDLE_IDENTIFIER = com.example.workcam.uitests;
+                PRODUCT_NAME = "$(TARGET_NAME)";
+                SDKROOT = iphoneos;
+                SWIFT_VERSION = 5.0;
+                TARGETED_DEVICE_FAMILY = 1;
+                TEST_TARGET_NAME = WorkCam;
+            };
+            name = Release;
+        };
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -237,6 +291,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+        000000000000000000000505 = {isa = XCConfigurationList; buildConfigurations = (000000000000000000000506, 000000000000000000000507); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 /* End XCConfigurationList section */
 	};
 	rootObject = 000000000000000000000001 /* Project object */;
