@@ -196,7 +196,11 @@ def test_rc2_v1_to_latest_sequential_migration(tmp_path, monkeypatch):
     """P2: v1 -> ... -> latest STEP BY STEP (migrate() applies ALL
     pending at once by design; stepwise verification executes one
     migration script per step to prove each level is self-contained).
-    Updated in W011: 'latest' is now v6 (derivatives)."""
+    Updated in W011: 'latest' is now v6 (derivatives).
+    Updated in B02-W017: version numbers may SKIP (v10 here avoids
+    colliding with the B02-W014 branch's v9) - the walk iterates the
+    versions that actually exist, which is exactly what migrate()
+    does (sorted keys)."""
     import app.db as dbm
     import sqlite3
     db = tmp_path / "seq.db"
@@ -212,7 +216,7 @@ def test_rc2_v1_to_latest_sequential_migration(tmp_path, monkeypatch):
 
     monkeypatch.setenv("WORKCAM_BUSINESS_DB", str(db))
     latest = max(dbm.MIGRATIONS)
-    for version in range(2, latest + 1):
+    for version in [v for v in sorted(dbm.MIGRATIONS) if v > 1]:
         conn = sqlite3.connect(str(db))
         conn.execute("BEGIN IMMEDIATE")
         for stmt in dbm._split_statements(dbm.MIGRATIONS[version]):
