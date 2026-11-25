@@ -50,3 +50,10 @@ A human-added marker and note use a separate JSON sidecar. ImageIO applies
 orientation before resolving normalized coordinates. The watermark and A4
 site-photo PDF render from the originals and sidecars into separate temporary
 share files. Exported originals retain the camera JPEG bytes.
+
+Night 03 adds rear lens discovery and serialized input switching, a bounded
+thumbnail for the most recent saved capture, project archive metadata with
+legacy decoding, and local evidence inspection in project photo detail.
+Watermark preferences are stored locally. Rendering reads the original into
+an orientation-corrected bounded image and writes a separate protected JPEG.
+Site Photo PDF supports A4 and US Letter with system Quick Look previews.

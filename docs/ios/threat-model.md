@@ -44,3 +44,9 @@ the signature. Legacy project JPEGs and delivery files carry no signature claim.
 include fixed unverified labels. The original-share action sends the camera
 JPEG with its embedded metadata. The system share sheet can transfer data out
 of the app sandbox. Temporary export files can persist until system cleanup.
+
+Night 03 archive state changes only the project record and preserves photos
+and evidence. Watermark output is marked derivative and unverified, with
+device timestamps explicitly unverified. Camera flash and lens controls
+report only locally enumerated capability. Evidence detail uses the existing
+local inspection path and displays NOT_ATTESTED for remote hardware origin.

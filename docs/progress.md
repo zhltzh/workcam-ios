@@ -355,3 +355,26 @@ after restart, rendered output and device share are pending coordinated testing.
 纳入 QA 2af79cb、核心 b8f4b5a、界面 2536165。总控将项目拍摄连到统一证据存储，项目只保留事务引用。按上节四条基线命令中的无签名 Debug、Release、模拟器构建与证据回归原样复跑。三种构建均 BUILD SUCCEEDED（日志 /tmp/workcam-unified-integrated-{Debug,Release,Simulator}.log）。证据回归七组通过，包含完整签名、缺失/不匹配/孤立 DER、目标冲突和重试。App 功能验收仍需真机。测试开关符号扫描命令为 `nm "$wc_binary" | rg -c 'tamperReport|LidarLabView'`，扫描 Debug、Release App 内 WorkCam 开头的可执行文件及 dylib；基线 Debug 有匹配，Release 无匹配。
 
 候选在启动的 iPhone 18 Pro 模拟器执行 `xcrun simctl install "$wc_sim" /tmp/WorkCamUnified-Simulator/Build/Products/Debug-iphonesimulator/WorkCam.app` 与 `xcrun simctl launch --terminate-running-process "$wc_sim" com.example.workcam.dev` 成功。用 `xcrun simctl io "$wc_sim" screenshot "$wc_png"` 重拍启动后的首页，目视确认 Projects。路径见统一报告。
+
+## 2026-11-25 WorkCam Night 03
+
+Independent codex/workcam-mac-night-03 from 08cc07b. An early compile rejected
+an NSNumber for the Swift flash-mode array. Changed to the typed enum and
+rebuilt. Final code including Quick Look passed all four Xcode builds.
+
+```sh
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamNight03-Debug CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamNight03-Release CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/WorkCamNight03-Sim CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamNight03-Signed build
+xcrun swiftc -module-cache-path /tmp/night03-module Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/night03-evidence && /tmp/night03-evidence test-vectors/fixed-vectors.json
+xcrun swiftc -module-cache-path /tmp/night03-module Features/TechLab/DepthGeometry.swift Features/TechLab/LabArchive.swift Tests/Lidar/main.swift -o /tmp/night03-lidar && /tmp/night03-lidar
+xcrun swiftc -parse-as-library -module-cache-path /tmp/night03-module Core/Sync/SyncOutbox.swift Tests/Sync/main.swift -o /tmp/night03-sync && /tmp/night03-sync
+xcrun swiftc -module-cache-path /tmp/night03-module Core/Security/Evidence.swift Core/Storage/CaptureStore.swift "$wc_test/main.swift" -o "$wc_test/test" && "$wc_test/test"
+xcrun xctrace list devices
+```
+
+Evidence regression 7 groups passed, LiDAR 3 groups passed, and Mock outbox
+passed. The temporary archive fixture decoded legacy JSON without an archive
+flag and verified archive-flag round trip with stable ID and name. Physical
+iPhone listed offline. Xcode logs /tmp/workcam-night03-{Debug,Release,Sim,Signed}.log.

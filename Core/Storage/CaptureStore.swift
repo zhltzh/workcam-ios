@@ -9,6 +9,7 @@ struct CaptureStore {
 struct WorkProject: Codable, Identifiable, Sendable {
     let id: UUID
     var name: String
+    var archived: Bool? = nil
 }
 
 struct WorkPhoto: Identifiable, Sendable {
@@ -55,9 +56,19 @@ enum ProjectStore {
     static func rename(_ project: WorkProject, to name: String) throws -> WorkProject {
         var updated = project
         updated.name = name
-        let url = try directory(project.id).appendingPathComponent("project.json")
-        try JSONEncoder().encode(updated).write(to: url, options: .atomic)
+        try save(updated)
         return updated
+    }
+
+    static func setArchived(_ archived: Bool, for project: WorkProject) throws {
+        var updated = project
+        updated.archived = archived
+        try save(updated)
+    }
+
+    private static func save(_ project: WorkProject) throws {
+        let url = try directory(project.id).appendingPathComponent("project.json")
+        try JSONEncoder().encode(project).write(to: url, options: [.atomic, .completeFileProtection])
     }
 
     static func capture(_ data: Data, in project: WorkProject) throws -> URL {
