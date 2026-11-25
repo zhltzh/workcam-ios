@@ -125,7 +125,7 @@ def _sql(env):
 # ================================================== V9: migration
 
 
-def test_b02_v9_migration_carries_events_and_seq(b02_env):
+def test_b02_v9_migration_carries_events_and_seq(b02_env, monkeypatch):
     """v8 -> v9 rebuild keeps every event row AND the AUTOINCREMENT
     counter: the client cursor survives the upgrade and the seq only
     moves forward."""
@@ -150,8 +150,17 @@ def test_b02_v9_migration_carries_events_and_seq(b02_env):
     conn.execute("PRAGMA user_version = 8")
     conn.close()
     import app.db as dbm
-    applied = dbm.migrate(env.db)
-    assert applied == 1                     # exactly v9 was applied
+    # W022 RC2 premerge: the chain above v8 also holds the ALTER-type
+    # v12 (W015 remediation_note), which cannot be replayed against a
+    # schema that already carries the column - and this test database
+    # DOES carry it (the fixture migrated to latest). A real v8
+    # database never does. Apply v9 in isolation - exactly the next
+    # step migrate() takes for a real v8 database - then restore the
+    # full chain and jump to the post-upgrade steady state.
+    full_chain = dict(dbm.MIGRATIONS)
+    monkeypatch.setattr(dbm, "MIGRATIONS", {9: full_chain[9]})
+    assert dbm.migrate(env.db) == 1       # exactly v9 was applied
+    monkeypatch.setattr(dbm, "MIGRATIONS", full_chain)
     conn = _sql(env)
     assert conn.execute("PRAGMA user_version").fetchone()[0] == 9
     carried = conn.execute(
@@ -170,18 +179,28 @@ def test_b02_v9_migration_carries_events_and_seq(b02_env):
     new_seq = conn.execute(
         "SELECT MAX(seq) FROM mvp_sync_events").fetchone()[0]
     assert new_seq > max_seq               # counter carried forward
-    # replay is a no-op
+    # steady state: at the latest version migrate() is a no-op.
+    # Commit BEFORE the PRAGMA: python sqlite3 opens an implicit
+    # transaction on the INSERT above; an uncommitted close rolls
+    # the transaction back and user_version goes with it (found
+    # during the W022 RC2 premerge).
+    conn.commit()
+    conn.execute(f"PRAGMA user_version = {max(full_chain)}")
     conn.close()
     assert dbm.migrate(env.db) == 0
 
 
-def test_b02_v9_fresh_db_reaches_v9(tmp_path, monkeypatch):
+def test_b02_v9_fresh_db_reaches_latest(tmp_path, monkeypatch):
+    """Fresh DB reaches the LATEST schema version (v9 + everything
+    above it; W022 RC2 premerge renamed this from 'reaches v9' because
+    the chain keeps growing past v9)."""
     import app.db as dbm
     p = tmp_path / "fresh.db"
     monkeypatch.setenv("WORKCAM_BUSINESS_DB", str(p))
     dbm.migrate(p)
     conn = sqlite3.connect(str(p))
-    assert conn.execute("PRAGMA user_version").fetchone()[0] == 9
+    assert conn.execute("PRAGMA user_version").fetchone()[0] \
+        == max(dbm.MIGRATIONS)
     conn.close()
 
 
