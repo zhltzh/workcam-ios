@@ -50,3 +50,9 @@ and evidence. Watermark output is marked derivative and unverified, with
 device timestamps explicitly unverified. Camera flash and lens controls
 report only locally enumerated capability. Evidence detail uses the existing
 local inspection path and displays NOT_ATTESTED for remote hardware origin.
+
+A capture intent is a local crash-recovery record. It carries no signing or time
+claim. Recovery does not replace conflicting committed files or reinterpret
+mismatching originals. Failed exports remove their provisional export folder.
+The synthetic business workflow is compiled only for Debug Simulator and runs
+with isolated storage and an explicit launch argument.

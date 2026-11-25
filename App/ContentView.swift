@@ -6,10 +6,16 @@ struct ContentView: View {
     @State private var showExportMessage = false
     @State private var exportURL: URL?
     @State private var evidenceReport = "Local verification pending"
+    #if DEBUG && targetEnvironment(simulator)
+    @State private var fixtureResult: String?
+    #endif
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 24) {
                 Text("Trusted Capture Prototype").font(.title2)
+                #if DEBUG && targetEnvironment(simulator)
+                if let fixtureResult { Text(fixtureResult).font(.caption) }
+                #endif
                 VStack(alignment: .leading) {
                     Text("Camera Status").font(.headline)
                     Text("Open camera to check availability").foregroundStyle(.secondary)
@@ -59,6 +65,13 @@ struct ContentView: View {
             }
             .padding()
             .navigationTitle("WorkCam")
+            #if DEBUG && targetEnvironment(simulator)
+            .task {
+                if fixtureResult == nil, Night04Fixture.root != nil {
+                    fixtureResult = Night04Fixture.run()
+                }
+            }
+            #endif
             .alert("Evidence Export", isPresented: $showExportMessage) {
                 Button("OK", role: .cancel) { }
             } message: { Text(exportMessage) }

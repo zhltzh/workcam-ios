@@ -92,16 +92,32 @@ struct EvidenceStore {
             let id = String(name.dropFirst(prefix.count))
             guard UUID(uuidString: id) != nil else { continue }
             let destination = root.appendingPathComponent(id, isDirectory: true)
+            let metadataURL = stage.appendingPathComponent("record.json")
+            let signatureFile = stage.appendingPathComponent("signature.der")
             guard !files.fileExists(atPath: destination.path),
-                  let metadata = try? Data(contentsOf: stage.appendingPathComponent("record.json")),
+                  let photo = try? Data(contentsOf: stage.appendingPathComponent("photo.jpg")) else { continue }
+            if !files.fileExists(atPath: metadataURL.path),
+               !files.fileExists(atPath: signatureFile.path),
+               let intent = try? Data(contentsOf: stage.appendingPathComponent("capture-intent.sha256")),
+               Data(evidenceHash(photo).utf8) == intent {
+                let recovered = EvidenceRecord(photoID: id, sha256: evidenceHash(photo), status: "Unsigned",
+                                               failure: "Capture interrupted before signing completed")
+                guard (try? JSONEncoder().encode(recovered).write(to: metadataURL,
+                      options: [.atomic, .completeFileProtection])) != nil else { continue }
+            }
+            guard let metadata = try? Data(contentsOf: metadataURL),
                   let record = try? JSONDecoder().decode(EvidenceRecord.self, from: metadata),
                   record.photoID == id,
-                  let photo = try? Data(contentsOf: stage.appendingPathComponent("photo.jpg")),
                   (try? verify(record, photo: photo)) != nil else { continue }
-            let signatureFile = stage.appendingPathComponent("signature.der")
             if let manifest = record.manifest {
-                guard let signature = Data(base64Encoded: manifest.signature),
-                      (try? Data(contentsOf: signatureFile)) == signature else { continue }
+                guard let signature = Data(base64Encoded: manifest.signature) else { continue }
+                if !files.fileExists(atPath: signatureFile.path),
+                   let intent = try? Data(contentsOf: stage.appendingPathComponent("capture-intent.sha256")),
+                   intent == Data(record.sha256.utf8) {
+                    // The manifest signature already verified against the original above.
+                    try? signature.write(to: signatureFile, options: [.atomic, .completeFileProtection])
+                }
+                guard (try? Data(contentsOf: signatureFile)) == signature else { continue }
             } else if files.fileExists(atPath: signatureFile.path) {
                 continue
             }
@@ -115,7 +131,16 @@ struct EvidenceStore {
     }
 
     static func root() throws -> URL {
-        let base = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        let base: URL
+        #if DEBUG && targetEnvironment(simulator)
+        if let fixture = Night04Fixture.root {
+            base = fixture
+        } else {
+            base = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        }
+        #else
+        base = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        #endif
         var url = base.appendingPathComponent("Evidence", isDirectory: true)
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         var values = URLResourceValues()
@@ -129,7 +154,10 @@ struct EvidenceStore {
         let source = try sourceRoot ?? root()
         try recoverPending(in: source)
         let output = FileManager.default.temporaryDirectory.appendingPathComponent("WorkCam-Evidence-" + UUID().uuidString)
-        try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: output, withIntermediateDirectories: false,
+                                                attributes: [.protectionKey: FileProtectionType.complete])
+        var finished = false
+        defer { if !finished { try? FileManager.default.removeItem(at: output) } }
         var exportedCount = 0
         for item in try FileManager.default.contentsOfDirectory(at: source, includingPropertiesForKeys: nil) {
             guard UUID(uuidString: item.lastPathComponent) != nil else { continue }
@@ -150,6 +178,7 @@ struct EvidenceStore {
             }
         }
         guard exportedCount > 0 else { throw EvidenceError.noExportableRecords }
+        finished = true
         return output
     }
 
@@ -162,9 +191,12 @@ struct EvidenceStore {
         let stage = root.appendingPathComponent(".pending-" + id, isDirectory: true)
         try FileManager.default.createDirectory(at: stage, withIntermediateDirectories: false)
         let photo = stage.appendingPathComponent("photo.jpg")
+        let expectedHash = evidenceHash(data)
+        try Data(expectedHash.utf8).write(to: stage.appendingPathComponent("capture-intent.sha256"),
+                                         options: [.atomic, .completeFileProtection])
         try data.write(to: photo, options: [.atomic, .completeFileProtection])
         let hash = evidenceHash(try Data(contentsOf: photo))
-        guard hash == evidenceHash(data) else { throw EvidenceError.invalid }
+        guard hash == expectedHash else { throw EvidenceError.invalid }
         var record = EvidenceRecord(photoID: id, sha256: hash, status: "Unsigned")
         do {
             let key = try EvidenceKey.load()
@@ -175,7 +207,6 @@ struct EvidenceStore {
                 device_id: evidenceHash(publicData), signature: "", public_key: publicData.base64EncodedString())
             let signature = try key.signature(for: manifest.payload())
             manifest.signature = signature.derRepresentation.base64EncodedString()
-            try signature.derRepresentation.write(to: stage.appendingPathComponent("signature.der"), options: [.atomic, .completeFileProtection])
             record.manifest = manifest
             record.publicKeyID = evidenceHash(publicData)
             record.status = "Signed — local verification pending"
@@ -183,6 +214,9 @@ struct EvidenceStore {
             record.failure = String(describing: error)
         }
         try JSONEncoder().encode(record).write(to: stage.appendingPathComponent("record.json"), options: [.atomic, .completeFileProtection])
+        if let manifest = record.manifest, let signature = Data(base64Encoded: manifest.signature) {
+            try signature.write(to: stage.appendingPathComponent("signature.der"), options: [.atomic, .completeFileProtection])
+        }
         let final = root.appendingPathComponent(id, isDirectory: true)
         try FileManager.default.moveItem(at: stage, to: final)
         return final
