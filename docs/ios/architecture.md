@@ -80,3 +80,10 @@ report paths check that committed directory identity, original bytes and
 detached signature agree. ZIP preflights filesystem entries and includes
 local headers, central directory and trailer in its serialized byte cap.
 TM02 and TM32 parity runners are standalone desktop checks.
+
+Integration 02 adds an opt-in Backend Sync screen and a URLSession client.
+Endpoint-scoped credentials live in Keychain; the atomic protected journal
+stores frozen requests, dependencies, ID mappings and confirmed IDs.
+Chunk uploads hash read-only originals and reconcile server chunk indexes on
+retry. Only accepted receipts or confirmed original integrity advance the
+journal. TM01/TM10/TM12 diagnostics remain outside the app target.

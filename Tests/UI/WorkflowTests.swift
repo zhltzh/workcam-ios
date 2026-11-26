@@ -128,6 +128,18 @@ final class WorkflowTests: XCTestCase {
         save.tap()
     }
 
+    func testSwiftClientAgainstFixedBackend() throws {
+        guard ProcessInfo.processInfo.environment["WORKCAM_LIVE_TEST"] == "1" else {
+            throw XCTSkip("Start the fixed loopback backend and enable WORKCAM_LIVE_TEST.")
+        }
+        let app = XCUIApplication()
+        app.launchArguments = ["--int02-live"]
+        app.launch()
+        let result = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Swift live HTTP")).firstMatch
+        XCTAssertTrue(result.waitForExistence(timeout: 75))
+        XCTAssertEqual(result.label, "PASS · Swift live HTTP")
+    }
+
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
         for _ in 0..<6 where !element.isHittable { app.swipeUp(velocity: .slow) }
         for _ in 0..<6 where !element.isHittable { app.swipeDown(velocity: .slow) }

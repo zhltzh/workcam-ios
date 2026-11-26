@@ -17,6 +17,7 @@
 000000000000000000000303 = {isa = PBXBuildFile; fileRef = 000000000000000000000302; };
 000000000000000000000305 = {isa = PBXBuildFile; fileRef = 000000000000000000000304; };
 		000000000000000000000503 = {isa = PBXBuildFile; fileRef = 000000000000000000000502; };
+000000000000000000000601 = {isa = PBXBuildFile; fileRef = 000000000000000000000600; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +35,7 @@
 000000000000000000000304 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/TechLab/LabArchive.swift; sourceTree = SOURCE_ROOT; };
         000000000000000000000502 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests/UI/WorkflowTests.swift; sourceTree = SOURCE_ROOT; };
         000000000000000000000501 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = WorkCamUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+000000000000000000000600 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Sync/WorkCamAPI.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -169,6 +171,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000000301,
+                000000000000000000000601,
                 000000000000000000000303,
                 000000000000000000000305,
                 000000000000000000000201 /* Core/Security/Evidence.swift in Sources */,

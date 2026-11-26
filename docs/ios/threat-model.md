@@ -69,3 +69,9 @@ the CRLF grapheme cluster. A report status examines the detached DER and
 directory identity before stating local mathematical verification. ZIP
 size checks bound the final archive size, with transient memory for image
 decoding and archive construction still subject to device measurement.
+
+Backend Sync is user-initiated. The client accepts HTTPS and loopback-only
+HTTP, rejects redirects and retains the enrollment code only in memory.
+The outbox never stores bearer credentials and transports original bytes
+without rewriting them. Confirmation concerns server acceptance and file
+integrity. It does not establish scene authenticity or device attestation.
