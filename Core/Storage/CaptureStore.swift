@@ -255,10 +255,34 @@ struct DeliveryZIP {
     private var bytes = Data()
     private var directory = Data()
 
+    private let byteLimit: Int
+
+    init(byteLimit: Int = 128 * 1024 * 1024) {
+        self.byteLimit = min(max(22, byteLimit), 128 * 1024 * 1024)
+    }
+
+    private func checkBudget(name: String, size: Int) throws {
+        let length = name.utf8.count
+        // Local header, central header, both path copies, and end record.
+        let overhead = 30 + 46 + 2 * length + 22
+        guard length > 0, length <= Int(UInt16.max), entries.count < Int(UInt16.max),
+              size >= 0, size <= byteLimit - bytes.count - directory.count - overhead else {
+            throw CocoaError(.fileWriteOutOfSpace)
+        }
+    }
+
+    mutating func add(_ name: String, file: URL) throws {
+        let properties = try file.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
+        guard properties.isRegularFile == true, let size = properties.fileSize else {
+            throw CocoaError(.fileReadUnknown)
+        }
+        try checkBudget(name: name, size: size)
+        try add(name, data: Data(contentsOf: file, options: .mappedIfSafe))
+    }
+
     mutating func add(_ name: String, data: Data) throws {
+        try checkBudget(name: name, size: data.count)
         let path = Data(name.utf8)
-        guard !path.isEmpty, path.count <= Int(UInt16.max), entries.count < Int(UInt16.max),
-              data.count <= 128 * 1024 * 1024 - bytes.count else { throw CocoaError(.fileWriteOutOfSpace) }
         let offset = UInt32(bytes.count)
         let length = UInt32(data.count)
         let crc = Self.checksum(data)

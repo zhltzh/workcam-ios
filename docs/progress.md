@@ -441,3 +441,30 @@ photo, saving an annotation, watermarked preview and Quick Look PDF.
 Run 5 reached Quick Look but asserted an outdated system button label.
 The final run checks the observed Quick Look accessibility identifier.
 The final iOS Debug and Release builds passed. Code SHA f6774efde9577ec4e9fa03dd38424c210f07b448.
+
+## WorkCam Integration 01 — 2026-11-26
+
+```sh
+git merge-tree --write-tree origin/dev/mac-tech-lab origin/codex/workcam-mac-night-03
+git merge-tree --write-tree origin/codex/workcam-mac-night-03 origin/codex/workcam-mac-night-04
+git merge-tree --write-tree origin/codex/workcam-mac-night-04 origin/codex/workcam-mac-night-05
+git show 2b535a0:test-vectors/crosslang/tm02-protocol-vectors.json > /tmp/int01-tm02.json
+xcrun swiftc -module-cache-path /tmp/int01-cache Core/Security/Evidence.swift Tests/TM02/main.swift -o /tmp/int01-tm02 && /tmp/int01-tm02 /tmp/int01-tm02.json
+xcrun swiftc -module-cache-path /tmp/int01-cache Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/int01-evidence && /tmp/int01-evidence test-vectors/fixed-vectors.json
+xcrun swiftc -module-cache-path /tmp/int01-cache Core/Security/Evidence.swift Core/Storage/CaptureStore.swift Tests/ProjectStore/main.swift -o /tmp/int01-store && /tmp/int01-store "$wc_test"
+xcrun swiftc -module-cache-path /tmp/int01-cache Tests/TM32/main.swift -o /tmp/int01-tm32 && /tmp/int01-tm32 /tmp/int01-tm32.json
+xcodebuild -jobs 2 -project WorkCam.xcodeproj -scheme WorkCam -configuration "$wc_c" -destination generic/platform=iOS -derivedDataPath "/tmp/WorkCamInt01-$wc_c" CODE_SIGNING_ALLOWED=NO build
+xcodebuild -jobs 1 -project WorkCam.xcodeproj -scheme WorkCam-Workflow -configuration Debug -destination "platform=iOS Simulator,id=$wc_sim" -derivedDataPath /tmp/WorkCamNight05-UI -resultBundlePath /tmp/WorkCamInt01-UI-2.xcresult -parallel-testing-enabled NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES test
+"$wc_backend/venv312/bin/python" Tests/Integration01/live.py "$wc_backend/backend"
+xcrun xctrace list devices
+```
+
+Three local merge trees succeeded. Xcode initially exhausted compiler-plugin
+process resources. Reduced concurrency passed unsigned Debug and Release.
+Simulator fallback to arm64 passed all 3 XCUITests. Evidence regression passed
+10 groups. TM02 verified 96 DER/digests, 56 production canonical payloads, and
+4 rejected fixtures. TM32 matched 64 Python-generated state combinations.
+The Windows dependency lock was unavailable from the configured package index;
+Python 3.12 plus compatible floors ran 120 selected backend tests and the
+separate live HTTP smoke test. W018 accepted two historical records wrapped
+locally with the Windows package builder. Physical iPhone listed offline.

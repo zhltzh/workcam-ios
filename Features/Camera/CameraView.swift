@@ -571,7 +571,7 @@ private struct ProjectPhotoView: View {
                 }
                 Picker("Annotation Tool", selection: $tool) {
                     ForEach(AnnotationKind.allCases, id: \.self) { Text($0.rawValue) }
-                }
+                }.accessibilityIdentifier("annotationToolPicker")
                 Picker("Selected Annotation", selection: $selected) {
                     Text("New Annotation").tag(Int?.none)
                     ForEach(annotations.indices, id: \.self) { index in
@@ -785,20 +785,19 @@ private enum ProjectVisuals {
         try archive.add("issues.json", data: JSONEncoder().encode(issues))
         for (index, photo) in photos.enumerated() {
             let name = "photo-\(index + 1)"
-            let original = try Data(contentsOf: photo.url, options: .mappedIfSafe)
             let annotations = try ProjectStore.annotations(for: photo)
-            try archive.add("originals/\(name).jpg", data: original)
+            try archive.add("originals/\(name).jpg", file: photo.url)
             try archive.add("annotations/\(name).json", data: JSONEncoder().encode(annotations))
             let derivative = try watermark(photo: photo, annotations: annotations, template: .evidence,
                                            position: .bottomRight, label: "DERIVATIVE · UNVERIFIED")
             defer { try? FileManager.default.removeItem(at: derivative.deletingLastPathComponent()) }
-            try archive.add("derivatives/\(name).jpg", data: Data(contentsOf: derivative))
+            try archive.add("derivatives/\(name).jpg", file: derivative)
             if photo.localEntry.pathExtension == "evidence" {
                 let folder = photo.url.deletingLastPathComponent()
                 for file in ["record.json", "signature.der"] {
                     let url = folder.appendingPathComponent(file)
                     if FileManager.default.fileExists(atPath: url.path) {
-                        try archive.add("evidence/\(name)/\(file)", data: Data(contentsOf: url))
+                        try archive.add("evidence/\(name)/\(file)", file: url)
                     }
                 }
             }
@@ -806,7 +805,7 @@ private enum ProjectVisuals {
         for kind in [ReportKind.inspection, .evidence] {
             let pdf = try report(project: project, photos: photos, paper: paper, kind: kind)
             defer { try? FileManager.default.removeItem(at: pdf.deletingLastPathComponent()) }
-            try archive.add("reports/" + pdf.lastPathComponent, data: Data(contentsOf: pdf))
+            try archive.add("reports/" + pdf.lastPathComponent, file: pdf)
         }
         let manifest: [String: Any] = [
             "format": "WorkCam Offline Delivery v1", "project_id": project.id.uuidString,
@@ -818,8 +817,13 @@ private enum ProjectVisuals {
         let sums = archive.entries.map { "\($0.sha256)  \($0.name)" }.joined(separator: "\n") + "\n"
         try archive.add("SHA256SUMS", data: Data(sums.utf8))
         let url = try exportURL(name: "WorkCam Delivery.zip")
-        try archive.finish().write(to: url, options: [.atomic, .completeFileProtection])
-        return url
+        do {
+            try archive.finish().write(to: url, options: [.atomic, .completeFileProtection])
+            return url
+        } catch {
+            try? FileManager.default.removeItem(at: url.deletingLastPathComponent())
+            throw error
+        }
     }
 
     private static func evidenceSummary(_ photo: WorkPhoto) -> String {
@@ -828,7 +832,8 @@ private enum ProjectVisuals {
             let directory = photo.url.deletingLastPathComponent()
             let metadata = try Data(contentsOf: directory.appendingPathComponent("record.json"))
             let record = try JSONDecoder().decode(EvidenceRecord.self, from: metadata)
-            let result = try EvidenceStore.verify(record, photo: Data(contentsOf: photo.url, options: .mappedIfSafe))
+            let result = try EvidenceStore.verifyCommitted(record, in: directory,
+                photo: Data(contentsOf: photo.url, options: .mappedIfSafe))
             return result + " · Remote origin: NOT_ATTESTED"
         } catch { return "Evidence verification failed · Remote origin: NOT_ATTESTED" }
     }

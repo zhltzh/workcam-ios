@@ -7,7 +7,7 @@ final class WorkflowTests: XCTestCase {
 
     override func tearDown() {
         let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
-        screenshot.name = "Night 05 workflow final screen"
+        screenshot.name = "WorkCam workflow final screen"
         screenshot.lifetime = .keepAlways
         add(screenshot)
     }
@@ -82,6 +82,50 @@ final class WorkflowTests: XCTestCase {
         search.typeText("No Matching Project")
         XCTAssertFalse(app.buttons["Synthetic Test Site"].exists)
         XCTAssertTrue(app.staticTexts["No Projects"].exists)
+    }
+
+    func testAnnotationToolsAndIssueHistory() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--night04-fixture"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label BEGINSWITH %@", "PASS · Synthetic"))
+            .firstMatch.waitForExistence(timeout: 40))
+        app.buttons["Projects"].tap()
+        app.buttons["Synthetic Test Site"].tap()
+        let issues = app.buttons["Inspection Issues"]
+        reveal(issues, in: app)
+        issues.tap()
+        let fixtureIssue = app.buttons["Issue 1 · Synthetic issue"]
+        XCTAssertTrue(fixtureIssue.waitForExistence(timeout: 8))
+        fixtureIssue.tap()
+        let advance = app.buttons["Advance to resolved"]
+        reveal(advance, in: app)
+        advance.tap()
+        XCTAssertTrue(fixtureIssue.waitForExistence(timeout: 8))
+        fixtureIssue.tap()
+        XCTAssertTrue(app.staticTexts["Status: resolved"].waitForExistence(timeout: 8))
+        app.buttons["Close"].tap()
+        app.navigationBars["Inspection Issues"].buttons.firstMatch.tap()
+
+        let photo = app.buttons.matching(identifier: "projectPhotoRow").firstMatch
+        reveal(photo, in: app)
+        photo.tap()
+        let picker = app.descendants(matching: .any)["annotationToolPicker"].firstMatch
+        let canvas = app.descendants(matching: .any)["annotationCanvas"].firstMatch
+        for name in ["Numbered Marker", "Arrow", "Rectangle", "Ellipse", "Text", "Freehand"] {
+            reveal(picker, in: app)
+            picker.tap()
+            let option = app.buttons[name]
+            XCTAssertTrue(option.waitForExistence(timeout: 5))
+            option.tap()
+            reveal(canvas, in: app)
+            let start = canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.3))
+            let end = canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.52))
+            start.press(forDuration: 0.1, thenDragTo: end)
+        }
+        let save = app.buttons["Save Annotations"]
+        reveal(save, in: app)
+        save.tap()
     }
 
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
