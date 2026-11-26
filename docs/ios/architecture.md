@@ -74,3 +74,9 @@ are used only before a collection is saved. The issue store keeps snapshots
 of state, description, severity and photo roles. Delivery archives include
 originals, generated copies, annotation and issue data, reports, evidence
 metadata and SHA-256 inventories.
+
+Integration 01 keeps the current evidence wire format. The export and
+report paths check that committed directory identity, original bytes and
+detached signature agree. ZIP preflights filesystem entries and includes
+local headers, central directory and trailer in its serialized byte cap.
+TM02 and TM32 parity runners are standalone desktop checks.

@@ -63,3 +63,9 @@ record. Photo role associations are human-entered. ZIP CRC and SHA-256
 inventories can detect corruption independently after extraction. A recipient
 seeking authenticity must independently verify the signed record, its photo
 binding and a trusted key. No remote hardware provenance is established.
+
+Canonical payload fields reject CR and LF by UTF-8 byte value, including
+the CRLF grapheme cluster. A report status examines the detached DER and
+directory identity before stating local mathematical verification. ZIP
+size checks bound the final archive size, with transient memory for image
+decoding and archive construction still subject to device measurement.

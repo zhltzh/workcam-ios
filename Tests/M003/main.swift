@@ -89,12 +89,17 @@ print("PASS deleted manifest signature property and forged persisted verificatio
 
 // Public fixed-vector export fixture; never hardware evidence.
 let exportRoot = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-let committed = exportRoot.appendingPathComponent(UUID().uuidString)
+let committed = exportRoot.appendingPathComponent(record.photoID)
 try FileManager.default.createDirectory(at: committed, withIntermediateDirectories: true)
 defer { try? FileManager.default.removeItem(at: exportRoot) }
 try photo.write(to: committed.appendingPathComponent("photo.jpg"))
 try JSONEncoder().encode(record).write(to: committed.appendingPathComponent("record.json"))
 try Data("must never export".utf8).write(to: committed.appendingPathComponent("private-key-test-sentinel"))
+let committedDER = committed.appendingPathComponent("signature.der")
+fails { _ = try EvidenceStore.exportPackages(sourceRoot: exportRoot) }
+try Data([0]).write(to: committedDER)
+fails { _ = try EvidenceStore.exportPackages(sourceRoot: exportRoot) }
+try Data(base64Encoded: manifest.signature)!.write(to: committedDER)
 let exported = try EvidenceStore.exportPackages(sourceRoot: exportRoot)
 defer { try? FileManager.default.removeItem(at: exported) }
 let package = exported.appendingPathComponent(committed.lastPathComponent)

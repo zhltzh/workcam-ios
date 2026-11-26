@@ -19,7 +19,7 @@ struct EvidenceManifest: Codable {
         guard version == "1.1", location == nil, sequence_number >= 0, sequence_number <= 1_000_000,
               photo_hash.count == 64, photo_hash.allSatisfy({ "0123456789abcdef".contains($0) }) else { throw EvidenceError.invalid }
         let fields = [version, record_id, photo_hash, capture_timestamp, device_reported_time, device_id, previous_record_hash ?? "none"]
-        guard fields.allSatisfy({ !$0.contains("\n") && !$0.contains("\r") }) else { throw EvidenceError.invalid }
+        guard fields.allSatisfy({ !$0.utf8.contains(0x0a) && !$0.utf8.contains(0x0d) }) else { throw EvidenceError.invalid }
         return Data(([
             "WorkCam-Sig-v1.1", "version=\(version)", "record_id=\(record_id)",
             "sequence_number=\(sequence_number)", "previous_record_hash=\(previous_record_hash ?? "none")",
@@ -168,7 +168,7 @@ struct EvidenceStore {
             guard UUID(uuidString: item.lastPathComponent) != nil else { continue }
             let record = try JSONDecoder().decode(EvidenceRecord.self, from: Data(contentsOf: item.appendingPathComponent("record.json")))
             let photo = try Data(contentsOf: item.appendingPathComponent("photo.jpg"))
-            _ = try verify(record, photo: photo)
+            _ = try verifyCommitted(record, in: item, photo: photo)
             exportedCount += 1
             let destination = output.appendingPathComponent(item.lastPathComponent)
             try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
@@ -261,6 +261,21 @@ struct EvidenceStore {
         } catch { throw EvidenceError.invalid }
         guard key.isValidSignature(sig, for: try m.payload()) else { throw EvidenceError.invalid }
         return expectedPublicKey == nil ? "Signed — local verification passed; device key not checked" : "Signed — local verification passed; matches this installation key"
+    }
+
+    static func verifyCommitted(_ record: EvidenceRecord, in directory: URL, photo: Data,
+                                expectedPublicKey: Data? = nil) throws -> String {
+        guard let directoryID = UUID(uuidString: directory.lastPathComponent),
+              UUID(uuidString: record.photoID) == directoryID else { throw EvidenceError.invalid }
+        let result = try verify(record, photo: photo, expectedPublicKey: expectedPublicKey)
+        let detached = directory.appendingPathComponent("signature.der")
+        if let manifest = record.manifest {
+            guard let expected = Data(base64Encoded: manifest.signature),
+                  (try? Data(contentsOf: detached)) == expected else { throw EvidenceError.invalid }
+        } else {
+            guard !FileManager.default.fileExists(atPath: detached.path) else { throw EvidenceError.invalid }
+        }
+        return result
     }
 
     static func inspect(_ directory: URL, expectedPublicKey: Data? = nil) -> String {

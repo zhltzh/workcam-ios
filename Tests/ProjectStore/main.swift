@@ -22,3 +22,16 @@ let cleared = try ProjectStore.annotations(for: photo)
 let preserved = try Data(contentsOf: photoURL)
 precondition(cleared.isEmpty && preserved == original)
 print("PASS legacy project, six annotation shapes and styles, empty override and immutable original")
+
+let boundedFile = photoURL.deletingLastPathComponent().appendingPathComponent("boundary.bin")
+try Data(repeating: 0, count: 10).write(to: boundedFile)
+var exact = DeliveryZIP(byteLimit: 110)
+try exact.add("a", file: boundedFile)
+precondition(exact.finish().count == 110)
+var limited = DeliveryZIP(byteLimit: 109)
+do {
+    try limited.add("a", file: boundedFile)
+    fatalError("Oversize ZIP entry was accepted")
+} catch let error as CocoaError where error.code == .fileWriteOutOfSpace {}
+precondition(limited.entries.isEmpty && limited.finish().count == 22)
+print("PASS exact ZIP boundary includes headers and rejects over-budget file before adding")
