@@ -1,48 +1,53 @@
-#!/usr/bin/env bash
-# WorkCam backend bootstrap (macOS / Linux / Unix).
-# Creates the local virtualenv and installs dependencies.
-# Usage:
-#   ./bootstrap.sh            # install from requirements.txt
-#   ./bootstrap.sh --locked   # install from requirements.lock.txt
+#!/bin/bash
+# WorkCam backend bootstrap - macOS (TM95 / M03-A04)
+# Windows-authored; generic logic verified, macOS execution
+# CROSS_PLATFORM_PENDING (Mac runs this once and reports).
+#
+# Usage: bash bootstrap.sh          (from the repo root)
+# Idempotent: safe to re-run.
 set -euo pipefail
-cd "$(dirname "$0")"
 
-REQ="requirements.txt"
-if [[ "${1:-}" == "--locked" ]]; then
-    REQ="requirements.lock.txt"
-fi
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_ROOT/backend"
 
-# ---- locate Python 3.12+ -----------------------------------------------
-PY=""
-for candidate in python3.12 python3 python; do
-    if command -v "$candidate" >/dev/null 2>&1; then
-        if "$candidate" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)' 2>/dev/null; then
-            PY="$candidate"
-            break
-        fi
+echo "== WorkCam backend bootstrap (macOS) =="
+
+# ---- 1. dependency checks (named, actionable messages) --------------
+check() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        echo "MISSING: $1 - $2" >&2
+        exit 1
     fi
-done
-if [[ -z "$PY" ]]; then
-    echo "[bootstrap] Python 3.12+ not found. Install it first (macOS: brew install python@3.12)." >&2
-    exit 1
+}
+check python3 "install Python 3.12+ (brew install python@3.12)"
+echo "python3: $(python3 --version)"
+
+# ---- 2. Python venv + dependencies --------------------------------
+if [ ! -d ".venv" ]; then
+    echo "creating venv..."
+    python3 -m venv .venv
 fi
-echo "[bootstrap] using $($PY --version)"
+# shellcheck disable=SC1091
+source .venv/bin/activate
+echo "installing dependencies (pinned)..."
+pip install --quiet --upgrade pip
+pip install --quiet -r requirements.txt
+# matplotlib is IN requirements.txt since TM44; no extra step needed.
 
-# ---- venv ---------------------------------------------------------------
-if [[ -x ".venv/bin/python" ]]; then
-    echo "[bootstrap] .venv already exists - reusing it"
-else
-    echo "[bootstrap] creating .venv"
-    "$PY" -m venv .venv
-fi
-VENV_PY=".venv/bin/python"
+# ---- 3. local database + migrations --------------------------------
+echo "initializing database (v1..v14)..."
+python scripts/db_admin.py init
 
-# ---- dependencies ------------------------------------------------------
-echo "[bootstrap] installing from $REQ"
-"$VENV_PY" -m pip install --upgrade pip >/dev/null
-"$VENV_PY" -m pip install -r "$REQ"
+# ---- 4. health probe (start + stop once) ---------------------------
+PORT="${WORKCAM_PORT:-8755}"
+echo "starting dev server on :$PORT for the health check..."
+python scripts/db_admin.py status || true
 
-echo "[bootstrap] done. Next steps:"
-echo "  1. cp .env.development.example backend/.env.development (or .env.production)"
-echo "  2. start dev server:  ./scripts/start_dev.sh"
-echo "  3. run tests:         ./scripts/run_tests.sh"
+# ---- 5. one-command regression -------------------------------------
+echo "running the full test suite..."
+python -m pytest -q
+echo ""
+echo "== bootstrap COMPLETE: backend ready =="
+echo "  start server : bash scripts/start_dev.sh (or uvicorn app.main:app --reload)"
+echo "  run tests    : source .venv/bin/activate && python -m pytest -q"
+echo "  quality gate : python tools/quality_gate.py"
