@@ -468,3 +468,29 @@ The Windows dependency lock was unavailable from the configured package index;
 Python 3.12 plus compatible floors ran 120 selected backend tests and the
 separate live HTTP smoke test. W018 accepted two historical records wrapped
 locally with the Windows package builder. Physical iPhone listed offline.
+
+## WorkCam Integration 02 — 2026-11-27
+
+Base 7940fc8 from remote. The current GitHub snapshots of #20–#23 are
+open drafts and mergeable=true with immediate predecessor bases. No base
+was changed. Fixed backend 2b535a047e5f9e5c9c5091da949a591442b4ab61.
+
+```sh
+git fetch origin codex/workcam-mac-integration-01
+git switch -c codex/workcam-mac-integration-02 7940fc8
+xcodebuild -jobs 1 -project WorkCam.xcodeproj -scheme WorkCam -configuration "$wc_c" -destination generic/platform=iOS -derivedDataPath "/tmp/WorkCamInt01-$wc_c" CODE_SIGNING_ALLOWED=NO build
+/bin/bash /tmp/workcam-int02-run.sh 3
+/bin/bash /tmp/workcam-int02-run.sh 6
+xcrun swiftc -module-cache-path /tmp/int02-cache Core/Security/Evidence.swift Core/Sync/ProtocolDiagnostics.swift Tests/Protocol02/main.swift -o /tmp/int02-protocol && /tmp/int02-protocol /tmp/int01-tm02.json
+PYTHONPATH="$wc_fixed/backend" "$wc_fixed/venv312/bin/python" Tests/Integration02/verify_history.py "$wc_fixed" /tmp/workcam-r1-device-export http://127.0.0.1:18765
+xcrun xctrace list devices
+```
+
+The temporary simulator launcher is reproduced in
+Tests/Integration02/run-simulator.sh. Initial iOS compile identified actor
+Sendable violations; typed receipt values fixed them. Real HTTP test then
+caught the upload ID and integrity envelope differences. Token replacement
+exposed a backend replay audit nested SQLite write (30-second busy timeout).
+Enrollment alone uses a longer request timeout. The latest physical-device
+list places the iPhone offline. The historical proof command uses loopback
+and isolated W018 packaging, with no raw photos copied into Git.
