@@ -138,10 +138,17 @@ def oriented_pixel_to_upright(u: float, v: float, width: int,
     dimensions may swap):
       up (1): identity            -> (W, H)
       down (3): 180                -> (W, H)
-      left (8): rotate 90 CW       -> (H, W)
-      right (6): rotate 90 CCW     -> (H, W)
-    'portrait'/'landscape*' map to the EXIF numbers per AVCapture
-    docs (portrait = right(6) for back camera, etc.)."""
+      left: rotates to upright (H, W) - BEHAVIOR implements standard
+            EXIF 6 (0th row = visual right side); despite the name
+      right: rotates to upright (H, W) - BEHAVIOR implements standard
+            EXIF 8 (0th row = visual left side); despite the name
+    C02 FINDING: the left/right NAMES are transposed vs the EXIF
+    standard - the behavior is pinned and consistent Python<->Swift,
+    but callers reading EXIF tags MUST use the cross-reference test
+    (test_tm15_name_to_exif_cross_reference). New code should prefer
+    exif_oriented_pixel(exif=1..8) with the standard numbers.
+    'portrait'/'landscape*' map per AVCapture docs (portrait=right
+    for back camera, etc.)."""
     _require_finite(u, v)
     if width <= 0 or height <= 0:
         raise ValueError("non-positive dimensions")
