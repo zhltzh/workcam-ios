@@ -203,22 +203,31 @@ def gate_doc_links(results: list) -> None:
 
 
 def gate_sensitive_scan(results: list) -> None:
+    """A08 HARDENING: private-key PEMs are allowed ONLY for
+    fingerprints registered in the test-keys manifest - a whole-
+    directory whitelist can hide an unknown key; the manifest pins
+    every file's SHA-256 so a swapped key FAILS the gate."""
     import re as _re
     patterns = [_re.compile(
         rb"-----BEGIN (?:RSA |EC )?PRIVATE KEY-----")]
-    # test-keys/ holds PUBLISHED test-vector key PAIRS (RFC-style:
-    # the W018/T18 offline verifier needs the private half to SIGN
-    # the public vectors; real devices keep keys in Secure Enclave
-    # and NEVER persist them - these are throwaway reproducibility
-    # keys for an open-source repo with no user data). Any private
-    # key ANYWHERE ELSE is a failure.
-    allowlist_dirs = {"test-keys"}
+    manifest_path = ROOT / "test-keys" / "MANIFEST.sha256"
+    approved: set[str] = set()
+    if manifest_path.exists():
+        for line in manifest_path.read_text(encoding="utf-8").splitlines():
+            parts = line.split()
+            if len(parts) == 2:
+                approved.add(parts[0])
+    else:
+        results.append(("GATE-FAIL", "sensitive scan",
+                        "test-keys/MANIFEST.sha256 missing - every "
+                        "published test key must have its digest "
+                        "registered"))
+        return
     hits: list[str] = []
+    unregistered: list[str] = []
     for f in ROOT.rglob("*"):
         if not f.is_file() or ".venv" in f.parts \
                 or "__pycache__" in f.parts:
-            continue
-        if f.parent.name in allowlist_dirs and f.suffix == ".pem":
             continue
         try:
             data = f.read_bytes()
@@ -226,15 +235,34 @@ def gate_sensitive_scan(results: list) -> None:
             continue
         for pat in patterns:
             m = pat.search(data)
-            if m:
-                # a PEM header followed by base64 on the NEXT line is
-                # real key material; a header inside a string LITERAL
-                # (tests warning about keys, docs) is not. Distinguish
-                # by requiring actual key body bytes after the header.
-                after = data[m.end():m.end() + 128]
-                has_body = _re.match(rb"\s*[A-Za-z0-9+/]{16}", after)
-                if has_body:
-                    hits.append(str(f.relative_to(ROOT)))
+            if not m:
+                continue
+            after = data[m.end():m.end() + 128]
+            has_body = _re.match(rb"\s*[A-Za-z0-9+/]{16}", after)
+            if not has_body:
+                continue        # string literal, not real material
+            rel = str(f.relative_to(ROOT))
+            if f.parent.name == "test-keys" and f.suffix == ".pem":
+                digest = hashlib.sha256(data).hexdigest()
+                if digest in approved:
+                    continue     # REGISTERED published vector key
+                unregistered.append(f"{rel} (sha256 {digest[:16]}..)")
+                continue
+            hits.append(rel)
+    if hits or unregistered:
+        detail = []
+        if hits:
+            detail.append(f"UNAPPROVED locations: {hits[:3]}")
+        if unregistered:
+            detail.append(f"UNREGISTERED fingerprints: "
+                          f"{unregistered[:3]}")
+        results.append(("GATE-FAIL", "sensitive scan",
+                        "; ".join(detail)))
+    else:
+        results.append(("GATE-PASS", "sensitive scan",
+                        f"private keys only with registered "
+                        f"digests ({len(approved)} approved), zero "
+                        f"unregistered"))
     if hits:
         results.append(("GATE-FAIL", "sensitive scan",
                         f"private key material in {hits[:5]}"))
@@ -284,6 +312,74 @@ def gate_isolation(results: list) -> None:
                         "upload-experimental)"))
 
 
+import hashlib
+
+
+def gate_zip_safety(results: list) -> None:
+    """A08: the W018 CLI's zip-safety functions must hold against
+    the TM44 hostile set (bombs, traversal, case collisions)."""
+    code, out = run([sys.executable, "-m", "pytest",
+                     "tests/test_techlab/test_tm44_parser_fuzz.py"
+                     "::test_zip_bomb_rejected_by_size_guard",
+                     "tests/test_techlab/test_tm44_parser_fuzz.py"
+                     "::test_zip_traversal_variants_all_rejected",
+                     "tests/test_techlab/test_tm44_parser_fuzz.py"
+                     "::test_zip_case_collision_rejected",
+                     "-q"], cwd=ROOT)
+    if code != 0:
+        results.append(("GATE-FAIL", "ZIP safety",
+                        "hostile-zip protections regressed"))
+    else:
+        results.append(("GATE-PASS", "ZIP safety",
+                        "bombs + traversal + collisions rejected"))
+
+
+def gate_dependency_licenses(results: list) -> None:
+    """A08: every runtime dependency carries a known-permissive
+    license note. Only checks the pinned requirements set."""
+    ALLOWED = {  # name-prefix -> license
+        "fastapi": "MIT", "uvicorn": "BSD-3", "pydantic": "MIT",
+        "cryptography": "BSD-3/Apache-2", "pytest": "MIT",
+        "httpx": "BSD-3", "Pillow": "MIT-CMU",
+        "reportlab": "BSD-3", "matplotlib": "PSF-based",
+    }
+    reqs = (ROOT / "requirements.txt").read_text(encoding="utf-8")
+    unknown: list[str] = []
+    for line in reqs.splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        name = line.split(">=")[0].split(">")[0].split("<")[0].strip()
+        if not any(name.startswith(pfx) for pfx in ALLOWED):
+            unknown.append(name)
+    if unknown:
+        results.append(("GATE-FAIL", "dependency licenses",
+                        f"unreviewed: {unknown}"))
+    else:
+        results.append(("GATE-PASS", "dependency licenses",
+                        f"{len(ALLOWED)} known-permissive families"))
+
+
+def gate_handoff_manifest(results: list) -> None:
+    """A08: the Mac handoff pack must reference files that exist."""
+    handoff = ROOT.parent / "docs" / "mac" / "TM55-HANDOFF.md"
+    if not handoff.exists():
+        results.append(("GATE-SKIPPED", "Mac handoff manifest",
+                       "TM55-HANDOFF not on this branch"))
+        return
+    broken = []
+    text = handoff.read_text(encoding="utf-8")
+    for rel in re.findall(r"`((?:backend/|swift/|docs/|tools/|"
+                          r"test-vectors/)[\w./-]+)`", text):
+        if not (ROOT.parent / rel).exists():
+            broken.append(rel)
+    if broken:
+        results.append(("GATE-FAIL", "Mac handoff manifest",
+                        f"broken refs: {broken[:5]}"))
+    else:
+        results.append(("GATE-PASS", "Mac handoff manifest",
+                        "TM55 references resolve"))
+
+
 def main() -> int:
     results: list = []
     gates = [
@@ -296,6 +392,9 @@ def main() -> int:
         ("doc links", gate_doc_links),
         ("sensitive scan", gate_sensitive_scan),
         ("isolation", gate_isolation),
+        ("zip safety", gate_zip_safety),
+        ("dependency licenses", gate_dependency_licenses),
+        ("handoff manifest", gate_handoff_manifest),
     ]
     for name, fn in gates:
         print(f"[gate] {name} ...", flush=True)
