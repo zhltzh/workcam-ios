@@ -30,7 +30,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.models.capture import SignatureManifest
 from app.services.serialization import canonical_payload
@@ -56,6 +56,23 @@ class DerivativeRef(BaseModel):
     operation_seq: int
 
 
+def _safe_rel_path(v: str) -> str:
+    """TM44 fuzz finding: the manifest MODEL must refuse traversal
+    itself - the ZIP layer (check_zip_safety) guards extraction, but
+    a hostile package.json could still point a record's photo_file at
+    an arbitrary path INSIDE an unpacked directory tree. Rules: no
+    absolute paths, no drive letters, no '..' segments, no
+    backslashes, must be relative and inside the package."""
+    if not v or v.startswith(("/", "\\")) or len(v) > 1 and v[1] == ":":
+        raise ValueError(f"unsafe package path: {v!r}")
+    if "\\" in v:
+        raise ValueError(f"backslash in package path: {v!r}")
+    parts = v.split("/")
+    if ".." in parts or any(p == "" for p in parts[:-1]):
+        raise ValueError(f"traversal or empty segment in path: {v!r}")
+    return v
+
+
 class PackageRecord(BaseModel):
     record_id: str
     photo_file: str                 # relative path inside the package
@@ -64,6 +81,14 @@ class PackageRecord(BaseModel):
     location_meta: dict | None = None      # T02 LocationMetadata
     anchor_receipt_file: str | None = None  # optional
     derivatives: list[DerivativeRef] = []   # W-08
+
+    @field_validator("photo_file", "manifest_file",
+                    "anchor_receipt_file")
+    @classmethod
+    def _paths(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        return _safe_rel_path(v)
 
 
 class PackageManifest(BaseModel):

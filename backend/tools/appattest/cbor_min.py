@@ -1,4 +1,4 @@
-"""Minimal CBOR decoder (RFC 8949 subset) - dependency-free.
+﻿"""Minimal CBOR decoder (RFC 8949 subset) - dependency-free.
 
 Supports the major types App Attest objects actually use:
   0 uint, 1 negint, 2 bytes, 3 text, 4 array, 5 map, 6 tags (unwrap),
@@ -19,6 +19,12 @@ from typing import Any
 
 class CBORDecodeError(ValueError):
     pass
+
+
+# Defensive depth cap: real App Attest objects nest ~4 levels; a
+# 2000-deep crafted array would otherwise blow the recursion stack
+# (TM44 fuzz finding - the decoder is recursive-descent by design).
+_MAX_DEPTH = 64
 
 
 def _read_head(data: bytes, pos: int) -> tuple[int, int, int]:
@@ -54,7 +60,11 @@ def _read_head(data: bytes, pos: int) -> tuple[int, int, int]:
     raise CBORDecodeError(f"reserved additional info {info}")
 
 
-def _decode_one(data: bytes, pos: int) -> tuple[Any, int]:
+def _decode_one(data: bytes, pos: int, depth: int = 0) -> tuple[Any, int]:
+    if depth > _MAX_DEPTH:
+        raise CBORDecodeError(
+            f"nesting deeper than {_MAX_DEPTH} levels - not a legal "
+            f"App Attest object shape (and a stack-DoS guard)")
     major, arg, pos = _read_head(data, pos)
     if major == 0:
         return arg, pos
@@ -74,24 +84,24 @@ def _decode_one(data: bytes, pos: int) -> tuple[Any, int]:
     if major == 4:
         out = []
         for _ in range(arg):
-            item, pos = _decode_one(data, pos)
+            item, pos = _decode_one(data, pos, depth + 1)
             out.append(item)
         return out, pos
     if major == 5:
         out: dict = {}
         for _ in range(arg):
-            key, pos = _decode_one(data, pos)
+            key, pos = _decode_one(data, pos, depth + 1)
             if not isinstance(key, (str, int)):
                 raise CBORDecodeError("map keys must be text/int")
             if key in out:
                 raise CBORDecodeError(f"duplicate map key: {key!r}")
-            value, pos = _decode_one(data, pos)
+            value, pos = _decode_one(data, pos, depth + 1)
             out[key] = value
         return out, pos
     if major == 6:
         # tag: decode and return the INNER value with the tag attached
         # so callers can distinguish tagged data when needed
-        inner, pos = _decode_one(data, pos)
+        inner, pos = _decode_one(data, pos, depth + 1)
         return ("tag", arg, inner), pos
     if major == 7:
         if arg == 20:
@@ -103,7 +113,6 @@ def _decode_one(data: bytes, pos: int) -> tuple[Any, int]:
         if arg == 25:      # float16
             if pos + 2 > len(data):
                 raise CBORDecodeError("truncated float16")
-            import struct
             raw = data[pos:pos + 2]
             pos += 2
             h = int.from_bytes(raw, "big")
@@ -113,7 +122,11 @@ def _decode_one(data: bytes, pos: int) -> tuple[Any, int]:
             if exp == 0:
                 val = sign * frac * 2.0 ** -24
             elif exp == 31:
-                val = sign * float("inf") if frac == 0 else float("nan")
+                # NaN / Infinity have no business inside an App Attest
+                # object: the manifest layer rejects non-finite floats,
+                # so the DECODER hard-refuses them too (TM44 fuzz)
+                raise CBORDecodeError(
+                    "non-finite float16 (NaN/Inf) rejected")
             else:
                 val = sign * (1 + frac / 1024.0) * 2.0 ** (exp - 15)
             return val, pos
@@ -121,14 +134,26 @@ def _decode_one(data: bytes, pos: int) -> tuple[Any, int]:
             import struct
             if pos + 4 > len(data):
                 raise CBORDecodeError("truncated float32")
-            val = struct.unpack(">f", data[pos:pos + 4])[0]
-            return val, pos + 4
+            raw = data[pos:pos + 4]
+            pos += 4
+            import math
+            val = struct.unpack(">f", raw)[0]
+            if math.isnan(val) or math.isinf(val):
+                raise CBORDecodeError(
+                    "non-finite float32 (NaN/Inf) rejected")
+            return val, pos
         if arg == 27:      # float64
             import struct
             if pos + 8 > len(data):
                 raise CBORDecodeError("truncated float64")
-            val = struct.unpack(">d", data[pos:pos + 8])[0]
-            return val, pos + 8
+            raw = data[pos:pos + 8]
+            pos += 8
+            import math
+            val = struct.unpack(">d", raw)[0]
+            if math.isnan(val) or math.isinf(val):
+                raise CBORDecodeError(
+                    "non-finite float64 (NaN/Inf) rejected")
+            return val, pos
         raise CBORDecodeError(f"unsupported simple value {arg}")
     raise CBORDecodeError(f"unknown major type {major}")
 

@@ -56,7 +56,8 @@
     "sequence_number": {
       "type": "integer",
       "minimum": 0,
-      "description": "monotonic per-device record counter; 0 allowed for first record"
+      "maximum": 1000000,
+      "description": "monotonic per-device record counter; 0 allowed for first record; upper bound mirrors the production SignatureManifest model (TM44 fuzz found the doc/model gap)"
     },
     "previous_record_hash": {
       "oneOf": [

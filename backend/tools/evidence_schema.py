@@ -92,9 +92,10 @@ def validate_record(rec: dict) -> SchemaReport:
         r.fail("record_id must be 16-64 lowercase hex")
     if "sequence_number" in rec and not (
             isinstance(rec["sequence_number"], int)
-            and rec["sequence_number"] >= 0
+            and 0 <= rec["sequence_number"] <= 1_000_000
             and not isinstance(rec["sequence_number"], bool)):
-        r.fail("sequence_number must be a non-negative integer")
+        r.fail("sequence_number must be an integer in 0..1000000 "
+               "(production model bound, TM44)")
     if "photo_hash" in rec and not _HEX64.match(str(rec["photo_hash"])):
         r.fail("photo_hash must be 64 lowercase hex")
     if "previous_record_hash" in rec and rec["previous_record_hash"] is not None \
