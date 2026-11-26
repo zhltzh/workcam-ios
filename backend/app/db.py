@@ -624,10 +624,21 @@ def db(db_path: Path | None = None):
     conn = connect(db_path)
     try:
         conn.execute("BEGIN IMMEDIATE")
+    except sqlite3.OperationalError:
+        # BEGIN itself failed (locked db / busy timeout): there is NO
+        # transaction to roll back - close and re-raise, never a
+        # cascading 'cannot rollback - no transaction is active'
+        # (TM45 fault-injection finding)
+        conn.close()
+        raise
+    try:
         yield conn
         conn.execute("COMMIT")
     except Exception:
-        conn.execute("ROLLBACK")
+        try:
+            conn.execute("ROLLBACK")
+        except sqlite3.OperationalError:
+            pass    # transaction already gone (e.g. broken by DDL)
         raise
     finally:
         conn.close()
