@@ -20,6 +20,7 @@ let package = Package(
         .library(name: "WorkCamEvidence", targets: ["WorkCamEvidence"]),
         .library(name: "WorkCamTime", targets: ["WorkCamTime"]),
         .library(name: "WorkCamLocation", targets: ["WorkCamLocation"]),
+        .library(name: "WorkCamSync", targets: ["WorkCamSync"]),
     ],
     targets: [
         .target(name: "WorkCamGeometry"),
@@ -27,11 +28,12 @@ let package = Package(
         .target(name: "WorkCamEvidence", dependencies: []),
         .target(name: "WorkCamTime", dependencies: []),
         .target(name: "WorkCamLocation", dependencies: ["WorkCamGeometry"]),
+        .target(name: "WorkCamSync", dependencies: ["WorkCamModels"]),
         .testTarget(
             name: "WorkCamCoreTests",
             dependencies: [
                 "WorkCamGeometry", "WorkCamModels", "WorkCamEvidence",
-                "WorkCamTime", "WorkCamLocation",
+                "WorkCamTime", "WorkCamLocation", "WorkCamSync",
             ],
             resources: [
                 // copied verbatim from
