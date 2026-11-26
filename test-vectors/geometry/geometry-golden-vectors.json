@@ -1,0 +1,898 @@
+{
+ "version": "geometry-vectors/1.0",
+ "generator": "backend/tools/tm88_gen_geometry_vectors.py",
+ "reference": "Python 3.12 implementation at the same SHA",
+ "swift_status": "CROSS_PLATFORM_PENDING - Mac executes the port against THIS file; Windows certifies the Python side only",
+ "cases": [
+  {
+   "name": "backproject-0.0-0.0-3.0",
+   "category": "backprojection",
+   "inputs": {
+    "fx": 1500.0,
+    "fy": 1400.0,
+    "cx": 640.0,
+    "cy": 480.0,
+    "width": 1280,
+    "height": 960,
+    "u": 0.0,
+    "v": 0.0,
+    "depth": 3.0
+   },
+   "expected": {
+    "x": -1.28,
+    "y": 1.0285714285714285,
+    "z": -3.0,
+    "u_roundtrip": 0.0,
+    "v_roundtrip": 5.684341886080802e-14
+   },
+   "tolerance": 1e-06
+  },
+  {
+   "name": "backproject-640.0-480.0-1.0",
+   "category": "backprojection",
+   "inputs": {
+    "fx": 1500.0,
+    "fy": 1400.0,
+    "cx": 640.0,
+    "cy": 480.0,
+    "width": 1280,
+    "height": 960,
+    "u": 640.0,
+    "v": 480.0,
+    "depth": 1.0
+   },
+   "expected": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": -1.0,
+    "u_roundtrip": 640.0,
+    "v_roundtrip": 480.0
+   },
+   "tolerance": 1e-06
+  },
+  {
+   "name": "backproject-1279.0-959.0-2.5",
+   "category": "backprojection",
+   "inputs": {
+    "fx": 1500.0,
+    "fy": 1400.0,
+    "cx": 640.0,
+    "cy": 480.0,
+    "width": 1280,
+    "height": 960,
+    "u": 1279.0,
+    "v": 959.0,
+    "depth": 2.5
+   },
+   "expected": {
+    "x": 1.065,
+    "y": -0.8553571428571428,
+    "z": -2.5,
+    "u_roundtrip": 1279.0,
+    "v_roundtrip": 959.0
+   },
+   "tolerance": 1e-06
+  },
+  {
+   "name": "backproject-100.5-900.25-0.75",
+   "category": "backprojection",
+   "inputs": {
+    "fx": 1500.0,
+    "fy": 1400.0,
+    "cx": 640.0,
+    "cy": 480.0,
+    "width": 1280,
+    "height": 960,
+    "u": 100.5,
+    "v": 900.25,
+    "depth": 0.75
+   },
+   "expected": {
+    "x": -0.26975000000000005,
+    "y": -0.22513392857142855,
+    "z": -0.75,
+    "u_roundtrip": 100.49999999999989,
+    "v_roundtrip": 900.25
+   },
+   "tolerance": 1e-06
+  },
+  {
+   "name": "backproject-320.0-240.0-12.0",
+   "category": "backprojection",
+   "inputs": {
+    "fx": 1500.0,
+    "fy": 1400.0,
+    "cx": 640.0,
+    "cy": 480.0,
+    "width": 1280,
+    "height": 960,
+    "u": 320.0,
+    "v": 240.0,
+    "depth": 12.0
+   },
+   "expected": {
+    "x": -2.56,
+    "y": 2.057142857142857,
+    "z": -12.0,
+    "u_roundtrip": 320.0,
+    "v_roundtrip": 240.00000000000003
+   },
+   "tolerance": 1e-06
+  },
+  {
+   "name": "orientation-up",
+   "category": "orientation",
+   "inputs": {
+    "width": 1920,
+    "height": 1080,
+    "orientation": "up",
+    "u": 100.0,
+    "v": 200.0
+   },
+   "expected": {
+    "u": 100.0,
+    "v": 200.0,
+    "upright_width": 1920,
+    "upright_height": 1080
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "orientation-down",
+   "category": "orientation",
+   "inputs": {
+    "width": 1920,
+    "height": 1080,
+    "orientation": "down",
+    "u": 1919.0,
+    "v": 0.0
+   },
+   "expected": {
+    "u": 0.0,
+    "v": 1079.0,
+    "upright_width": 1920,
+    "upright_height": 1080
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "orientation-right",
+   "category": "orientation",
+   "inputs": {
+    "width": 1920,
+    "height": 1080,
+    "orientation": "right",
+    "u": 1919.0,
+    "v": 0.0
+   },
+   "expected": {
+    "u": 0.0,
+    "v": 0.0,
+    "upright_width": 1080,
+    "upright_height": 1920
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "orientation-left",
+   "category": "orientation",
+   "inputs": {
+    "width": 1920,
+    "height": 1080,
+    "orientation": "left",
+    "u": 0.0,
+    "v": 1079.0
+   },
+   "expected": {
+    "u": 0.0,
+    "v": 0.0,
+    "upright_width": 1080,
+    "upright_height": 1920
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "depth-to-color-256x192-to-1920x1080",
+   "category": "depth_mapping",
+   "inputs": {
+    "du": 128.0,
+    "dv": 64.0,
+    "depth_width": 256,
+    "depth_height": 192,
+    "color_width": 1920,
+    "color_height": 1080
+   },
+   "expected": {
+    "u": 963.25,
+    "v": 362.3125
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "distance-345",
+   "category": "distance",
+   "inputs": {
+    "a": [
+     0,
+     0,
+     0
+    ],
+    "b": [
+     3,
+     4,
+     0
+    ]
+   },
+   "expected": {
+    "meters": 5.0
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "horizontal-vertical-split",
+   "category": "distance",
+   "inputs": {
+    "a": [
+     0,
+     0,
+     10
+    ],
+    "b": [
+     30,
+     40,
+     13
+    ]
+   },
+   "expected": {
+    "horizontal": 50.0,
+    "vertical": 3
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "polyline-zigzag",
+   "category": "distance",
+   "inputs": {
+    "points": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      3,
+      0,
+      0
+     ],
+     [
+      3,
+      4,
+      0
+     ],
+     [
+      3,
+      4,
+      12
+     ]
+    ]
+   },
+   "expected": {
+    "length": 19.0,
+    "horizontal_length": 7.0
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "angle-90",
+   "category": "angle",
+   "inputs": {
+    "a": [
+     1,
+     0,
+     0
+    ],
+    "b": [
+     0,
+     1,
+     0
+    ]
+   },
+   "expected": {
+    "degrees": 90.0
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "slope-1-in-4",
+   "category": "slope",
+   "inputs": {
+    "horizontal": 4.0,
+    "vertical": 1.0
+   },
+   "expected": {
+    "percent": 25.0,
+    "degrees": 14.036243467926479
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "plumb-perfect",
+   "category": "slope",
+   "inputs": {
+    "normal": [
+     0,
+     0,
+     1
+    ]
+   },
+   "expected": {
+    "deviation_deg": 0.0
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "meters-to-feet",
+   "category": "units",
+   "inputs": {
+    "meters": 3.048
+   },
+   "expected": {
+    "feet": 10.0
+   },
+   "tolerance": 1e-12
+  },
+  {
+   "name": "plane-horizontal-exact",
+   "category": "plane",
+   "inputs": {
+    "points": [
+     [
+      0,
+      0,
+      5
+     ],
+     [
+      1,
+      0,
+      5
+     ],
+     [
+      0,
+      1,
+      5
+     ],
+     [
+      1,
+      1,
+      5
+     ],
+     [
+      0.5,
+      0.5,
+      5
+     ]
+    ]
+   },
+   "expected": {
+    "normal": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "d": -5.0,
+    "residual_rms": 0.0
+   },
+   "tolerance": 1e-12
+  },
+  {
+   "name": "plane-z-eq-2x-plus-3y",
+   "category": "plane",
+   "inputs": {
+    "points": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      1,
+      0,
+      2
+     ],
+     [
+      0,
+      1,
+      3
+     ],
+     [
+      1,
+      1,
+      5
+     ],
+     [
+      2,
+      2,
+      10
+     ]
+    ]
+   },
+   "expected": {
+    "normal": [
+     -0.5345224838248491,
+     -0.8017837257372729,
+     0.2672612419124244
+    ],
+    "d": -0.0
+   },
+   "tolerance": 1e-09,
+   "note": "plane z=2x+3y; normal is +-(-2,-3,1)/n with z-up convention"
+  },
+  {
+   "name": "ransac-outlier-rejection",
+   "category": "plane",
+   "inputs": {
+    "plane_points": [
+     [
+      0.0,
+      0.0,
+      3.0
+     ],
+     [
+      0.0,
+      0.5,
+      3.0
+     ],
+     [
+      0.0,
+      1.0,
+      3.0
+     ],
+     [
+      0.0,
+      1.5,
+      3.0
+     ],
+     [
+      0.0,
+      2.0,
+      3.0
+     ],
+     [
+      0.5,
+      0.0,
+      3.0
+     ],
+     [
+      0.5,
+      0.5,
+      3.0
+     ],
+     [
+      0.5,
+      1.0,
+      3.0
+     ],
+     [
+      0.5,
+      1.5,
+      3.0
+     ],
+     [
+      0.5,
+      2.0,
+      3.0
+     ],
+     [
+      1.0,
+      0.0,
+      3.0
+     ],
+     [
+      1.0,
+      0.5,
+      3.0
+     ],
+     [
+      1.0,
+      1.0,
+      3.0
+     ],
+     [
+      1.0,
+      1.5,
+      3.0
+     ],
+     [
+      1.0,
+      2.0,
+      3.0
+     ],
+     [
+      1.5,
+      0.0,
+      3.0
+     ],
+     [
+      1.5,
+      0.5,
+      3.0
+     ],
+     [
+      1.5,
+      1.0,
+      3.0
+     ],
+     [
+      1.5,
+      1.5,
+      3.0
+     ],
+     [
+      1.5,
+      2.0,
+      3.0
+     ]
+    ],
+    "outliers": [
+     [
+      1.0,
+      1.0,
+      4.0
+     ],
+     [
+      2.0,
+      0.5,
+      2.0
+     ],
+     [
+      0.5,
+      2.0,
+      4.5
+     ],
+     [
+      1.5,
+      1.5,
+      5.0
+     ],
+     [
+      0.0,
+      0.5,
+      1.0
+     ]
+    ],
+    "threshold": 0.05,
+    "iterations": 300,
+    "seed": 42
+   },
+   "expected": {
+    "normal": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "inlier_ratio": 0.8,
+    "used_points": 20
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "classify-wall",
+   "category": "plane_class",
+   "inputs": {
+    "points": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      1,
+      0
+     ],
+     [
+      0,
+      0,
+      3
+     ],
+     [
+      0,
+      1,
+      3
+     ]
+    ],
+    "up": [
+     0,
+     0,
+     1
+    ]
+   },
+   "expected": {
+    "label": "wall_candidate"
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "area-l-shape",
+   "category": "area",
+   "inputs": {
+    "vertices": [
+     [
+      0,
+      0
+     ],
+     [
+      6,
+      0
+     ],
+     [
+      6,
+      3
+     ],
+     [
+      3,
+      3
+     ],
+     [
+      3,
+      6
+     ],
+     [
+      0,
+      6
+     ]
+    ]
+   },
+   "expected": {
+    "abs_area": 27.0
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "area-parallelogram-tilted",
+   "category": "area",
+   "inputs": {
+    "points": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      2,
+      0,
+      4
+     ],
+     [
+      2,
+      4,
+      4
+     ],
+     [
+      0,
+      4,
+      0
+     ]
+    ],
+    "plane_normal": [
+     -0.8944271909999159,
+     -0.0,
+     0.4472135954999579
+    ],
+    "plane_d": -0.0
+   },
+   "expected": {
+    "area_sqm": 17.88854381999832
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "volume-extrusion",
+   "category": "volume",
+   "inputs": {
+    "base_area_sqm": 10.0,
+    "height_m": 3.0
+   },
+   "expected": {
+    "cubic_meters": 30.0
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "volume-bounding-box",
+   "category": "volume",
+   "inputs": {
+    "points": [
+     [
+      0,
+      0,
+      0
+     ],
+     [
+      2,
+      0,
+      0
+     ],
+     [
+      0,
+      3,
+      0
+     ],
+     [
+      0,
+      0,
+      4
+     ]
+    ]
+   },
+   "expected": {
+    "cubic_meters": 24
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "sigma-distance-combine",
+   "category": "propagation",
+   "inputs": {
+    "sigma_a": 0.03,
+    "sigma_b": 0.04
+   },
+   "expected": {
+    "sigma": 0.05
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "sigma-area-rectangle",
+   "category": "propagation",
+   "inputs": {
+    "w": 4.0,
+    "h": 3.0,
+    "sigma_w": 0.02,
+    "sigma_h": 0.03
+   },
+   "expected": {
+    "sigma_sqm": 0.1341640786499874
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "repeatability-four-shots",
+   "category": "propagation",
+   "inputs": {
+    "values": [
+     10.0,
+     10.02,
+     9.98,
+     10.01
+    ]
+   },
+   "expected": {
+    "std": 0.017078251276598965
+   },
+   "tolerance": 1e-06
+  },
+  {
+   "name": "haversine-shanghai-short-hop",
+   "category": "geo",
+   "inputs": {
+    "a": [
+     31.2304,
+     121.4737
+    ],
+    "b": [
+     31.2397,
+     121.49
+    ]
+   },
+   "expected": {
+    "meters": 1865.182825111352
+   },
+   "tolerance": 1e-06
+  },
+  {
+   "name": "antimeridian-short-arc",
+   "category": "geo",
+   "inputs": {
+    "a": [
+     0.0,
+     179.999
+    ],
+    "b": [
+     0.0,
+     -179.999
+    ]
+   },
+   "expected": {
+    "meters": 222.63898159036145
+   },
+   "tolerance": 1e-06,
+   "note": "must be ~222m, never the long way"
+  },
+  {
+   "name": "ecef-shanghai",
+   "category": "geo",
+   "inputs": {
+    "lat": 31.2304,
+    "lon": 121.4737,
+    "alt": 10.0
+   },
+   "expected": {
+    "x": -2850077.9730325066,
+    "y": 4655700.172654971,
+    "z": 3287768.3408621196
+   },
+   "tolerance": 0.001
+  },
+  {
+   "name": "enu-east-001-deg-lon",
+   "category": "geo",
+   "inputs": {
+    "origin": [
+     31.0,
+     121.0
+    ],
+    "point": [
+     31.0,
+     121.001
+    ]
+   },
+   "expected": {
+    "east": 95.50426236809209,
+    "north": 0.00042924950116329796,
+    "up": -0.0007143911375990797
+   },
+   "tolerance": 0.001
+  },
+  {
+   "name": "geofence-inside",
+   "category": "geo_fence",
+   "inputs": {
+    "vertices": [
+     [
+      31.0,
+      121.0
+     ],
+     [
+      31.0,
+      121.01
+     ],
+     [
+      31.01,
+      121.01
+     ],
+     [
+      31.01,
+      121.0
+     ]
+    ],
+    "point": [
+     31.005,
+     121.005
+    ]
+   },
+   "expected": {
+    "contains": true
+   },
+   "tolerance": 1e-09
+  },
+  {
+   "name": "bearing-north",
+   "category": "geo",
+   "inputs": {
+    "a": [
+     31.0,
+     121.0
+    ],
+    "b": [
+     32.0,
+     121.0
+    ]
+   },
+   "expected": {
+    "degrees": 0.0
+   },
+   "tolerance": 1e-06
+  }
+ ]
+}
