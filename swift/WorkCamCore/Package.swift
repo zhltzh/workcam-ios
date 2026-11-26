@@ -28,7 +28,9 @@ let package = Package(
         .target(name: "WorkCamEvidence", dependencies: []),
         .target(name: "WorkCamTime", dependencies: []),
         .target(name: "WorkCamLocation", dependencies: ["WorkCamGeometry"]),
-        .target(name: "WorkCamSync", dependencies: ["WorkCamModels"]),
+        .target(name: "WorkCamSync", dependencies: [
+            "WorkCamModels", "WorkCamEvidence",
+        ]),
         .testTarget(
             name: "WorkCamCoreTests",
             dependencies: [
