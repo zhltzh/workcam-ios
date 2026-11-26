@@ -520,6 +520,31 @@ CREATE TABLE IF NOT EXISTS mvp_photo_exports (
     CREATE INDEX IF NOT EXISTS idx_devices_status
         ON mvp_devices(status, device_id);
     """,
+    # v14 (TM35): resumable chunked-upload sessions. Chunks land on
+    # disk under data/upload-sessions/<upload_id>/<index>.part (server
+    # restart safe - the DB row + files ARE the resume state); the
+    # received set is a JSON bitmask; complete() re-hashes the FULL
+    # assembled bytes against the photo's claimed sha256 before the
+    # object-store tmp->rename ever happens - a mismatch is a typed
+    # 409 and NOTHING reaches the immutable store.
+    14: """
+    CREATE TABLE IF NOT EXISTS mvp_upload_sessions (
+        upload_id      TEXT PRIMARY KEY,
+        photo_id       TEXT NOT NULL REFERENCES mvp_photos(photo_id),
+        owner_token    TEXT NOT NULL,
+        claimed_sha256 TEXT NOT NULL,
+        chunk_size     INTEGER NOT NULL CHECK (chunk_size > 0),
+        total_chunks   INTEGER NOT NULL CHECK (total_chunks > 0),
+        received_mask  TEXT NOT NULL DEFAULT '[]',
+        status         TEXT NOT NULL DEFAULT 'active'
+                       CHECK (status IN ('active', 'completed',
+                                         'cancelled')),
+        created_at     TEXT NOT NULL,
+        updated_at     TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_upload_sessions_photo
+        ON mvp_upload_sessions(photo_id, status);
+    """,
 }
 
 _write_lock = threading.Lock()

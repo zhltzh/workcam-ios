@@ -46,6 +46,58 @@ class OriginalIntegrity(BaseModel):
 # ---------------------------------------------------------- P0/P1: upload
 
 
+@router.post("/photos/{photo_id}/original-session")
+async def open_upload_session(photo_id: str, body: dict,
+                              request: Request):
+    """TM35: start a RESUMABLE chunked upload session (chunks land on
+    disk; the session survives server restarts by construction)."""
+    token = require_caller(request)
+    from app.services import chunked_upload
+    return chunked_upload.open_session(
+        photo_id, token,
+        body.get("claimed_sha256", ""),
+        int(body.get("chunk_size", 0)),
+        int(body.get("total_chunks", 0)),
+        int(body.get("total_bytes", 0)))
+
+
+@router.put("/photos/{photo_id}/original-session/{upload_id}"
+           "/chunk/{index}")
+async def put_upload_chunk(photo_id: str, upload_id: str,
+                           index: int, request: Request):
+    token = require_caller(request)
+    from app.services import chunked_upload
+    chunk_sha = request.headers.get("X-Chunk-SHA256", "")
+    data = await request.body()
+    return chunked_upload.put_chunk(photo_id, upload_id, index,
+                                    chunk_sha, data, token)
+
+
+@router.get("/photos/{photo_id}/original-session/{upload_id}")
+async def upload_session_status(photo_id: str, upload_id: str,
+                               request: Request):
+    token = require_caller(request)
+    from app.services import chunked_upload
+    return chunked_upload.session_status(photo_id, upload_id, token)
+
+
+@router.delete("/photos/{photo_id}/original-session/{upload_id}")
+async def cancel_upload_session(photo_id: str, upload_id: str,
+                                request: Request):
+    token = require_caller(request)
+    from app.services import chunked_upload
+    return chunked_upload.cancel_session(photo_id, upload_id, token)
+
+
+@router.post("/photos/{photo_id}/original-session/{upload_id}"
+             "/complete")
+async def complete_upload_session(photo_id: str, upload_id: str,
+                                 request: Request):
+    token = require_caller(request)
+    from app.services import chunked_upload
+    return chunked_upload.complete_session(photo_id, upload_id, token)
+
+
 @router.put("/photos/{photo_id}/original")
 async def upload_original(photo_id: str, request: Request):
     """Store the ORIGINAL bytes for an owned photo record and bind it.

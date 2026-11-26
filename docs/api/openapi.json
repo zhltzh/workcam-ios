@@ -1986,6 +1986,287 @@
         ]
       }
     },
+    "/api/v1/photos/{photo_id}/original-session": {
+      "post": {
+        "tags": [
+          "mvp-originals"
+        ],
+        "summary": "Open Upload Session",
+        "description": "TM35: start a RESUMABLE chunked upload session (chunks land on\ndisk; the session survives server restarts by construction).",
+        "operationId": "open_upload_session_api_v1_photos__photo_id__original_session_post",
+        "parameters": [
+          {
+            "name": "photo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Photo Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photos/{photo_id}/original-session/{upload_id}/chunk/{index}": {
+      "put": {
+        "tags": [
+          "mvp-originals"
+        ],
+        "summary": "Put Upload Chunk",
+        "operationId": "put_upload_chunk_api_v1_photos__photo_id__original_session__upload_id__chunk__index__put",
+        "parameters": [
+          {
+            "name": "photo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Photo Id"
+            }
+          },
+          {
+            "name": "upload_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Upload Id"
+            }
+          },
+          {
+            "name": "index",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Index"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photos/{photo_id}/original-session/{upload_id}": {
+      "get": {
+        "tags": [
+          "mvp-originals"
+        ],
+        "summary": "Upload Session Status",
+        "operationId": "upload_session_status_api_v1_photos__photo_id__original_session__upload_id__get",
+        "parameters": [
+          {
+            "name": "photo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Photo Id"
+            }
+          },
+          {
+            "name": "upload_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Upload Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "mvp-originals"
+        ],
+        "summary": "Cancel Upload Session",
+        "operationId": "cancel_upload_session_api_v1_photos__photo_id__original_session__upload_id__delete",
+        "parameters": [
+          {
+            "name": "photo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Photo Id"
+            }
+          },
+          {
+            "name": "upload_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Upload Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
+    "/api/v1/photos/{photo_id}/original-session/{upload_id}/complete": {
+      "post": {
+        "tags": [
+          "mvp-originals"
+        ],
+        "summary": "Complete Upload Session",
+        "operationId": "complete_upload_session_api_v1_photos__photo_id__original_session__upload_id__complete_post",
+        "parameters": [
+          {
+            "name": "photo_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Photo Id"
+            }
+          },
+          {
+            "name": "upload_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Upload Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "deviceToken": []
+          }
+        ]
+      }
+    },
     "/api/v1/photos/{photo_id}/original": {
       "put": {
         "tags": [
@@ -6210,7 +6491,7 @@
     }
   },
   "x-b02-w026-enrichment": {
-    "baseline": "tm-security (RC2 premerge + TM01/TM03 key lifecycle endpoints)",
+    "baseline": "tm-security (RC2 + TM01/03/04/05/07 + TM32/34/35 recovery-conflicts-chunked-upload)",
     "generator": "backend/scripts/b02_w026_export_openapi.py",
     "note": "The path/method inventory and all JSON schemas are the live /openapi.json export of app.main:app, unmodified. Fields listed below were added manually for handoff readability; they annotate, never contradict, the machine truth.",
     "manually_enriched_fields": [
@@ -6225,7 +6506,8 @@
     ],
     "notes": [
       "RC2 premerge: security annotations re-applied programmatically to the integrated endpoint set; new W017 batch and W025 storage endpoints carry the same deviceToken scheme",
-      "TM03: rotate/suspend/resume/keys endpoints carry the same schemes"
+      "TM03: rotate/suspend/resume/keys endpoints carry the same schemes",
+      "TM35: original-session endpoints carry the deviceToken scheme"
     ]
   }
 }
