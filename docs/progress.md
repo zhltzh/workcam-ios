@@ -405,3 +405,39 @@ Secure Enclave use and UI tap flows were not part of this run.
 Evidence desktop regression passed nine groups and LiDAR three groups.
 Physical iPhone was listed offline. Targeted nm scans found Lab and tamper
 symbols in Debug and no matches for those or the fixture in Release.
+
+## Night 05 — 2026-11-26
+
+`codex/workcam-mac-night-05` from `57076c9`. W013 issue roles, severities and status transitions were taken from Windows PR #19. Draft PR #20 is based on dev/mac-tech-lab and #21 is based on Night 03.
+
+```sh
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamNight05-Debug CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam -configuration Release -destination 'generic/platform=iOS' -derivedDataPath /tmp/WorkCamNight05-Release CODE_SIGNING_ALLOWED=NO build
+xcrun swiftc -module-cache-path /tmp/night05-cache Core/Security/Evidence.swift Tests/M003/main.swift -o /tmp/night05-evidence && /tmp/night05-evidence test-vectors/fixed-vectors.json
+xcrun swiftc -module-cache-path /tmp/night05-cache Core/Security/Evidence.swift Core/Storage/CaptureStore.swift Tests/ProjectStore/main.swift -o /tmp/night05-project-store
+/tmp/night05-project-store "$wc_test"
+xcodebuild -project WorkCam.xcodeproj -scheme WorkCam-Workflow -configuration Debug -destination "platform=iOS Simulator,id=$wc_sim" -derivedDataPath /tmp/WorkCamNight05-UI -resultBundlePath "/tmp/WorkCamNight05-UI-$wc_run.xcresult" -parallel-testing-enabled NO test
+xcrun xcresulttool export attachments --path "/tmp/WorkCamNight05-UI-$wc_run.xcresult" --output-path "$wc_artifacts"
+unzip -t "$wc_zip"
+unzip -q "$wc_zip" -d "$wc_check"
+(cd "$wc_check" && shasum -a 256 -c SHA256SUMS)
+xcrun xctrace list devices
+```
+
+`wc_test` and `wc_check` are freshly created temporary directories.
+`wc_sim` is the booted iPhone 18 Pro simulator. Physical iPhone was offline.
+Evidence desktop suite passed ten groups. Legacy project, annotation migration,
+six shape styles, empty override and unchanged original passed desktop checks.
+The in-app synthetic fixture passed with simulated partial capture, orphan
+evidence and legacy reference, injected signer failure, six annotation kinds,
+portrait EXIF orientation, issue history, PDF reads and unchanged original.
+Independent unzip and SHA256SUMS verification passed all nine listed hashes.
+UI retries initially failed at a signing-fixture assumption and while leaving
+the system search UI. These failures are distinct from the synthetic results.
+
+Final run `wc_run=6`: two XCUITests passed, zero failures. Real clicks
+covered create, search, archive and archived-list visibility, reopening a
+photo, saving an annotation, watermarked preview and Quick Look PDF.
+Run 5 reached Quick Look but asserted an outdated system button label.
+The final run checks the observed Quick Look accessibility identifier.
+The final iOS Debug and Release builds passed. Code SHA f6774efde9577ec4e9fa03dd38424c210f07b448.

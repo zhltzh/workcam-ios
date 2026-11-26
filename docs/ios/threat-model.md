@@ -56,3 +56,10 @@ claim. Recovery does not replace conflicting committed files or reinterpret
 mismatching originals. Failed exports remove their provisional export folder.
 The synthetic business workflow is compiled only for Debug Simulator and runs
 with isolated storage and an explicit launch argument.
+
+Project membership, annotation styles and issue history are mutable business
+metadata outside the photo signature. The local issue history is an operation
+record. Photo role associations are human-entered. ZIP CRC and SHA-256
+inventories can detect corruption independently after extraction. A recipient
+seeking authenticity must independently verify the signed record, its photo
+binding and a trusted key. No remote hardware provenance is established.

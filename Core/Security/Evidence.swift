@@ -70,6 +70,11 @@ struct EvidenceRecord: Codable {
     var failure: String?
 }
 
+struct ProjectEvidenceLink: Codable, Sendable {
+    let projectID: UUID
+    let timestamp: Int64
+}
+
 struct EvidenceStore {
     private static let writeLock = NSLock()
 
@@ -182,24 +187,37 @@ struct EvidenceStore {
         return output
     }
 
-    static func capture(_ data: Data, recordID: UUID = UUID()) throws -> URL {
+    static func capture(
+        _ data: Data,
+        recordID: UUID = UUID(),
+        projectLink: ProjectEvidenceLink? = nil,
+        storageRoot: URL? = nil,
+        loadKey: () throws -> SecureEnclave.P256.Signing.PrivateKey = { try EvidenceKey.load() },
+        writeOriginal: (Data, URL) throws -> Void = {
+            try $0.write(to: $1, options: [.atomic, .completeFileProtection])
+        }
+    ) throws -> URL {
         writeLock.lock()
         defer { writeLock.unlock() }
-        let root = try root()
+        let root = try storageRoot ?? root()
         _ = try? promotePending(in: root)
         let id = recordID.uuidString.lowercased()
         let stage = root.appendingPathComponent(".pending-" + id, isDirectory: true)
         try FileManager.default.createDirectory(at: stage, withIntermediateDirectories: false)
+        if let projectLink {
+            try JSONEncoder().encode(projectLink).write(to: stage.appendingPathComponent("project-link.json"),
+                                                        options: [.atomic, .completeFileProtection])
+        }
         let photo = stage.appendingPathComponent("photo.jpg")
         let expectedHash = evidenceHash(data)
         try Data(expectedHash.utf8).write(to: stage.appendingPathComponent("capture-intent.sha256"),
                                          options: [.atomic, .completeFileProtection])
-        try data.write(to: photo, options: [.atomic, .completeFileProtection])
+        try writeOriginal(data, photo)
         let hash = evidenceHash(try Data(contentsOf: photo))
         guard hash == expectedHash else { throw EvidenceError.invalid }
         var record = EvidenceRecord(photoID: id, sha256: hash, status: "Unsigned")
         do {
-            let key = try EvidenceKey.load()
+            let key = try loadKey()
             let publicData = key.publicKey.x963Representation
             let time = ISO8601DateFormatter().string(from: Date())
             var manifest = EvidenceManifest(record_id: id, sequence_number: 0, photo_hash: hash,

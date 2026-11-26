@@ -17,6 +17,7 @@ struct WorkPhoto: Identifiable, Sendable {
     let capturedAt: Date
     let localEntry: URL
     var id: String { localEntry.deletingPathExtension().lastPathComponent }
+    var collectionURL: URL { localEntry.deletingPathExtension().appendingPathExtension("annotations.json") }
     var annotationURL: URL { localEntry.deletingPathExtension().appendingPathExtension("annotation.json") }
 }
 
@@ -83,16 +84,19 @@ enum ProjectStore {
 
     static func capture(_ data: Data, in project: WorkProject) throws -> URL {
         let timestamp = Int64((Date().timeIntervalSince1970 * 1000).rounded())
-        let recordID = UUID()
-        let reference = try directory(project.id).appendingPathComponent("\(timestamp)-\(recordID.uuidString).evidence")
-        try Data().write(to: reference, options: [.atomic, .completeFileProtection])
-        return try EvidenceStore.capture(data, recordID: recordID)
+        let projectFolder = try directory(project.id)
+        let stored = try JSONDecoder().decode(WorkProject.self, from: Data(contentsOf:
+            projectFolder.appendingPathComponent("project.json")))
+        guard stored.id == project.id, stored.archived != true else { throw CocoaError(.fileWriteNoPermission) }
+        return try EvidenceStore.capture(data, projectLink: .init(projectID: project.id, timestamp: timestamp))
     }
 
     static func photos(in project: WorkProject) throws -> [WorkPhoto] {
         let evidenceRoot = try EvidenceStore.root()
         try EvidenceStore.recoverPending(in: evidenceRoot)
-        return try FileManager.default.contentsOfDirectory(at: directory(project.id), includingPropertiesForKeys: nil)
+        let files = FileManager.default
+        let projectFolder = try directory(project.id)
+        let existing: [WorkPhoto] = try files.contentsOfDirectory(at: projectFolder, includingPropertiesForKeys: nil)
             .compactMap { entry in
                 let components = entry.deletingPathExtension().lastPathComponent.split(separator: "-", maxSplits: 1)
                 guard components.count == 2, let timestamp = Int64(components[0]) else { return nil }
@@ -111,21 +115,77 @@ enum ProjectStore {
                 return WorkPhoto(url: original, capturedAt: Date(timeIntervalSince1970: Double(timestamp) / 1000),
                                  localEntry: entry)
             }
-            .sorted { ($0.capturedAt, $0.id) > ($1.capturedAt, $1.id) }
+        let linked = Set(existing.map { $0.url.standardizedFileURL })
+        let committed: [WorkPhoto] = try files.contentsOfDirectory(at: evidenceRoot, includingPropertiesForKeys: nil)
+            .compactMap { record in
+                guard let id = UUID(uuidString: record.lastPathComponent),
+                      let data = try? Data(contentsOf: record.appendingPathComponent("project-link.json")),
+                      let link = try? JSONDecoder().decode(ProjectEvidenceLink.self, from: data),
+                      link.projectID == project.id else { return nil }
+                let original = record.appendingPathComponent("photo.jpg")
+                guard files.fileExists(atPath: original.path), !linked.contains(original.standardizedFileURL) else { return nil }
+                let entry = projectFolder.appendingPathComponent("\(link.timestamp)-\(id.uuidString).evidence")
+                return WorkPhoto(url: original, capturedAt: Date(timeIntervalSince1970: Double(link.timestamp) / 1000),
+                                 localEntry: entry)
+            }
+        return (existing + committed).sorted { ($0.capturedAt, $0.id) > ($1.capturedAt, $1.id) }
     }
 
-    static func annotation(for photo: WorkPhoto) throws -> PhotoAnnotation? {
-        let url = photo.annotationURL
+    static func issues(for project: WorkProject) throws -> [InspectionIssue] {
+        let file = try directory(project.id).appendingPathComponent("issues.json")
         do {
-            return try JSONDecoder().decode(PhotoAnnotation.self, from: Data(contentsOf: url))
+            return try JSONDecoder().decode([InspectionIssue].self, from: Data(contentsOf: file))
+        } catch let error as CocoaError where error.code == .fileReadNoSuchFile { return [] }
+    }
+
+    // UI mutations are serialized on the main actor.
+    @MainActor
+    static func saveIssue(_ issue: InspectionIssue, for project: WorkProject) throws {
+        var issues = try issues(for: project)
+        var updated = issue
+        updated.description = updated.description.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !updated.description.isEmpty else { throw CocoaError(.fileWriteInapplicableStringEncoding) }
+        let validPhotos = Set(try photos(in: project).map(\.id))
+        guard updated.photos.values.allSatisfy(validPhotos.contains),
+              updated.photos.keys.allSatisfy({ InspectionIssue.Role(rawValue: $0) != nil }) else {
+            throw CocoaError(.fileWriteNoPermission)
+        }
+        if let index = issues.firstIndex(where: { $0.id == updated.id }) {
+            let old = issues[index]
+            guard old.number == updated.number, old.history.count == updated.history.count, old.status != .closed,
+                  updated.status == old.status || updated.status == old.status.next else {
+                throw CocoaError(.fileWriteNoPermission)
+            }
+            updated.history = old.history
+            updated.history.append(updated.snapshot)
+            issues[index] = updated
+        } else {
+            guard updated.status == .open, updated.history.isEmpty,
+                  updated.number == (issues.map(\.number).max() ?? 0) + 1 else {
+                throw CocoaError(.fileWriteNoPermission)
+            }
+            updated.history = [updated.snapshot]
+            issues.append(updated)
+        }
+        let file = try directory(project.id).appendingPathComponent("issues.json")
+        try JSONEncoder().encode(issues).write(to: file, options: [.atomic, .completeFileProtection])
+    }
+
+    static func annotations(for photo: WorkPhoto) throws -> [PhotoAnnotation] {
+        let decoder = JSONDecoder()
+        do {
+            return try decoder.decode([PhotoAnnotation].self, from: Data(contentsOf: photo.collectionURL))
         } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
-            return nil
+            do {
+                return [try decoder.decode(PhotoAnnotation.self, from: Data(contentsOf: photo.annotationURL))]
+            } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+                return []
+            }
         }
     }
 
-    static func save(_ annotation: PhotoAnnotation, for photo: WorkPhoto) throws {
-        let url = photo.annotationURL
-        try JSONEncoder().encode(annotation).write(to: url, options: [.atomic, .completeFileProtection])
+    static func save(_ annotations: [PhotoAnnotation], for photo: WorkPhoto) throws {
+        try JSONEncoder().encode(annotations).write(to: photo.collectionURL, options: [.atomic, .completeFileProtection])
     }
 }
 
@@ -139,10 +199,114 @@ struct AnnotationPoint: Codable, Sendable {
     let y: Double
 }
 
+enum AnnotationColor: String, Codable, CaseIterable, Sendable {
+    case red = "Red", yellow = "Yellow", blue = "Blue", white = "White"
+}
+
 struct PhotoAnnotation: Codable, Sendable {
     let x: Double
     let y: Double
     var note: String
     var kind: AnnotationKind? = nil
     var points: [AnnotationPoint]? = nil
+    var color: AnnotationColor? = nil
+    var lineWidth: Double? = nil
+}
+
+struct InspectionIssue: Codable, Identifiable, Sendable {
+    enum Severity: String, Codable, CaseIterable, Sendable {
+        case low, medium, high, critical
+    }
+    enum Status: String, Codable, CaseIterable, Sendable {
+        case open, inProgress = "in_progress", resolved, closed
+        var next: Self? {
+            switch self {
+            case .open: .inProgress
+            case .inProgress: .resolved
+            case .resolved: .closed
+            case .closed: nil
+            }
+        }
+    }
+    enum Role: String, Codable, CaseIterable, Sendable { case before, progress, after }
+    struct Change: Codable, Sendable {
+        let timestamp: Date
+        let status: Status
+        let description: String
+        let severity: Severity
+        let photos: [String: String]
+    }
+
+    let id: UUID
+    let number: Int
+    var description: String
+    var severity: Severity
+    var status: Status
+    var photos: [String: String]
+    var history: [Change]
+    var snapshot: Change {
+        Change(timestamp: .now, status: status, description: description, severity: severity, photos: photos)
+    }
+}
+
+/// Uncompressed ZIP32 archive for bounded, deterministic offline deliveries.
+struct DeliveryZIP {
+    private(set) var entries: [(name: String, sha256: String)] = []
+    private var bytes = Data()
+    private var directory = Data()
+
+    mutating func add(_ name: String, data: Data) throws {
+        let path = Data(name.utf8)
+        guard !path.isEmpty, path.count <= Int(UInt16.max), entries.count < Int(UInt16.max),
+              data.count <= 128 * 1024 * 1024 - bytes.count else { throw CocoaError(.fileWriteOutOfSpace) }
+        let offset = UInt32(bytes.count)
+        let length = UInt32(data.count)
+        let crc = Self.checksum(data)
+        bytes.zipWrite(UInt32(0x04034b50))
+        for value: UInt16 in [20, 0x0800, 0, 0, 33] { bytes.zipWrite(value) }
+        for value in [crc, length, length] { bytes.zipWrite(value) }
+        bytes.zipWrite(UInt16(path.count))
+        bytes.zipWrite(UInt16(0))
+        bytes.append(path)
+        bytes.append(data)
+
+        directory.zipWrite(UInt32(0x02014b50))
+        for value: UInt16 in [20, 20, 0x0800, 0, 0, 33] { directory.zipWrite(value) }
+        for value in [crc, length, length] { directory.zipWrite(value) }
+        for value in [UInt16(path.count), 0, 0, 0, 0] { directory.zipWrite(value) }
+        directory.zipWrite(UInt32(0))
+        directory.zipWrite(offset)
+        directory.append(path)
+        entries.append((name, evidenceHash(data)))
+    }
+
+    mutating func finish() -> Data {
+        let offset = UInt32(bytes.count)
+        bytes.append(directory)
+        bytes.zipWrite(UInt32(0x06054b50))
+        for value: UInt16 in [0, 0, UInt16(entries.count), UInt16(entries.count)] { bytes.zipWrite(value) }
+        bytes.zipWrite(UInt32(directory.count))
+        bytes.zipWrite(offset)
+        bytes.zipWrite(UInt16(0))
+        return bytes
+    }
+
+    private static let table: [UInt32] = (0..<256).map { index in
+        (0..<8).reduce(UInt32(index)) { value, _ in
+            (value >> 1) ^ (value & 1 == 0 ? 0 : 0xedb88320)
+        }
+    }
+
+    private static func checksum(_ data: Data) -> UInt32 {
+        ~data.reduce(UInt32.max) { crc, byte in
+            (crc >> 8) ^ table[Int((crc ^ UInt32(byte)) & 0xff)]
+        }
+    }
+}
+
+private extension Data {
+    mutating func zipWrite<T: FixedWidthInteger>(_ value: T) {
+        var le = value.littleEndian
+        Swift.withUnsafeBytes(of: &le) { append(contentsOf: $0) }
+    }
 }
