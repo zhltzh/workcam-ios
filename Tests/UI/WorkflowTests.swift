@@ -140,6 +140,26 @@ final class WorkflowTests: XCTestCase {
         XCTAssertEqual(result.label, "PASS · Swift live HTTP")
     }
 
+    func testDownloadServerChangesUI() throws {
+        guard ProcessInfo.processInfo.environment["WORKCAM_LIVE_TEST"] == "1" else {
+            throw XCTSkip("Start the fixed loopback backend and enable WORKCAM_LIVE_TEST.")
+        }
+        let app = XCUIApplication()
+        app.launchArguments = ["--int02-live"]
+        app.launch()
+        let verified = app.staticTexts["PASS · Swift live HTTP"]
+        XCTAssertTrue(verified.waitForExistence(timeout: 75))
+        app.buttons["Backend Sync"].tap()
+        let endpoint = app.textFields["Backend HTTPS URL"]
+        XCTAssertTrue(endpoint.waitForExistence(timeout: 8))
+        endpoint.tap()
+        endpoint.typeText("http://127.0.0.1:18765")
+        let download = app.buttons["Download Server Changes"]
+        reveal(download, in: app)
+        download.tap()
+        XCTAssertTrue(app.staticTexts["Renamed simulator project · archived"].waitForExistence(timeout: 20))
+    }
+
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
         for _ in 0..<6 where !element.isHittable { app.swipeUp(velocity: .slow) }
         for _ in 0..<6 where !element.isHittable { app.swipeDown(velocity: .slow) }

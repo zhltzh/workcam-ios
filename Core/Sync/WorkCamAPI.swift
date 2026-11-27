@@ -77,6 +77,7 @@ actor WorkCamAPI {
             throw URLError(.cannotParseResponse)
         }
         guard ["applied", "duplicate"].contains(receipt["status"] as? String ?? ""),
+              receipt["error"] == nil || receipt["error"] is NSNull,
               let result = receipt["result"] as? [String: Any], result["status"] as? String != "rejected" else {
             let error = receipt["error"] as? [String: Any] ?? [:]
             let detail = (try? JSONSerialization.data(withJSONObject: error, options: [.sortedKeys]))
@@ -84,6 +85,31 @@ actor WorkCamAPI {
             throw WorkCamAPIError(status: 409, code: error["code"] as? String ?? "sync_rejected", detail: detail)
         }
         return Receipt(mapping: response["id_map"] as? [String: String] ?? [:], result: result.compactMapValues { $0 as? String })
+    }
+
+    func pullEvents(after cursor: Int64, filter: SyncInbox.Stream, limit: Int = 100) async throws -> SyncInbox.Page {
+        guard cursor >= 0, (1...200).contains(limit) else { throw EvidenceError.invalid }
+        var query = [URLQueryItem(name: "cursor", value: String(cursor)),
+                     URLQueryItem(name: "limit", value: String(limit)),
+                     URLQueryItem(name: "include_state", value: "true")]
+        if filter != .all { query.append(URLQueryItem(name: "entity_type", value: filter.rawValue)) }
+        let response = try await authorized("GET", "/api/v1/sync/events", query: query)
+        guard let raw = response["items"] as? [[String: Any]],
+              let next = response["cursor"] as? Int64, let more = response["has_more"] as? Bool else {
+            throw URLError(.cannotParseResponse)
+        }
+        let entries = try raw.map { event -> SyncInbox.Event in
+            guard let sequence = event["seq"] as? Int64, let kind = event["entity_type"] as? String,
+                  let id = event["entity_id"] as? String, let action = event["action"] as? String,
+                  let tombstone = event["tombstone"] as? Bool,
+                  filter == .all || filter.rawValue == kind else { throw URLError(.cannotParseResponse) }
+            let snapshot = try (event["state"] as? [String: Any]).map {
+                try JSONSerialization.data(withJSONObject: $0, options: [.sortedKeys])
+            }
+            return .init(sequence: sequence, kind: kind, id: id, action: action,
+                         tombstone: tombstone, snapshot: snapshot)
+        }
+        return .init(events: entries, cursor: next, more: more)
     }
 
     /// The server owns the resumable session. Retry opens it again and reconciles its received indexes.
@@ -143,11 +169,12 @@ actor WorkCamAPI {
     }
 
     private func authorized(_ method: String, _ path: String, json: [String: Any]? = nil,
-                            bytes: Data? = nil, headers: [String: String] = [:]) async throws -> [String: Any] {
+                            bytes: Data? = nil, headers: [String: String] = [:],
+                            query: [URLQueryItem] = []) async throws -> [String: Any] {
         guard let token = try credential.read() else {
             throw WorkCamAPIError(status: 401, code: "enrollment_required", detail: "Connect the device first.")
         }
-        do { return try await request(method, path, json: json, bytes: bytes, headers: headers, token: token) }
+        do { return try await request(method, path, json: json, bytes: bytes, headers: headers, token: token, query: query) }
         catch let error as WorkCamAPIError where error.status == 401 {
             if try credential.read() == token { try credential.clear() }
             throw error
@@ -156,10 +183,15 @@ actor WorkCamAPI {
 
     private func request(_ method: String, _ path: String, json: [String: Any]? = nil,
                          bytes: Data? = nil, headers: [String: String] = [:],
-                         token: String? = nil) async throws -> [String: Any] {
+                         token: String? = nil, query: [URLQueryItem] = []) async throws -> [String: Any] {
         try Task.checkCancellation()
-        let url = base.appendingPathComponent(String(path.dropFirst()))
-        var request = URLRequest(url: url, timeoutInterval: path == "/api/v1/devices/enroll" ? 40 : 15)
+        let endpoint = base.appendingPathComponent(String(path.dropFirst()))
+        guard var components = URLComponents(url: endpoint, resolvingAgainstBaseURL: false) else {
+            throw URLError(.badURL)
+        }
+        if !query.isEmpty { components.queryItems = query }
+        guard let url = components.url else { throw URLError(.badURL) }
+        var request = URLRequest(url: url, timeoutInterval: 15)
         request.httpMethod = method
         if let token { request.setValue(token, forHTTPHeaderField: "X-Device-Token") }
         for (key, value) in headers { request.setValue(value, forHTTPHeaderField: key) }
@@ -241,6 +273,13 @@ actor ProjectSyncQueue {
         var consumes: String? = nil
         var original: URL? = nil
         var hash: String? = nil
+        var attempts: Int? = nil
+        var phase: Phase? = nil
+        var issue: String? = nil
+    }
+
+    enum Phase: String, Codable, Sendable {
+        case pending, sending, retry, conflict, failed
     }
 
     private struct Journal: Codable {
@@ -268,37 +307,65 @@ actor ProjectSyncQueue {
 
     func pending() -> Int { journal.jobs.count }
 
+    func pendingDetails() -> String {
+        guard let job = journal.jobs.first else { return "Queue is empty." }
+        let phase = job.phase == .sending ? Phase.retry : job.phase ?? .pending
+        return "\(journal.jobs.count) pending · \(phase.rawValue.capitalized) · attempt \(job.attempts ?? 0)"
+    }
+
     func flush(using api: WorkCamAPI) async throws {
         guard !running else { throw CocoaError(.fileLocking) }
         running = true
         defer { running = false }
         while let job = journal.jobs.first {
             try Task.checkCancellation()
-            var mapping: [String: String] = [:]
-            if job.kind == "upload" {
-                guard let consumes = job.consumes, let id = journal.mappings[consumes].flatMap(UUID.init(uuidString:)),
-                      let file = job.original, let hash = job.hash else { throw EvidenceError.invalid }
-                try await api.upload(photoID: id, original: file, expectedHash: hash)
-            } else {
-                var payload = job.text
-                for (key, dependency) in job.references {
-                    guard let remote = journal.mappings[dependency] else { throw EvidenceError.invalid }
-                    payload[key] = remote
+            var attempt = journal
+            attempt.jobs[0].attempts = (job.attempts ?? 0) + 1
+            attempt.jobs[0].phase = .sending
+            attempt.jobs[0].issue = nil
+            try persist(attempt)
+            do {
+                try await send(job, using: api)
+            } catch {
+                var failure = journal
+                if let apiError = error as? WorkCamAPIError {
+                    failure.jobs[0].phase = apiError.status == 409 ? .conflict :
+                        (apiError.status == 401 || apiError.status >= 500 ? .retry : .failed)
+                    failure.jobs[0].issue = apiError.code
+                } else {
+                    failure.jobs[0].phase = error is EvidenceError ? .failed : .retry
                 }
-                let receipt = try await api.submit(kind: job.kind, id: job.id, payload: payload, integers: job.integers)
-                mapping = receipt.mapping
-                if let local = job.text["local_id"], mapping[local] == nil {
-                    let keys = ["server_photo_id", "server_issue_id", "server_project_id"]
-                    mapping[local] = keys.compactMap { receipt.result[$0] }.first
-                    guard mapping[local].flatMap(UUID.init(uuidString:)) != nil else { throw URLError(.cannotParseResponse) }
-                }
+                try persist(failure)
+                throw error
             }
-            var next = journal
-            next.mappings.merge(mapping) { _, new in new }
-            next.completed.insert(job.id)
-            next.jobs.removeFirst()
-            try persist(next)
         }
+    }
+
+    private func send(_ job: Job, using api: WorkCamAPI) async throws {
+        var mapping: [String: String] = [:]
+        if job.kind == "upload" {
+            guard let consumes = job.consumes, let id = journal.mappings[consumes].flatMap(UUID.init(uuidString:)),
+                  let file = job.original, let hash = job.hash else { throw EvidenceError.invalid }
+            try await api.upload(photoID: id, original: file, expectedHash: hash)
+        } else {
+            var payload = job.text
+            for (key, dependency) in job.references {
+                guard let remote = journal.mappings[dependency] else { throw EvidenceError.invalid }
+                payload[key] = remote
+            }
+            let receipt = try await api.submit(kind: job.kind, id: job.id, payload: payload, integers: job.integers)
+            mapping = receipt.mapping
+            if let local = job.text["local_id"], mapping[local] == nil {
+                let keys = ["server_photo_id", "server_issue_id", "server_project_id"]
+                mapping[local] = keys.compactMap { receipt.result[$0] }.first
+                guard mapping[local].flatMap(UUID.init(uuidString:)) != nil else { throw URLError(.cannotParseResponse) }
+            }
+        }
+        var next = journal
+        next.mappings.merge(mapping) { _, new in new }
+        next.completed.insert(job.id)
+        next.jobs.removeFirst()
+        try persist(next)
     }
 
     private func persist(_ next: Journal) throws {
@@ -399,17 +466,42 @@ enum SwiftNetworkFixture {
         try await restarted.enqueue(jobs)
         let unchanged = try Data(contentsOf: original)
         guard await restarted.pending() == 0, unchanged == bytes else { throw EvidenceError.invalid }
+        let projectRemote = projectID.uuidString.lowercased()
+        let rename = UUID().uuidString
+        _ = try await api.submit(kind: "project_update", id: rename,
+            payload: ["server_project_id": projectRemote, "name": "Renamed simulator project"],
+            integers: ["expected_revision": 1])
+        let archive = UUID().uuidString
+        _ = try await api.submit(kind: "project_archive", id: archive,
+            payload: ["server_project_id": projectRemote], integers: ["expected_revision": 2])
+        let inboxFile = root.appendingPathComponent("projects.json")
+        let fullInbox = try SyncInbox(file: root.appendingPathComponent("all.json"))
+        let projectsInbox = try SyncInbox(file: inboxFile)
+        try await fullInbox.synchronize(using: api, filter: .all, limit: 1)
+        try await projectsInbox.synchronize(using: api, filter: .project, limit: 1)
+        let reopenedInbox = try SyncInbox(file: inboxFile)
+        let snapshots = await reopenedInbox.snapshots()
+        let savedCursor = await reopenedInbox.cursor()
+        guard savedCursor > 0, snapshots.allSatisfy({ $0.kind == "project" }),
+              snapshots.contains(where: {
+                $0.id == projectRemote && $0.summary == "Renamed simulator project · archived"
+              }) else { throw EvidenceError.invalid }
+        try await reopenedInbox.synchronize(using: api, filter: .project, limit: 1)
+        guard await reopenedInbox.cursor() == savedCursor else { throw EvidenceError.invalid }
         let issueJob = jobs[3]
         var issuePayload = issueJob.text
         issuePayload["server_project_id"] = projectID.uuidString.lowercased()
         let issueReceipt = try await api.submit(kind: issueJob.kind, id: issueJob.id, payload: issuePayload)
         let issueID = try requiredID(issueReceipt.result["server_issue_id"])
-        do {
-            _ = try await api.submit(kind: "issue_transition", id: UUID().uuidString, payload: [
-                "server_issue_id": issueID.uuidString.lowercased(), "target_status": "resolved"
-            ], integers: ["expected_revision": 1])
-            throw EvidenceError.invalid
-        } catch let error as WorkCamAPIError where error.code == "revision_conflict" {}
+        let conflict = UUID().uuidString
+        for _ in 0..<2 {
+            do {
+                _ = try await api.submit(kind: "issue_transition", id: conflict, payload: [
+                    "server_issue_id": issueID.uuidString.lowercased(), "target_status": "resolved"
+                ], integers: ["expected_revision": 1])
+                throw EvidenceError.invalid
+            } catch let error as WorkCamAPIError where error.code == "revision_conflict" {}
+        }
     }
 
     private static func requiredID(_ value: Any?) throws -> UUID {
@@ -418,3 +510,87 @@ enum SwiftNetworkFixture {
     }
 }
 #endif
+
+/// Durable server inbox. Snapshot data and cursor are one atomic file per stream.
+/// The held server state is intentionally separate from editable local project records.
+actor SyncInbox {
+    enum Stream: String, CaseIterable, Identifiable, Sendable {
+        case all, project, issue, photo, annotation
+        var id: String { rawValue }
+    }
+    struct Event: Codable, Sendable, Identifiable {
+        let sequence: Int64
+        let kind: String
+        let id: String
+        let action: String
+        let tombstone: Bool
+        let snapshot: Data?
+        var key: String { kind + ":" + id }
+
+        var projectRevision: Int? {
+            guard kind == "project", let snapshot,
+                  let item = (try? JSONSerialization.jsonObject(with: snapshot)) as? [String: Any],
+                  item["status"] as? String == "active" else { return nil }
+            return item["revision"] as? Int
+        }
+
+        var summary: String {
+            guard let snapshot, let item = (try? JSONSerialization.jsonObject(with: snapshot)) as? [String: Any] else {
+                return action.replacingOccurrences(of: "_", with: " ").capitalized
+            }
+            let title = item["name"] as? String ?? item["title"] as? String ??
+                item["original_filename"] as? String ?? action
+            let state = item["status"] as? String
+            return [title, state].compactMap { $0 }.joined(separator: " · ")
+        }
+    }
+    struct Page: Sendable {
+        let events: [Event]
+        let cursor: Int64
+        let more: Bool
+    }
+    private struct State: Codable {
+        var cursor: Int64 = 0
+        var entities: [String: Event] = [:]
+    }
+
+    private let file: URL
+    private var state: State
+    private var pulling = false
+
+    init(file: URL) throws {
+        self.file = file
+        do { state = try JSONDecoder().decode(State.self, from: Data(contentsOf: file)) }
+        catch let error as CocoaError where error.code == .fileReadNoSuchFile { state = State() }
+    }
+
+    func cursor() -> Int64 { state.cursor }
+    func snapshots() -> [Event] { state.entities.values.sorted { $0.sequence > $1.sequence } }
+
+    func synchronize(using api: WorkCamAPI, filter: Stream, limit: Int = 100) async throws {
+        guard !pulling else { throw CocoaError(.fileLocking) }
+        pulling = true
+        defer { pulling = false }
+        for _ in 0..<500 {
+            let page = try await api.pullEvents(after: state.cursor, filter: filter, limit: limit)
+            try Task.checkCancellation()
+            try apply(page)
+            if !page.more { return }
+        }
+        throw WorkCamAPIError(status: 0, code: "page_limit", detail: "Partial download saved. Pull again to continue.")
+    }
+
+    func apply(_ page: Page) throws {
+        let sequences = page.events.map(\.sequence)
+        guard page.cursor >= state.cursor, !page.more || page.cursor > state.cursor,
+              sequences == sequences.sorted(), Set(sequences).count == sequences.count,
+              sequences.allSatisfy({ $0 > state.cursor && $0 <= page.cursor }),
+              !page.more || sequences.last == page.cursor else { throw URLError(.cannotParseResponse) }
+        var next = state
+        for event in page.events { next.entities[event.key] = event }
+        next.cursor = page.cursor
+        try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try JSONEncoder().encode(next).write(to: file, options: [.atomic, .completeFileProtection])
+        state = next
+    }
+}

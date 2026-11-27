@@ -494,3 +494,28 @@ exposed a backend replay audit nested SQLite write (30-second busy timeout).
 Enrollment alone uses a longer request timeout. The latest physical-device
 list places the iPhone offline. The historical proof command uses loopback
 and isolated W018 packaging, with no raw photos copied into Git.
+
+## Mac Super 01 — 2026-11-27
+
+Base 33cc1ca. Fixed Windows backend 2a53712a179ad8880f75cc72d1762fb5b14ec0a8.
+
+```sh
+bash Tests/Integration02/run-simulator.sh "$wc_hot" super01-1
+bash /tmp/super01-all-ui.sh "$wc_hot" super01-final
+bash /tmp/super01-download-ui.sh "$wc_hot" super01-download
+xcrun swiftc -swift-version 6 -module-cache-path /tmp/super01-cache Core/Security/Evidence.swift Core/Storage/CaptureStore.swift Core/Sync/WorkCamAPI.swift Tests/Super01/main.swift -o /tmp/super01-inbox && /tmp/super01-inbox "$wc_test"
+xcodebuild -jobs 1 -project WorkCam.xcodeproj -scheme WorkCam -configuration "$wc_c" -destination generic/platform=iOS -derivedDataPath "/tmp/WorkCamInt01-$wc_c" CODE_SIGNING_ALLOWED=NO build
+xcrun xctrace list devices
+xcodebuild -jobs 1 -allowProvisioningUpdates -project WorkCam.xcodeproj -scheme WorkCam -configuration Debug -destination generic/platform=iOS -derivedDataPath /tmp/WorkCamSuper01Signed build
+xcrun devicectl device info lockState --device "$wc_device" --timeout 10
+xcrun devicectl device install app --device "$wc_device" --timeout 35 /tmp/WorkCamSuper01Signed/Build/Products/Debug-iphoneos/WorkCam.app
+xcrun devicectl device process launch --device "$wc_device" --timeout 15 com.example.workcam.dev
+```
+
+The all-UI script removes the only-testing selection; the download variant
+selects testDownloadServerChangesUI. Four full-suite tests and the separately
+run download UI test passed. Both live tests reach the fixed backend from
+the simulator. Desktop inbox test verified persistence across reopening,
+malformed non-progress rejection and unchanged cursor on a failed write.
+Initial signed build lacked a profile; automatic provisioning retry built,
+and the connected iPhone installed in place. Launch was denied while locked.
