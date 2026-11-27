@@ -590,11 +590,13 @@
   },
   {
    "id": "F07",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "source": "TECH-MARATHON-03-QUEUE.md",
-   "commit": "79933e4",
-   "tests": [],
-   "notes": "soak runner not yet built (longest run = full suite)"
+   "commit": "c7fe170",
+   "tests": [
+    "tests/test_techlab/test_fe_f07_soak.py (3): 20-op functional 0 errors, 30s real soak monotone growth, db growth reported"
+   ],
+   "notes": "soak runner: mixed workload vs live backend, growth probes monotone-pinned (photos/events append-only), DESKTOP_SOAK label, artifacts in docs/perf/"
   },
   {
    "id": "F08",
@@ -814,10 +816,10 @@
   "at": "79933e4",
   "method": "evidence-based reconciliation against actual code/tests",
   "counts": {
-   "DESKTOP_VERIFIED": 47,
+   "DESKTOP_VERIFIED": 48,
    "CROSS_PLATFORM_PENDING": 3,
    "BLOCKED": 2,
-   "NOT_STARTED": 11,
+   "NOT_STARTED": 10,
    "POC_VERIFIED": 2,
    "IN_PROGRESS": 6,
    "XCODE_PENDING": 9
