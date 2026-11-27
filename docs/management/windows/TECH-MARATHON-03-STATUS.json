@@ -1,667 +1,800 @@
 {
-  "schema_version": 1,
-  "project": "WorkCam",
-  "plan_id": "TECH-MARATHON-03",
-  "management_branch": "codex/workcam-windows-marathon-03-management",
-  "restored_on": "2026-11-27",
-  "baseline": {
-    "hotfix_code_sha": "2a53712a179ad8880f75cc72d1762fb5b14ec0a8",
-    "hotfix_report_sha": "5d9c61db14cc75cca0c60fe656d4539563cf56df",
-    "mac_integration02_code_sha": "53440feaf734c9ab21e29ddde9666fb8b5ef77cc"
+ "schema_version": 1,
+ "project": "WorkCam",
+ "plan_id": "TECH-MARATHON-03",
+ "management_branch": "codex/workcam-windows-marathon-03-management",
+ "restored_on": "2026-11-27",
+ "baseline": {
+  "hotfix_code_sha": "2a53712a179ad8880f75cc72d1762fb5b14ec0a8",
+  "hotfix_report_sha": "5d9c61db14cc75cca0c60fe656d4539563cf56df",
+  "mac_integration02_code_sha": "53440feaf734c9ab21e29ddde9666fb8b5ef77cc"
+ },
+ "task_count": 80,
+ "states": [
+  "NOT_STARTED",
+  "IN_PROGRESS",
+  "DESKTOP_VERIFIED",
+  "CROSS_PLATFORM_PENDING",
+  "XCODE_PENDING",
+  "DEVICE_PENDING",
+  "POC_VERIFIED",
+  "INTEGRATED",
+  "BLOCKED"
+ ],
+ "instruction": "Reconcile each task against code and test proofs before updating status. Not started does not imply absence of prior work. Maintain original TM01–TM100 mapping in markdown. Do not claim all 80 tasks pending.",
+ "tasks": [
+  {
+   "id": "A01",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "push: 852253b..dfb06c0 all on origin",
+    "bundle backups verified okay"
+   ],
+   "notes": "working tree clean at every checkpoint; branch chain 31917e3->...->dfb06c0 intact; hotfix cd1219b merged"
   },
-  "task_count": 80,
-  "states": [
-    "NOT_STARTED",
-    "IN_PROGRESS",
-    "DESKTOP_VERIFIED",
-    "CROSS_PLATFORM_PENDING",
-    "XCODE_PENDING",
-    "DEVICE_PENDING",
-    "POC_VERIFIED",
-    "INTEGRATED",
-    "BLOCKED"
-  ],
-  "instruction": "Reconcile each task against code and test proofs before updating status. Not started does not imply absence of prior work. Maintain original TM01–TM100 mapping in markdown. Do not claim all 80 tasks pending.",
-  "tasks": [
-    {
-      "id": "A01",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "A02",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "A03",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "A04",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "A05",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "A06",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "A07",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "A08",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "B01",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "B02",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "B03",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "B04",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "B05",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "B06",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "B07",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "B08",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "B09",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "B10",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "B11",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "B12",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "C01",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "C02",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "C03",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "C04",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "C05",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "C06",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "C07",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "C08",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "C09",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "C10",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "D01",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "D02",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "D03",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "D04",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "D05",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "D06",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "D07",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "D08",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "D09",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "D10",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "E01",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "E02",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "E03",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "E04",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "E05",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "E06",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "E07",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "E08",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "E09",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "E10",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "F01",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "F02",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "F03",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "F04",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "F05",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "F06",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "F07",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "F08",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "F09",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "F10",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "G01",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "G02",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "G03",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "G04",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "G05",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "G06",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "G07",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "G08",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "H01",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "H02",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "H03",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "H04",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "H05",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "H06",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "H07",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "H08",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "H09",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "H10",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "H11",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    },
-    {
-      "id": "H12",
-      "state": "NOT_STARTED",
-      "source": "TECH-MARATHON-03-QUEUE.md",
-      "commit": null,
-      "tests": [],
-      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
-    }
-  ]
+  {
+   "id": "A02",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm91_weak_network.py (7)"
+   ],
+   "notes": "deterministic fault scheduler over the LIVE backend: offline/reset/intermittent/partial-dies-after-K; ledger idempotency under flaky-proxy replay; server-restart session survival; out-of-order chunks"
+  },
+  {
+   "id": "A03",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm93_upgrade_matrix.py (14)"
+   ],
+   "notes": "11 schema-shape levels each forward-migrated with original bytes hash-reproven + historical v1.0 signature still verifying; poisoned-level rollback sweep; v11-era backup into v14 store"
+  },
+  {
+   "id": "A04",
+   "state": "CROSS_PLATFORM_PENDING",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/bootstrap.ps1 (executed)",
+    "backend/bootstrap.sh (authored, Mac-run pending)"
+   ],
+   "notes": "Windows bootstrap verified; macOS shell authored and CROSS_PLATFORM_PENDING one Mac execution"
+  },
+  {
+   "id": "A05",
+   "state": "BLOCKED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "official Swift toolchain install failed 4x on Windows (winget MSI 0x643); Swift remains authored+vector-matched but never compiled here - honest BLOCKED, no fake runs"
+  },
+  {
+   "id": "A06",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_a06_night05_contract.py (6)",
+    "backend/tests/test_win_hotfix.py (4)"
+   ],
+   "notes": "payload byte-layout PROVEN identical to v1.1 canonical; issue vocabulary (open/in_progress/resolved/closed) server-accepted; annotation shape mapping; filename-id ledger stability; PR24 role CAS/unlink/cursor/rejected-receipt contracts covered in test_win_hotfix.py"
+  },
+  {
+   "id": "A07",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_a07_e2e_expanded.py (6)",
+    "backend/tests/test_techlab/test_fe_a12_redteam.py (10)",
+    "backend/tests/test_techlab/test_tm89_end_to_end.py (2)"
+   ],
+   "notes": "rotation-with-historical-evidence-math, suspend/resume, chunk restart, conflict rebase, backup import, checkpoint truncation + full ten-attack red team"
+  },
+  {
+   "id": "A08",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tools/quality_gate.py 12/12 PASSED on dfb06c0 (1599 tests)",
+    "backend/test-keys/MANIFEST.sha256 (11 digests)"
+   ],
+   "notes": "fingerprint-registered test keys (swap = gate fail); ZIP safety gate; license gate; handoff-manifest gate; gate captures failing test names for flake hunts"
+  },
+  {
+   "id": "B01",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b01_b03_business.py (19 subset)"
+   ],
+   "notes": "8 English versioned templates; NOT regulatory claims"
+  },
+  {
+   "id": "B02",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "same suite"
+   ],
+   "notes": "Pass/Fail/NA/Not-Inspected; unchecked never auto-passes; evidence requirements not waivable"
+  },
+  {
+   "id": "B03",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "same suite"
+   ],
+   "notes": "8 field types, conditional visibility, validation; Swift Codable in WorkCamBusiness.swift"
+  },
+  {
+   "id": "B04",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b04_b06_business.py (22 subset)"
+   ],
+   "notes": "Night05 vocabulary + reopened mapping; guarded transitions; history preserved; Mac state-machine diff documented in m03-a06 contract doc"
+  },
+  {
+   "id": "B05",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "same suite"
+   ],
+   "notes": "before/progress/after roles; human-only; cross-project refused; completeness never auto-declared; PR24 CAS replace/unlink covered in test_win_hotfix.py"
+  },
+  {
+   "id": "B06",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "same suite"
+   ],
+   "notes": "naming expressions, sanitize, reserved names, string-only output (originals untouched by construction)"
+  },
+  {
+   "id": "B07",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b07_b08_business.py (16 subset)"
+   ],
+   "notes": "batch planner + failure-only retry subset; action vocabulary structurally free of original-delete ops"
+  },
+  {
+   "id": "B08",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "same suite"
+   ],
+   "notes": "offline index: project/tag/tags-all/location/device/issue/evidence/date; keyset drift-free; OCR text searchable only after human confirmation"
+  },
+  {
+   "id": "B09",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b09_b11_business.py (18 subset)"
+   ],
+   "notes": "scans are CANDIDATES until human confirm; raw preserved beside correction"
+  },
+  {
+   "id": "B10",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "same suite"
+   ],
+   "notes": "manual/device structural split; volume needs EXPERIMENTAL note; honest labels"
+  },
+  {
+   "id": "B11",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "same suite"
+   ],
+   "notes": "activity counts frozen once set; weather/conditions are USER-ONLY fields; date validated"
+  },
+  {
+   "id": "B12",
+   "state": "CROSS_PLATFORM_PENDING",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "swift/WorkCamCore/Tests/WorkCamCoreTests/BusinessRuleTests.swift (13)"
+   ],
+   "notes": "Swift business package authored + rule tests; never compiled on Windows (A05) - Mac compiles"
+  },
+  {
+   "id": "C01",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_c01_c02_exif_extremes.py (56)"
+   ],
+   "notes": "watermark layout: ultrawide/ultratall/tiny/CJK/logo ok; named refusals (wrap-budget/height-budget/logo-starves/margin-overflow)"
+  },
+  {
+   "id": "C02",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "same suite"
+   ],
+   "notes": "EXIF 1..8 all mapped; two real defects found+fixed (EXIF7/8 transposed; TM15 left/right name transposition pinned by cross-reference test)"
+  },
+  {
+   "id": "C03",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm63_annotations.py (17)"
+   ],
+   "notes": "9 kinds, EXIF/crop transforms, hit-testing, undo/redo with soft delete; rendering itself is Mac CoreGraphics"
+  },
+  {
+   "id": "C04",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_c04_c05_photo_quality.py (15 subset)"
+   ],
+   "notes": "blur/exposure/contrast/resolution; ADVICE ONLY, disclaimer always appended"
+  },
+  {
+   "id": "C05",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "same suite"
+   ],
+   "notes": "SHA-256 exact vs aHash/dHash near candidates; kind=never == exact; never auto-delete"
+  },
+  {
+   "id": "C06",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "honest NOT_STARTED: selection review (SIFT license? OpenCV-free constraint) still open; no code"
+  },
+  {
+   "id": "C07",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "compare-view Swift reference not yet authored"
+  },
+  {
+   "id": "C08",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "OCR sample set + schema not yet authored"
+  },
+  {
+   "id": "C09",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_c09_privacy.py (9)"
+   ],
+   "notes": "derivative-only; human-confirmed regions; out-of-frame defect found+fixed; detector candidates never auto-applied"
+  },
+  {
+   "id": "C10",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "docs/tech-lab/m03-c10-image-components.md"
+   ],
+   "notes": "unified index with honest NOT_STARTEDs for C06/C08"
+  },
+  {
+   "id": "D01",
+   "state": "POC_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tools/c2pa-poc/ (B02-W019 lineage, 8 JSON PoC artifacts)"
+   ],
+   "notes": "isolated PoC; NOT certification; re-check vs current goals queued (FE-G06)"
+  },
+  {
+   "id": "D02",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d02_tsa.py (7)",
+    "backend/tests/test_techlab/test_m03_d02_d03_audit.py (5)"
+   ],
+   "notes": "real openssl ts protocol; issuance-time cert facts; local TEST TSA clearly labeled"
+  },
+  {
+   "id": "D03",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d03_long_term.py (14)"
+   ],
+   "notes": "six distinct states; expired-chain-still-proves-existence; renewal = explicit audit event"
+  },
+  {
+   "id": "D04",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d04_evpack_v2.py (11)"
+   ],
+   "notes": "evpack/2.0: tamper/missing NAMED, unknown-version refused, v1 import, Night05 subset mapping"
+  },
+  {
+   "id": "D05",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d05_streaming_zip.py (8)"
+   ],
+   "notes": "ZIP64 forced; ~1MiB stream unit; 70000 entries; cancel cleanup; 2.4MB python peak measured (F06)"
+  },
+  {
+   "id": "D06",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d06_report_types.py (6)",
+    "report family regression 89"
+   ],
+   "notes": "six types x a4/letter; +3 new types (measurement/before_after/project_summary)"
+  },
+  {
+   "id": "D07",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d07_d08_pagination_branding.py (6)"
+   ],
+   "notes": "100-photo zero content loss (every PH-ref asserted); repeatRows pinned; long notes wrap"
+  },
+  {
+   "id": "D08",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "same suite"
+   ],
+   "notes": "Page X of Y two-pass footer every page; company name footer; sign-off/project-id visible"
+  },
+  {
+   "id": "D09",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "REAL browser run: good 1/1 signatures valid, tampered NAMED, unknown refused (Playwright, loopback)",
+    "backend/tools/web_verifier.py mirror (4)"
+   ],
+   "notes": "two real defects found by the real run and fixed: .evpack extension gate + DER->raw conversion"
+  },
+  {
+   "id": "D10",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d10_interop.py (8)"
+   ],
+   "notes": "8 formats with native consumers; GeoJSON lon-first pinned"
+  },
+  {
+   "id": "E01",
+   "state": "IN_PROGRESS",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "Night05/PR24 CONTRACTS audited (A06) but UI CODE audit not yet done - queue before E02-E10 to avoid duplicates"
+  },
+  {
+   "id": "E02",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "UI reference work not started; E01 audit first"
+  },
+  {
+   "id": "E03",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "UI reference work not started; E01 audit first"
+  },
+  {
+   "id": "E04",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "UI reference work not started; E01 audit first"
+  },
+  {
+   "id": "E05",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "UI reference work not started; E01 audit first"
+  },
+  {
+   "id": "E06",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "UI reference work not started; E01 audit first"
+  },
+  {
+   "id": "E07",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "UI reference work not started; E01 audit first"
+  },
+  {
+   "id": "E08",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "UI reference work not started; E01 audit first"
+  },
+  {
+   "id": "E09",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "UI reference work not started; E01 audit first"
+  },
+  {
+   "id": "E10",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "UI reference work not started; E01 audit first"
+  },
+  {
+   "id": "F01",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_f01_f02_perf.py (11 subset)"
+   ],
+   "notes": "seeded generator; honest counts; evidence=unverified because generator signs NOTHING"
+  },
+  {
+   "id": "F02",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "same suite",
+    "backend/tools/perf_baseline.json"
+   ],
+   "notes": "medium tier 100proj/10k photos/100k metadata; EXPLAIN QUERY PLAN pins tag index"
+  },
+  {
+   "id": "F03",
+   "state": "IN_PROGRESS",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "W007/W025 fsck + orphan detection exist; Night05-style full-evidence-dir scan cost profiling still queued"
+  },
+  {
+   "id": "F04",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_f04_f06_perf.py (6 subset)"
+   ],
+   "notes": "128KiB p50 193ms; resume functional (timing reported, never gated after FE-I09); duplicate resend 20.9ms"
+  },
+  {
+   "id": "F05",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "same suite"
+   ],
+   "notes": "10->100 photos 180->1238ms, 52 pages; per_page contract"
+  },
+  {
+   "id": "F06",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "same suite"
+   ],
+   "notes": "500x256KB: python-peak-delta 2.4MB (streaming proven); 1MiB = stream unit wording pinned by test"
+  },
+  {
+   "id": "F07",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "soak runner not yet built (longest run = full suite)"
+  },
+  {
+   "id": "F08",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_f08_races.py (4, 8/8 stable)"
+   ],
+   "notes": "two real flakes ROOT-CAUSED (never run-until-green): upload race assertion aligned to HOTFIX-02 semantics; resume_cost wall-clock ordering removed"
+  },
+  {
+   "id": "F09",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm45_fault_injection.py (5)",
+    "backend/tests/test_techlab/test_tm32_crash_recovery.py (14)",
+    "backend/tests/test_techlab/test_tm91_weak_network.py (7)"
+   ],
+   "notes": "network/disk/db/crash injections live here; tmpfile-uncreatable + cache-corruption injections queued"
+  },
+  {
+   "id": "F10",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tools/perf_baseline.json"
+   ],
+   "notes": "machine-readable, environment-tagged, DESKTOP-not-iPhone stated"
+  },
+  {
+   "id": "G01",
+   "state": "POC_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_b02_w028_tenant_poc.py (10)"
+   ],
+   "notes": "isolated tenant PoC; never a MVP blocker"
+  },
+  {
+   "id": "G02",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "enterprise reserve; design-level notes only in b02-w028 study; isolated by directive"
+  },
+  {
+   "id": "G03",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "enterprise reserve; design-level notes only in b02-w028 study; isolated by directive"
+  },
+  {
+   "id": "G04",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "enterprise reserve; design-level notes only in b02-w028 study; isolated by directive"
+  },
+  {
+   "id": "G05",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "enterprise reserve; design-level notes only in b02-w028 study; isolated by directive"
+  },
+  {
+   "id": "G06",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "enterprise reserve; design-level notes only in b02-w028 study; isolated by directive"
+  },
+  {
+   "id": "G07",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "enterprise reserve; design-level notes only in b02-w028 study; isolated by directive"
+  },
+  {
+   "id": "G08",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "enterprise reserve; design-level notes only in b02-w028 study; isolated by directive"
+  },
+  {
+   "id": "H01",
+   "state": "IN_PROGRESS",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "gate covers pinned deps + licenses + sensitive scan; transitive SBOM + vuln sweep queued"
+  },
+  {
+   "id": "H02",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "gate: OpenAPI 88 ops live==repo",
+    "swift APIClient receiptSucceeded (rejected-replay encoded)"
+   ],
+   "notes": "revision/receipt semantics documented; drift held by gate"
+  },
+  {
+   "id": "H03",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tools/trust_engine + trust_bridge",
+    "test_tm07 (15) + test_tm06 (8)"
+   ],
+   "notes": "ten-dimension engine DESKTOP_VERIFIED; production route ISOLATED until protocol/product approval (decision required)"
+  },
+  {
+   "id": "H04",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm05_audit_chain.py (9)"
+   ],
+   "notes": "signed checkpoints; tail-truncation local-undetectability proven + checkpoint detection; external anchor limits stated"
+  },
+  {
+   "id": "H05",
+   "state": "IN_PROGRESS",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "TM35 resumable sessions shipped; legacy whole-buffer endpoint cutover awaits review (RISK-W021-R1 recorded)"
+  },
+  {
+   "id": "H06",
+   "state": "IN_PROGRESS",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "dev/windows-tm-geometry IS the stable-candidate line (gate 12/12 at dfb06c0, 1599 tests); formal freeze/tag pending P0 sprint close"
+  },
+  {
+   "id": "H07",
+   "state": "NOT_STARTED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [],
+   "notes": "RC4 experimental branch not yet split"
+  },
+  {
+   "id": "H08",
+   "state": "BLOCKED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "backend/Dockerfile + compose delivered (W027)"
+   ],
+   "notes": "authored but never built here (no Docker Desktop) - honest BLOCKED; native deploy verified"
+  },
+  {
+   "id": "H09",
+   "state": "CROSS_PLATFORM_PENDING",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "handoff/mac-ready/integration-manifest.json (12 components)"
+   ],
+   "notes": "modular manifest with per-component states; Mac compiles Swift (A05 BLOCKED on Windows)"
+  },
+  {
+   "id": "H10",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "handoff/mac-ready/01-START-HERE.md",
+    "handoff/mac-ready/DEVICE-ACCEPTANCE-KIT.md"
+   ],
+   "notes": "machine-readable manifest + dependency-ordered intake + user-operable device kit"
+  },
+  {
+   "id": "H11",
+   "state": "DESKTOP_VERIFIED",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "fresh clone verified at 8d79c20 (bootstrap->v14->live HTTP)"
+   ],
+   "notes": "re-run at final freeze SHA remains before RC3 tag"
+  },
+  {
+   "id": "H12",
+   "state": "IN_PROGRESS",
+   "source": "TECH-MARATHON-03-QUEUE.md",
+   "commit": "79933e4",
+   "tests": [
+    "docs/progress/WORKCAM-WINDOWS-TECH-MARATHON-03-REPORT.md"
+   ],
+   "notes": "report exists; final version refresh after this reconciliation"
+  }
+ ],
+ "reconciled": {
+  "at": "79933e4",
+  "method": "evidence-based reconciliation against actual code/tests",
+  "counts": {
+   "DESKTOP_VERIFIED": 46,
+   "CROSS_PLATFORM_PENDING": 3,
+   "BLOCKED": 2,
+   "NOT_STARTED": 21,
+   "POC_VERIFIED": 2,
+   "IN_PROGRESS": 6
+  }
+ }
 }
