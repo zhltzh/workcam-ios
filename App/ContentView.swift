@@ -111,12 +111,14 @@ private struct BackendSyncView: View {
     @State private var remoteName = ""
     @State private var remoteAction: RemoteAction?
 
-    private enum RemoteAction { case rename, archive }
+    @State private var blocked: [ProjectSyncQueue.Job] = []
+    @State private var editIssue: SyncInbox.Event?
+    private enum RemoteAction { case rename, archive, associate }
 
     var body: some View {
         Form {
             TextField("Backend HTTPS URL", text: $endpoint).textInputAutocapitalization(.never).autocorrectionDisabled()
-                .disabled(task != nil).onChange(of: endpoint) { serverSnapshots = []; loadedEndpoint = nil }
+                .disabled(task != nil).onChange(of: endpoint) { serverSnapshots = []; loadedEndpoint = nil; blocked = [] }
             SecureField("Enrollment code", text: $code)
             Picker("Project", selection: $projectID) {
                 Text("Select Project").tag(UUID?.none)
@@ -140,24 +142,60 @@ private struct BackendSyncView: View {
                                     Button("Rename Server Project") {
                                         remoteProject = event; remoteName = ""; remoteAction = .rename
                                     }
+                                    if projectID != nil {
+                                        Button("Associate Selected Local Project") {
+                                            remoteProject = event; remoteAction = .associate
+                                        }
+                                    }
                                     Button("Archive Server Project", role: .destructive) {
                                         remoteProject = event; remoteAction = .archive
                                     }
                                 }.disabled(task != nil)
                             }
+                            if event.kind == "issue", event.fields["status"] as? String != "closed" {
+                                Button("Edit Server Issue") { editIssue = event }.disabled(task != nil)
+                            }
                         }
                     }
+                }
+            }
+            if !blocked.isEmpty {
+                Section("Outbox Conflicts") {
+                    ForEach(blocked, id: \.id) { job in
+                        VStack(alignment: .leading) {
+                            Text(job.kind.replacingOccurrences(of: "_", with: " ").capitalized).font(.headline)
+                            Text(job.detail ?? job.issue ?? "Failed. Kept in the queue.")
+                            Text(job.text.sorted(by: { $0.key < $1.key }).map { "\($0.key): \($0.value)" }.joined(separator: "\n"))
+                                .font(.caption).textSelection(.enabled)
+                            if let id = job.text["server_project_id"] ?? job.text["server_issue_id"],
+                               let event = serverSnapshots.first(where: { $0.id == id }),
+                               let revision = event.fields["revision"] as? Int {
+                                Text("Server: \(event.summary) · revision \(revision)").font(.caption)
+                                if job.issue == "revision_conflict", event.fields["status"] as? String != "closed",
+                                   event.fields["status"] as? String != "archived" {
+                                    Button("Queue My Edit at Server Revision \(revision)") {
+                                        resolve(job, revision: revision)
+                                    }.disabled(task != nil)
+                                }
+                            }
+                        }
+                    }
+                    Text("Unresolved changes remain queued. Download fresh server changes before rebasing.").font(.caption)
                 }
             }
             if task != nil { Button("Cancel", role: .cancel) { task?.cancel() } }
             Text(message).textSelection(.enabled)
         }
         .navigationTitle("Backend Sync")
-        .alert(remoteAction == .archive ? "Queue Server Archive?" : "Queue Server Rename", isPresented: Binding(
+        .sheet(item: $editIssue) { event in
+            ServerIssueEditor(event: event) { enqueueRemote($0) }
+        }
+        .alert(remoteAction == .archive ? "Queue Server Archive?" :
+            remoteAction == .associate ? "Associate the selected local project?" : "Queue Server Rename", isPresented: Binding(
             get: { remoteAction != nil }, set: { if !$0 { remoteAction = nil } }
         )) {
             if remoteAction == .rename { TextField("New project name", text: $remoteName) }
-            Button("Queue") { queueRemoteChange() }
+            Button(remoteAction == .associate ? "Associate" : "Queue") { queueRemoteChange() }
             Button("Cancel", role: .cancel) {}
         }
         .onAppear {
@@ -170,6 +208,17 @@ private struct BackendSyncView: View {
     private func queueRemoteChange() {
         guard let remoteAction, let event = remoteProject, let revision = event.projectRevision,
               let endpoint = loadedEndpoint else { return }
+        if remoteAction == .associate {
+            guard let local = projectID, let server = UUID(uuidString: event.id) else { return }
+            task = Task {
+                defer { task = nil }
+                do {
+                    try await makeQueue(endpoint).associate(local: local, server: server, revision: revision)
+                    message = "Project association saved. Local records were preserved."
+                } catch { message = error.localizedDescription }
+            }
+            return
+        }
         let title = remoteName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard remoteAction == .archive || (1...200).contains(title.count) else {
             message = "Enter a project name of 1–200 characters."
@@ -186,6 +235,31 @@ private struct BackendSyncView: View {
                 let queue = try makeQueue(endpoint)
                 try await queue.enqueue([job])
                 message = await queue.pendingDetails()
+            } catch { message = error.localizedDescription }
+        }
+    }
+
+    private func enqueueRemote(_ job: ProjectSyncQueue.Job) {
+        guard let endpoint = loadedEndpoint else { return }
+        task = Task {
+            defer { task = nil }
+            do {
+                let queue = try makeQueue(endpoint)
+                try await queue.enqueue([job])
+                message = await queue.pendingDetails()
+            } catch { message = error.localizedDescription }
+        }
+    }
+
+    private func resolve(_ job: ProjectSyncQueue.Job, revision: Int) {
+        guard let endpoint = loadedEndpoint else { return }
+        task = Task {
+            defer { task = nil }
+            do {
+                let queue = try makeQueue(endpoint)
+                try await queue.resolve(job.id, newRevision: revision)
+                blocked = await queue.blockedJobs()
+                message = "Rebased edit queued with a new operation ID."
             } catch { message = error.localizedDescription }
         }
     }
@@ -226,6 +300,7 @@ private struct BackendSyncView: View {
                 let account = evidenceHash(Data(url.absoluteString.utf8))
                 let file = root.appendingPathComponent("Sync/inbox-\(account)-\(stream.rawValue).json")
                 let inbox = try SyncInbox(file: file)
+                blocked = await (try makeQueue(url.absoluteString)).blockedJobs()
                 serverSnapshots = await inbox.snapshots()
                 try await api.connect(code: enrollment)
                 try await inbox.synchronize(using: api, filter: stream)
@@ -260,8 +335,9 @@ private struct BackendSyncView: View {
                 }
                 if publish {
                     try await api.connect(code: enrollment)
-                    try await queue.flush(using: api)
-                    message = "Server acknowledged the queued changes."
+                    let count = try await queue.flush(using: api)
+                    blocked = await queue.blockedJobs()
+                    message = "\(count) newly confirmed · \(await queue.pendingDetails())"
                 } else {
                     let pending = await queue.pending()
                     message = pending == 0 ? "No unpublished changes queued." : "Queued locally · \(pending) pending"
@@ -272,5 +348,76 @@ private struct BackendSyncView: View {
                 message = error.localizedDescription
             }
         }
+    }
+}
+
+
+private struct ServerIssueEditor: View {
+    @Environment(\.dismiss) private var dismiss
+    let event: SyncInbox.Event
+    let enqueue: (ProjectSyncQueue.Job) -> Void
+    @State private var title = ""
+    @State private var description = ""
+    @State private var severity = "medium"
+    @State private var role = "before"
+    @State private var photo = ""
+
+    private var previous: String? {
+        (event.fields["photos"] as? [[String: String]])?.first(where: { $0["role"] == role })?["photo_id"]
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Issue") {
+                    TextField("Title", text: $title)
+                    TextField("Description", text: $description, axis: .vertical)
+                    Picker("Severity", selection: $severity) {
+                        ForEach(["low", "medium", "high", "critical"], id: \.self) { Text($0.capitalized) }
+                    }
+                    Button("Queue Issue Edit") {
+                        save("issue_update", ["title": title, "description": description, "severity": severity])
+                    }.disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    if let status = event.fields["status"] as? String,
+                       let next = ["open": "in_progress", "in_progress": "resolved", "resolved": "closed"][status] {
+                        Button("Queue Status: " + next) { save("issue_transition", ["target_status": next]) }
+                    }
+                }
+                Section("Photo Role") {
+                    Picker("Role", selection: $role) {
+                        ForEach(["before", "progress", "after"], id: \.self) { Text($0.capitalized) }
+                    }
+                    if let previous { Text("Current: " + previous).font(.caption) }
+                    TextField("Server photo UUID", text: $photo).textInputAutocapitalization(.never)
+                    Button("Queue Link or Replace") {
+                        var fields = ["role": role, "server_photo_id": photo.lowercased()]
+                        if let previous { fields["expected_previous_photo_id"] = previous }
+                        save("issue_photo_link", fields)
+                    }.disabled(UUID(uuidString: photo) == nil)
+                    if let previous {
+                        Button("Queue Unlink Current Photo", role: .destructive) {
+                            save("issue_photo_unlink", ["role": role, "server_photo_id": previous])
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Server Issue")
+            .toolbar { Button("Close") { dismiss() } }
+            .onAppear {
+                title = event.fields["title"] as? String ?? ""
+                description = event.fields["description"] as? String ?? ""
+                severity = event.fields["severity"] as? String ?? "medium"
+            }
+        }
+    }
+
+    private func save(_ kind: String, _ fields: [String: String]) {
+        guard let revision = event.fields["revision"] as? Int else { return }
+        var payload = fields
+        payload["server_issue_id"] = event.id
+        let versioned = kind == "issue_update" || kind == "issue_transition"
+        enqueue(.init(id: UUID().uuidString, kind: kind, text: payload,
+                      integers: versioned ? ["expected_revision": revision] : [:]))
+        dismiss()
     }
 }

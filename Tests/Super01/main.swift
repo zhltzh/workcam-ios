@@ -26,3 +26,19 @@ let unchanged = await failing.cursor()
 let empty = await failing.snapshots()
 precondition(unchanged == 0 && empty.isEmpty)
 print("PASS atomic cursor + server snapshot, reopen, non-progress rejection and write failure")
+
+let queueFile = folder.appendingPathComponent("association.json")
+let local = UUID(), remote = UUID()
+let queue = try ProjectSyncQueue(file: queueFile)
+try await queue.associate(local: local, server: remote, revision: 7)
+let reopenedQueue = try ProjectSyncQueue(file: queueFile)
+let initialPublication = ProjectSyncQueue.Job(id: "project-" + local.uuidString,
+    kind: "project_create", text: ["local_id": local.uuidString, "name": "Local project"])
+try await reopenedQueue.enqueue([initialPublication])
+let pendingAfterAssociation = await reopenedQueue.pending()
+precondition(pendingAfterAssociation == 0)
+do {
+    try await reopenedQueue.associate(local: UUID(), server: remote, revision: 7)
+    fatalError("Duplicate endpoint association was accepted")
+} catch is EvidenceError {}
+print("PASS association survives reopen, suppresses duplicate creation and rejects many-to-one binding")
