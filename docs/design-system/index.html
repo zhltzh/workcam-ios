@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>WorkCam Design System - Reference (Direction A frozen)</title>
+<style>
+ body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;
+      max-width:860px;margin:2rem auto;padding:0 1rem;color:#1b1e23}
+ table{border-collapse:collapse;width:100%;margin:1rem 0}
+ td,th{border:1px solid #ccc;padding:.4rem .6rem;font-size:.85rem}
+ code{font-family:SF Mono,Consolas,monospace;font-size:.8rem}
+ .ev{padding:.15rem .6rem;border-radius:999px;font-size:.8rem;
+     font-weight:600}
+ .swatch{display:inline-block;width:44px;height:24px;
+        border-radius:6px;margin-right:6px;border:1px solid #ccc}
+ .dark{background:#141518;color:#e5e7ea;padding:1rem;border-radius:10px}
+ .note{font-size:.8rem;color:#556}
+</style></head><body>
+<h1>WorkCam Design System</h1>
+<p class="note">Generated from <code>design-tokens.json</code>
+(w014-rc2, WCAG AA 141/141 via contrast_check.py). Direction
+<b>A "Field Pro"</b> is frozen for launch; B "Trust Slate" and
+C "Signal Clean" remain in the JSON for product review. Final visual
+sign-off belongs to the product side. UI copy is English-only.</p>
+
+<h2>Evidence status (semantic - shared across directions)</h2>
+<p class="note">Badges are independent claims, never a score.
+Light variants render on light surfaces; dark variants on dark.</p>
+<table><tr><th>status</th><th>light badge</th><th>hex</th></tr>
+<tr><td>none</td><td><span class="ev" style="color:#5b6470;background:#5b64701a">none</span></td><td><code>#5b6470</code></td></tr><tr><td>unverified</td><td><span class="ev" style="color:#8a5f00;background:#8a5f001a">unverified</span></td><td><code>#8a5f00</code></td></tr><tr><td>signature_valid</td><td><span class="ev" style="color:#3b5bdb;background:#3b5bdb1a">signature_valid</span></td><td><code>#3b5bdb</code></td></tr><tr><td>verified</td><td><span class="ev" style="color:#1e6f38;background:#1e6f381a">verified</span></td><td><code>#1e6f38</code></td></tr><tr><td>failed</td><td><span class="ev" style="color:#c92a2a;background:#c92a2a1a">failed</span></td><td><code>#c92a2a</code></td></tr><tr><td>anchored</td><td><span class="ev" style="color:#5f3dc4;background:#5f3dc41a">anchored</span></td><td><code>#5f3dc4</code></td></tr></table>
+<div class="dark">
+<table style="border-color:#444"><tr><th>status</th>
+<th>dark badge</th><th>hex</th></tr><tr><td>none</td><td><span class="ev" style="color:#a3abb5;background:#a3abb51a">none</span></td><td><code>#a3abb5</code></td></tr><tr><td>unverified</td><td><span class="ev" style="color:#ffc94d;background:#ffc94d1a">unverified</span></td><td><code>#ffc94d</code></td></tr><tr><td>signature_valid</td><td><span class="ev" style="color:#7a95ff;background:#7a95ff1a">signature_valid</span></td><td><code>#7a95ff</code></td></tr><tr><td>verified</td><td><span class="ev" style="color:#51cf66;background:#51cf661a">verified</span></td><td><code>#51cf66</code></td></tr><tr><td>failed</td><td><span class="ev" style="color:#ff6b6b;background:#ff6b6b1a">failed</span></td><td><code>#ff6b6b</code></td></tr><tr><td>anchored</td><td><span class="ev" style="color:#a58af9;background:#a58af91a">anchored</span></td><td><code>#a58af9</code></td></tr></table></div>
+
+<h2>Brand layer - Direction A (Field Pro)</h2>
+<table><tr><th>token</th><th>light</th><th>hex</th>
+<th>dark</th><th>hex</th></tr><tr><td>primary</td><td style='background:#1a355e;height:28px'></td><td><code>#1a355e</code></td><td style='background:#5c9dff;height:28px'></td><td><code>#5c9dff</code></td></tr><tr><td>primary_hover</td><td style='background:#244a7c;height:28px'></td><td><code>#244a7c</code></td><td style='background:#7ab5ff;height:28px'></td><td><code>#7ab5ff</code></td></tr><tr><td>primary_subtle</td><td style='background:#e8eef7;height:28px'></td><td><code>#e8eef7</code></td><td style='background:#1a2a3a;height:28px'></td><td><code>#1a2a3a</code></td></tr><tr><td>primary_ink</td><td style='background:#1a355e;height:28px'></td><td><code>#1a355e</code></td><td style='background:#5c9dff;height:28px'></td><td><code>#5c9dff</code></td></tr><tr><td>accent</td><td style='background:#e8590c;height:28px'></td><td><code>#e8590c</code></td><td style='background:#ff8c42;height:28px'></td><td><code>#ff8c42</code></td></tr><tr><td>accent_strong</td><td style='background:#c2410c;height:28px'></td><td><code>#c2410c</code></td><td style='background:#ff8c42;height:28px'></td><td><code>#ff8c42</code></td></tr><tr><td>accent_strong_hover</td><td style='background:#ad3b09;height:28px'></td><td><code>#ad3b09</code></td><td style='background:#ffa05c;height:28px'></td><td><code>#ffa05c</code></td></tr><tr><td>on_accent</td><td style='background:#ffffff;height:28px'></td><td><code>#ffffff</code></td><td style='background:#0e1113;height:28px'></td><td><code>#0e1113</code></td></tr><tr><td>bg</td><td style='background:#f8f9fa;height:28px'></td><td><code>#f8f9fa</code></td><td style='background:#0e1113;height:28px'></td><td><code>#0e1113</code></td></tr><tr><td>surface</td><td style='background:#ffffff;height:28px'></td><td><code>#ffffff</code></td><td style='background:#1a1e23;height:28px'></td><td><code>#1a1e23</code></td></tr><tr><td>border</td><td style='background:#dee2e6;height:28px'></td><td><code>#dee2e6</code></td><td style='background:#2a3038;height:28px'></td><td><code>#2a3038</code></td></tr><tr><td>text_1</td><td style='background:#1b1e23;height:28px'></td><td><code>#1b1e23</code></td><td style='background:#e9ecef;height:28px'></td><td><code>#e9ecef</code></td></tr><tr><td>text_2</td><td style='background:#5a6472;height:28px'></td><td><code>#5a6472</code></td><td style='background:#909aa3;height:28px'></td><td><code>#909aa3</code></td></tr><tr><td>text_3</td><td style='background:#66707d;height:28px'></td><td><code>#66707d</code></td><td style='background:#8b95a1;height:28px'></td><td><code>#8b95a1</code></td></tr></table>
+
+<h2>Annotation palette (shared)</h2>
+<p><span class="swatch" style="background:#FF3B30"></span><span class="swatch" style="background:#FF9500"></span><span class="swatch" style="background:#FFCC00"></span><span class="swatch" style="background:#34C759"></span><span class="swatch" style="background:#007AFF"></span><span class="swatch" style="background:#AF52DE"></span><span class="note">6 colors; CTA uses
+<code>accent_strong</code> + <code>on_accent</code>, never decorative
+<code>accent</code>.</span></p>
+
+<h2>Spacing / Radius</h2>
+<p><code>Space</code>: xs 4 · sm 8
+· md 16 · lg 24
+· xl 32 &nbsp;|&nbsp;
+<code>Radius</code>: sm 6
+· md 10 · lg 16</p>
+
+<h2>Fixed surfaces (never invert in dark mode)</h2>
+<p><code>report_preview_paper</code>
+#ffffff (PDF preview stays
+white), <code>camera_stage</code>
+#1a1a1a,
+<code>shutter_button</code>
+#ffffff</p>
+
+<h2>Accessibility</h2>
+<p class="note">Text colors are AA-verified on their surfaces
+(141/141). Touch targets &ge; 44pt; shutter 72pt. Mono font is
+mandatory for SHA-256, photo ids, sync op details and device tokens.
+This page is a reference preview, not a product claim.</p>
+</body></html>

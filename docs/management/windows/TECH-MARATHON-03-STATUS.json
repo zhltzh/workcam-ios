@@ -434,11 +434,14 @@
   },
   {
    "id": "E02",
-   "state": "NOT_STARTED",
+   "state": "XCODE_PENDING",
    "source": "TECH-MARATHON-03-QUEUE.md",
    "commit": "79933e4",
-   "tests": [],
-   "notes": "UI reference work not started; E01 audit first"
+   "tests": [
+    "design-system html real-browser check passed",
+    "swift authored; Mac compiles (A05 BLOCKED here)"
+   ],
+   "notes": "INHERITED W014 tokens (design-tokens.json w014-rc2, WCAG AA 141/141 verified) - ZERO redesign; Direction A Field Pro FROZEN for launch (B/C remain selectable, product has final say); generated DesignTokens.swift (Space/Radius/Brand Light+Dark/Evidence 6-state dual-variant/AnnotationPalette/FixedSurfaces) + offline index.html reference preview (real-browser verified: 12 badges, 6 swatches, semantic notes render) + README with 5 non-breakable invariants"
   },
   {
    "id": "E03",
@@ -494,19 +497,25 @@
   },
   {
    "id": "E09",
-   "state": "NOT_STARTED",
+   "state": "XCODE_PENDING",
    "source": "TECH-MARATHON-03-QUEUE.md",
    "commit": "79933e4",
-   "tests": [],
-   "notes": "UI reference work not started; E01 audit first"
+   "tests": [
+    "design-system html real-browser check passed",
+    "swift authored; Mac compiles (A05 BLOCKED here)"
+   ],
+   "notes": "SettingsView: units/watermark-template/privacy-redact pickers; DataManagementSection enforces THE RED LINE structurally: cache clearing (derivative-only by type - no original API exists in PhotoAssetCache) vs originals shown-protected-no-delete-button (original deletion remains DECISION_REQUIRED, absent until then); confirmation dialog says originals stay untouched; DeviceSection surfaces server-resolved key state with the possession!=hardware-origin footer"
   },
   {
    "id": "E10",
-   "state": "NOT_STARTED",
+   "state": "XCODE_PENDING",
    "source": "TECH-MARATHON-03-QUEUE.md",
    "commit": "79933e4",
-   "tests": [],
-   "notes": "UI reference work not started; E01 audit first"
+   "tests": [
+    "design-system html real-browser check passed",
+    "swift authored; Mac compiles (A05 BLOCKED here)"
+   ],
+   "notes": "UIGoldenBaseline.swift: 5 tests pin the EXISTING Mac a11y ids from the E01 audit (cameraStatus/projectArchiveFilter/projectPhotoRow/annotationCanvas+annotationToolPicker); 3 red-line flow tests for the NEW ids from our E07/E08/E09 references (sync honesty wording, trust no-score guard, cache-vs-originals guard) each with an ADOPTION NOTE; every test XCTSkip-honest - never executed on Windows"
   },
   {
    "id": "F01",
@@ -796,10 +805,10 @@
    "DESKTOP_VERIFIED": 47,
    "CROSS_PLATFORM_PENDING": 3,
    "BLOCKED": 2,
-   "NOT_STARTED": 18,
+   "NOT_STARTED": 15,
    "POC_VERIFIED": 2,
    "IN_PROGRESS": 6,
-   "XCODE_PENDING": 2
+   "XCODE_PENDING": 5
   }
  }
 }
