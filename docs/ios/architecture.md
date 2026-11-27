@@ -87,3 +87,8 @@ stores frozen requests, dependencies, ID mappings and confirmed IDs.
 Chunk uploads hash read-only originals and reconcile server chunk indexes on
 retry. Only accepted receipts or confirmed original integrity advance the
 journal. TM01/TM10/TM12 diagnostics remain outside the app target.
+
+Super 01 adds a per-endpoint, per-filter server inbox. Each page commits its
+cursor and latest server snapshots in one protected atomic file. The UI
+shows snapshots separately from editable local project files, and queues
+explicit remote project rename/archive operations with expected revisions.

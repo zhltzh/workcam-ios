@@ -104,21 +104,62 @@ private struct BackendSyncView: View {
     @State private var projectID: UUID?
     @State private var task: Task<Void, Never>?
     @State private var message = "Ready to queue or publish a project."
+    @State private var stream = SyncInbox.Stream.all
+    @State private var serverSnapshots: [SyncInbox.Event] = []
+    @State private var loadedEndpoint: String?
+    @State private var remoteProject: SyncInbox.Event?
+    @State private var remoteName = ""
+    @State private var remoteAction: RemoteAction?
+
+    private enum RemoteAction { case rename, archive }
 
     var body: some View {
         Form {
             TextField("Backend HTTPS URL", text: $endpoint).textInputAutocapitalization(.never).autocorrectionDisabled()
+                .disabled(task != nil).onChange(of: endpoint) { serverSnapshots = []; loadedEndpoint = nil }
             SecureField("Enrollment code", text: $code)
             Picker("Project", selection: $projectID) {
                 Text("Select Project").tag(UUID?.none)
                 ForEach(projects) { Text($0.name).tag(Optional($0.id)) }
             }
             Button("Queue for Sync") { start(publish: false) }.disabled(task != nil || projectID == nil)
-            Button("Publish Pending Changes") { start(publish: true) }.disabled(task != nil || projectID == nil)
+            Button("Publish Pending Changes") { start(publish: true) }.disabled(task != nil)
+            Picker("Download Filter", selection: $stream) {
+                ForEach(SyncInbox.Stream.allCases) { Text($0.rawValue.capitalized).tag($0) }
+            }.disabled(task != nil).onChange(of: stream) { serverSnapshots = [] }
+            Button("Download Server Changes") { download() }.disabled(task != nil)
+            if !serverSnapshots.isEmpty {
+                Section("Server Snapshots") {
+                    ForEach(serverSnapshots, id: \.key) { event in
+                        HStack {
+                            Text(event.summary)
+                                .foregroundStyle(event.tombstone ? .secondary : .primary)
+                            if event.projectRevision != nil {
+                                Spacer()
+                                Menu("Project Actions") {
+                                    Button("Rename Server Project") {
+                                        remoteProject = event; remoteName = ""; remoteAction = .rename
+                                    }
+                                    Button("Archive Server Project", role: .destructive) {
+                                        remoteProject = event; remoteAction = .archive
+                                    }
+                                }.disabled(task != nil)
+                            }
+                        }
+                    }
+                }
+            }
             if task != nil { Button("Cancel", role: .cancel) { task?.cancel() } }
             Text(message).textSelection(.enabled)
         }
         .navigationTitle("Backend Sync")
+        .alert(remoteAction == .archive ? "Queue Server Archive?" : "Queue Server Rename", isPresented: Binding(
+            get: { remoteAction != nil }, set: { if !$0 { remoteAction = nil } }
+        )) {
+            if remoteAction == .rename { TextField("New project name", text: $remoteName) }
+            Button("Queue") { queueRemoteChange() }
+            Button("Cancel", role: .cancel) {}
+        }
         .onAppear {
             do { projects = try ProjectStore.projects() }
             catch { message = error.localizedDescription }
@@ -126,22 +167,97 @@ private struct BackendSyncView: View {
         .onDisappear { task?.cancel(); code = "" }
     }
 
+    private func queueRemoteChange() {
+        guard let remoteAction, let event = remoteProject, let revision = event.projectRevision,
+              let endpoint = loadedEndpoint else { return }
+        let title = remoteName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard remoteAction == .archive || (1...200).contains(title.count) else {
+            message = "Enter a project name of 1–200 characters."
+            return
+        }
+        var text = ["server_project_id": event.id]
+        if remoteAction == .rename { text["name"] = title }
+        let job = ProjectSyncQueue.Job(id: UUID().uuidString,
+            kind: remoteAction == .rename ? "project_update" : "project_archive",
+            text: text, integers: ["expected_revision": revision])
+        task = Task {
+            defer { task = nil }
+            do {
+                let queue = try makeQueue(endpoint)
+                try await queue.enqueue([job])
+                message = await queue.pendingDetails()
+            } catch { message = error.localizedDescription }
+        }
+    }
+
+    #if DEBUG && targetEnvironment(simulator)
+    private static let fixtureSyncRoot = FileManager.default.temporaryDirectory
+        .appendingPathComponent("AlphaSync-" + UUID().uuidString)
+    #endif
+
+    private func syncRoot() throws -> URL {
+        #if DEBUG && targetEnvironment(simulator)
+        if ProcessInfo.processInfo.arguments.contains("--int02-live") { return Self.fixtureSyncRoot }
+        #endif
+        return try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
+                                           appropriateFor: nil, create: true)
+    }
+
+    private func makeQueue(_ endpoint: String) throws -> ProjectSyncQueue {
+        let root = try syncRoot()
+        return try ProjectSyncQueue(file: root.appendingPathComponent("Sync/" +
+            evidenceHash(Data(endpoint.utf8)) + ".json"))
+    }
+
+    private func download() {
+        guard let url = URL(string: endpoint.trimmingCharacters(in: .whitespacesAndNewlines)) else {
+            message = "Enter a valid backend address."
+            return
+        }
+        let enrollment = code
+        let stream = stream
+        code = ""
+        serverSnapshots = []
+        task = Task {
+            defer { task = nil }
+            do {
+                let api = try WorkCamAPI(base: url)
+                let root = try syncRoot()
+                let account = evidenceHash(Data(url.absoluteString.utf8))
+                let file = root.appendingPathComponent("Sync/inbox-\(account)-\(stream.rawValue).json")
+                let inbox = try SyncInbox(file: file)
+                serverSnapshots = await inbox.snapshots()
+                try await api.connect(code: enrollment)
+                try await inbox.synchronize(using: api, filter: stream)
+                serverSnapshots = await inbox.snapshots()
+                loadedEndpoint = url.absoluteString
+                message = "Server snapshots saved · cursor \(await inbox.cursor())"
+            } catch is CancellationError {
+                message = "Cancelled. Committed pages remain saved."
+            } catch {
+                message = error.localizedDescription
+            }
+        }
+    }
+
     private func start(publish: Bool) {
-        guard let url = URL(string: endpoint.trimmingCharacters(in: .whitespacesAndNewlines)),
-              let project = projects.first(where: { $0.id == projectID }) else { return }
+        guard let url = URL(string: endpoint.trimmingCharacters(in: .whitespacesAndNewlines)) else {
+            message = "Enter a valid backend address."
+            return
+        }
+        let project = projects.first(where: { $0.id == projectID })
         let enrollment = code
         code = ""
         task = Task {
             defer { task = nil }
             do {
                 let api = try WorkCamAPI(base: url)
-                let root = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
-                                                       appropriateFor: nil, create: true)
-                let queue = try ProjectSyncQueue(file: root.appendingPathComponent("Sync/" +
-                    evidenceHash(Data(url.absoluteString.utf8)) + ".json"))
-                let photos = try ProjectStore.photos(in: project)
-                let issues = try ProjectStore.issues(for: project)
-                try await queue.enqueue(ProjectSyncQueue.Job.publication(project: project, photos: photos, issues: issues))
+                let queue = try makeQueue(url.absoluteString)
+                if let project {
+                    let photos = try ProjectStore.photos(in: project)
+                    let issues = try ProjectStore.issues(for: project)
+                    try await queue.enqueue(ProjectSyncQueue.Job.publication(project: project, photos: photos, issues: issues))
+                }
                 if publish {
                     try await api.connect(code: enrollment)
                     try await queue.flush(using: api)

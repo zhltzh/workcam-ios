@@ -1,0 +1,494 @@
+{
+  "sprint": "WORKCAM-MAC-SUPER-01",
+  "windows_backend": "2a53712a179ad8880f75cc72d1762fb5b14ec0a8",
+  "counts": {
+    "DESKTOP_VERIFIED": 2,
+    "DEVICE_PENDING": 4,
+    "IN_PROGRESS": 23,
+    "LIVE_HTTP_VERIFIED": 3,
+    "NOT_STARTED": 45,
+    "SIMULATOR_VERIFIED": 3
+  },
+  "tasks": [
+    {
+      "id": "MAC-S01-A01",
+      "title": "接入 Windows 热修",
+      "status": "LIVE_HTTP_VERIFIED",
+      "note": "Fixed Windows 2a53712; Swift HTTP integration rerun."
+    },
+    {
+      "id": "MAC-S01-A02",
+      "title": "注册性能恢复",
+      "status": "IN_PROGRESS",
+      "note": "Same-key replay and lost Token recovered within 15s; suspension missing this sprint."
+    },
+    {
+      "id": "MAC-S01-A03",
+      "title": "增量下行同步",
+      "status": "LIVE_HTTP_VERIFIED",
+      "note": "Read-only snapshots, atomic cursor, separate filters and pages verified."
+    },
+    {
+      "id": "MAC-S01-A04",
+      "title": "项目双向同步",
+      "status": "IN_PROGRESS",
+      "note": "Remote rename/archive commands and snapshot verified; merging into local editing deferred."
+    },
+    {
+      "id": "MAC-S01-A05",
+      "title": "整改双向同步",
+      "status": "IN_PROGRESS",
+      "note": "Inherited first publication and transitions; two-way issue content editing deferred."
+    },
+    {
+      "id": "MAC-S01-A06",
+      "title": "照片角色同步",
+      "status": "IN_PROGRESS",
+      "note": "Inherited initial role link only; full replacement/unlink/return flow deferred."
+    },
+    {
+      "id": "MAC-S01-A07",
+      "title": "冲突处理中心",
+      "status": "IN_PROGRESS",
+      "note": "Preserves structured rejection and local intent; conflict resolution UI incomplete."
+    },
+    {
+      "id": "MAC-S01-A08",
+      "title": "Outbox 生命周期",
+      "status": "IN_PROGRESS",
+      "note": "Durable attempts, sending/retry/conflict/failed and confirmed IDs. No independent-job scheduler."
+    },
+    {
+      "id": "MAC-S01-A09",
+      "title": "幂等与拒绝回执",
+      "status": "LIVE_HTTP_VERIFIED",
+      "note": "Replayed stored revision conflict remains rejected; existing receipt validation retained."
+    },
+    {
+      "id": "MAC-S01-A10",
+      "title": "断点续传强化",
+      "status": "IN_PROGRESS",
+      "note": "Inherited chunk cancellation/resume and original confirmation rerun; expiry and true process kill pending."
+    },
+    {
+      "id": "MAC-S01-A11",
+      "title": "多客户端并发模拟",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-A12",
+      "title": "真实 Swift HTTP 回归",
+      "status": "IN_PROGRESS",
+      "note": "Expanded live combined test; independent scenario split deferred."
+    },
+    {
+      "id": "MAC-S01-B01",
+      "title": "可信拍摄事务",
+      "status": "DESKTOP_VERIFIED",
+      "note": "Inherited original transaction and recovery fixture; no new hardware capture."
+    },
+    {
+      "id": "MAC-S01-B02",
+      "title": "Secure Enclave 生命周期",
+      "status": "DEVICE_PENDING",
+      "note": "Inherited no-fallback key usage; complete physical lifecycle pending."
+    },
+    {
+      "id": "MAC-S01-B03",
+      "title": "App Attest 客户端",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-B04",
+      "title": "可信时间接入",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-B05",
+      "title": "离线时间状态",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-B06",
+      "title": "Core Location 真实接入",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-B07",
+      "title": "定位质量引擎",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-B08",
+      "title": "离线可信状态展示",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-B09",
+      "title": "证据协议兼容",
+      "status": "IN_PROGRESS",
+      "note": "Inherited TM01/TM02 checks; full protocol integration remains isolated."
+    },
+    {
+      "id": "MAC-S01-B10",
+      "title": "证据独立验证",
+      "status": "IN_PROGRESS",
+      "note": "Inherited W018 and fixed backend dual historical verification; fresh comprehensive checks pending."
+    },
+    {
+      "id": "MAC-S01-C01",
+      "title": "相机首页产品化",
+      "status": "IN_PROGRESS",
+      "note": "Inherited professional view and controls."
+    },
+    {
+      "id": "MAC-S01-C02",
+      "title": "相机权限体验",
+      "status": "IN_PROGRESS",
+      "note": "Inherited camera permission handling, location pending."
+    },
+    {
+      "id": "MAC-S01-C03",
+      "title": "镜头与变焦",
+      "status": "IN_PROGRESS",
+      "note": "Inherited lens switching, zoom pending."
+    },
+    {
+      "id": "MAC-S01-C04",
+      "title": "对焦与曝光",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-C05",
+      "title": "连续拍摄",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-C06",
+      "title": "快速现场备注",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-C07",
+      "title": "水印模板管理",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-C08",
+      "title": "照片预览体验",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-C09",
+      "title": "拍摄质量提示",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-C10",
+      "title": "相机生命周期",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-D01",
+      "title": "项目首页",
+      "status": "SIMULATOR_VERIFIED",
+      "note": "Inherited project creation/search/archive UI regression."
+    },
+    {
+      "id": "MAC-S01-D02",
+      "title": "项目详情",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-D03",
+      "title": "项目模板接入",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-D04",
+      "title": "工程照片管理",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-D05",
+      "title": "批量照片操作",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-D06",
+      "title": "六种标注工具产品化",
+      "status": "SIMULATOR_VERIFIED",
+      "note": "Inherited six annotation tools and simulator workflow."
+    },
+    {
+      "id": "MAC-S01-D07",
+      "title": "整改管理",
+      "status": "IN_PROGRESS",
+      "note": "Inherited issue status/history; full filters and bilateral editing pending."
+    },
+    {
+      "id": "MAC-S01-D08",
+      "title": "Before/After 对比",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-D09",
+      "title": "检查清单",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-D10",
+      "title": "工程搜索",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-E01",
+      "title": "ARKit 能力检测",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-E02",
+      "title": "三种测量数据来源",
+      "status": "DEVICE_PENDING",
+      "note": "Inherited experimental three-mode code, physical measurement pending."
+    },
+    {
+      "id": "MAC-S01-E03",
+      "title": "距离测量",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-E04",
+      "title": "多段测量",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-E05",
+      "title": "面积测量",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-E06",
+      "title": "角度与坡度",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-E07",
+      "title": "平面识别与质量提示",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-E08",
+      "title": "测量记录与照片绑定",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-E09",
+      "title": "测量校准工具",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-E10",
+      "title": "真机测量实验",
+      "status": "DEVICE_PENDING",
+      "note": "No calibrated device measurements in this sprint."
+    },
+    {
+      "id": "MAC-S01-F01",
+      "title": "统一报告数据模型",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-F02",
+      "title": "六类专业报告",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-F03",
+      "title": "报告配置",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-F04",
+      "title": "PDF 预览与分页",
+      "status": "SIMULATOR_VERIFIED",
+      "note": "Inherited PDF preview UI and synthetic document checks."
+    },
+    {
+      "id": "MAC-S01-F05",
+      "title": "证据 ZIP 导出",
+      "status": "IN_PROGRESS",
+      "note": "Inherited ZIP originals/derivatives/records; measurement content pending."
+    },
+    {
+      "id": "MAC-S01-F06",
+      "title": "大文件流式导出",
+      "status": "DESKTOP_VERIFIED",
+      "note": "Inherited serialized 128 MiB bound; streaming still pending."
+    },
+    {
+      "id": "MAC-S01-F07",
+      "title": "导出体验",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-F08",
+      "title": "第三方独立验收",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-G01",
+      "title": "统一视觉系统",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-G02",
+      "title": "App 导航结构",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-G03",
+      "title": "状态组件统一",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-G04",
+      "title": "英文界面收口",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-G05",
+      "title": "深色与浅色模式",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-G06",
+      "title": "无障碍与单手操作",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-G07",
+      "title": "首次使用体验",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-G08",
+      "title": "产品截图交付",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-H01",
+      "title": "本地数据事务审计",
+      "status": "IN_PROGRESS",
+      "note": "Atomic inbox plus inherited evidence protection; broader audit remains."
+    },
+    {
+      "id": "MAC-S01-H02",
+      "title": "历史数据迁移",
+      "status": "IN_PROGRESS",
+      "note": "Legacy Outbox fields optional; full upgrade matrix deferred."
+    },
+    {
+      "id": "MAC-S01-H03",
+      "title": "大量照片性能",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-H04",
+      "title": "内存与缓存",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-H05",
+      "title": "异常恢复",
+      "status": "IN_PROGRESS",
+      "note": "Injected inbox destination failure preserves cursor and snapshots."
+    },
+    {
+      "id": "MAC-S01-H06",
+      "title": "安全专项",
+      "status": "NOT_STARTED",
+      "note": "No acceptance claimed in this increment."
+    },
+    {
+      "id": "MAC-S01-H07",
+      "title": "XCUITest 扩充",
+      "status": "IN_PROGRESS",
+      "note": "Re-run UI and live combined regression; full matrix deferred."
+    },
+    {
+      "id": "MAC-S01-H08",
+      "title": "Release 安全门禁",
+      "status": "IN_PROGRESS",
+      "note": "Release compilation checked; full Alpha audit pending."
+    },
+    {
+      "id": "MAC-S01-I01",
+      "title": "PR 链及固定依赖",
+      "status": "IN_PROGRESS",
+      "note": "Checked PR #24/#25 and fixed backend; further full-chain checks recorded separately."
+    },
+    {
+      "id": "MAC-S01-I02",
+      "title": "Alpha 完整业务验收",
+      "status": "IN_PROGRESS",
+      "note": "Inherited synthetic core workflow and expanded true HTTP; complete Alpha flow pending."
+    },
+    {
+      "id": "MAC-S01-I03",
+      "title": "真机安装候选",
+      "status": "DEVICE_PENDING",
+      "note": "Physical device status and signing/install recorded separately."
+    },
+    {
+      "id": "MAC-S01-I04",
+      "title": "最终统一交付",
+      "status": "IN_PROGRESS",
+      "note": "Queue and status committed with this increment; the entire 80-item plan remains open."
+    }
+  ]
+}

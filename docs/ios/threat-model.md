@@ -75,3 +75,7 @@ HTTP, rejects redirects and retains the enrollment code only in memory.
 The outbox never stores bearer credentials and transports original bytes
 without rewriting them. Confirmation concerns server acceptance and file
 integrity. It does not establish scene authenticity or device attestation.
+
+Pulled server snapshots never overwrite pending local intent or evidence.
+A remote project's edits are explicit, versioned Outbox jobs. Rejected
+duplicate receipts cannot advance the successful queue checkpoint.
