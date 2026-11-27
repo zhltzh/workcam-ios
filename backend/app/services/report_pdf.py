@@ -41,6 +41,10 @@ class ReportType(str, Enum):
     SITE_PHOTO = "site_photo"
     INSPECTION = "inspection"
     EVIDENCE = "evidence"
+    # M03-D06: three additional professional templates
+    MEASUREMENT = "measurement"
+    BEFORE_AFTER = "before_after"
+    PROJECT_SUMMARY = "project_summary"
 
 
 class PageSize(str, Enum):
@@ -303,6 +307,9 @@ def _front_page(story, meta: ReportMeta, styles, report_type: ReportType,
         ReportType.SITE_PHOTO: "Site Photo Report",
         ReportType.INSPECTION: "Inspection Report",
         ReportType.EVIDENCE: "Evidence Report",
+        ReportType.MEASUREMENT: "Measurement Report",
+        ReportType.BEFORE_AFTER: "Before / After Report",
+        ReportType.PROJECT_SUMMARY: "Project Summary",
     }[report_type]
     story.append(Paragraph(
         f"{type_label} - {count} photo(s), {issue_count} issue(s)",
@@ -746,6 +753,123 @@ def _lidar_section(story, refs: list, styles, issue_ref: dict):
 # ----------------------------------------------- B02-W015: manual sign-off
 
 
+def _measurement_deep_section(story, measurements: list,
+                              styles) -> None:
+    """M03-D06 measurement report: every record with full honest
+    context (mode, calibration version, uncertainty) - the TM23
+    measurement_nature wording carried into print."""
+    story.append(PageBreak())
+    story.append(Paragraph("Measurement Register", styles["h2"]))
+    story.append(Paragraph(
+        "All measurement values are DEVICE ESTIMATES unless a row "
+        "explicitly says human-entered. Uncalibrated device "
+        "measurements are conservative estimates, not certified "
+        "measurements.", styles["small"]))
+    rows = [["#", "Type", "Value", "Mode", "Calibration",
+             "Uncertainty", "Photo Ref"]]
+    for i, m in enumerate(measurements, start=1):
+        cal = m.get("calibration_version", "uncalibrated")
+        rows.append([str(i),
+                     m.get("measurement_type", "?"),
+                     f"{m.get('value', '?')} {m.get('units', '')}",
+                     m.get("measurement_mode", "manual"),
+                     cal,
+                     ("+/- " + str(m.get("uncertainty", "?")))
+                     if m.get("uncertainty") is not None else "n/a",
+                     m.get("photo_ref", "")])
+    t = Table(rows, colWidths=[0.3 * inch, 1.1 * inch, 1.1 * inch,
+                               1.0 * inch, 1.1 * inch, 1.0 * inch,
+                               1.2 * inch])
+    t.setStyle(TableStyle([
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 7),
+        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#cccccc")),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+    ]))
+    story.append(t)
+
+
+def _before_after_section(story, issues: list, styles, photo_ref,
+                          issue_ref) -> None:
+    """M03-D06 before/after report: per-issue photo pairs grouped by
+    role. The section REPORTS what pairs exist - it never declares a
+    remediation complete (that is a human sign-off)."""
+    story.append(PageBreak())
+    story.append(Paragraph("Before / After Comparison", styles["h2"]))
+    story.append(Paragraph(
+        "Photo pairs are human-linked. Pair presence does not by "
+        "itself demonstrate remediation; the sign-off section "
+        "carries the human confirmation.", styles["small"]))
+    any_pairs = False
+    for issue in issues:
+        photos_by_role: dict[str, list[str]] = issue.get(
+            "photos_by_role", {}) or {}
+        before = photos_by_role.get("before", [])
+        after = photos_by_role.get("after", [])
+        if not before and not after:
+            continue
+        any_pairs = True
+        iid = issue.get("issue_id", "?")
+        story.append(Paragraph(
+            f"Issue {_escape(str(issue_ref.get(iid, iid)))}: "
+            f"{_escape(str(issue.get('title', '')))}",
+            styles["h2"]))
+        rows = [["Role", "Photo Reference"]]
+        for role, ids in (("Before", before),
+                          ("Progress", photos_by_role.get("progress",
+                                                          [])),
+                          ("After", after)):
+            for pid in ids:
+                rows.append([role, str(photo_ref.get(pid, pid))])
+        t = Table(rows, colWidths=[1.2 * inch, 3 * inch])
+        t.setStyle(TableStyle([
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
+            ("GRID", (0, 0), (-1, -1), 0.4,
+             colors.HexColor("#cccccc")),
+        ]))
+        story.append(t)
+        story.append(Spacer(1, 6))
+    if not any_pairs:
+        story.append(Paragraph(
+            "No before/after photo roles recorded for the selected "
+            "issues.", styles["small"]))
+
+
+def _project_summary_section(story, meta: ReportMeta, photos: list,
+                             issues: list, styles, photo_ref) -> None:
+    """M03-D06 project summary: one-page executive digest of the
+    evidence register - counts, severity mix, evidence-status mix.
+    A digest is a VIEW of the register, not new claims."""
+    story.append(PageBreak())
+    story.append(Paragraph("Project Summary", styles["h2"]))
+    counts = _severity_breakdown(issues)
+    statuses = _status_summary(issues)
+    verified = sum(1 for p in photos
+                   if getattr(p, "evidence_status", None)
+                   in ("cryptographically_valid", "verified"))
+    rows = [
+        ["Photos in report", str(len(photos))],
+        ["Issues total", str(len(issues))],
+        ["Severity: critical/high/medium/low",
+         f"{counts.get('critical', 0)}/{counts.get('high', 0)}"
+         f"/{counts.get('medium', 0)}/{counts.get('low', 0)}"],
+        ["Open issues", str(statuses.get("open", 0))],
+        ["Resolved issues", str(statuses.get("resolved", 0))],
+        ["Photos with verified signatures", str(verified)],
+    ]
+    t = Table(rows, colWidths=[2.4 * inch, 2 * inch])
+    t.setStyle(TableStyle([
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("GRID", (0, 0), (-1, -1), 0.4,
+         colors.HexColor("#cccccc")),
+        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+    ]))
+    story.append(t)
+    story.append(Paragraph(
+        "This summary is a view over the evidence register; it "
+        "introduces no new verification claims.", styles["small"]))
+
+
 def _sign_off_section(story, meta: ReportMeta, styles):
     """Manual sign-off block (source class: MANUAL INPUT). Layout only:
     name/date lines for wet or digital signatures. It makes no legal
@@ -834,6 +958,19 @@ def generate_report_pdf(report_type: ReportType, meta: ReportMeta,
     # B02-W015: LiDAR measurement record references
     if meta.lidar_measurements:
         _lidar_section(story, meta.lidar_measurements, styles, issue_ref)
+
+    # M03-D06: type-specific deep sections
+    if report_type == ReportType.MEASUREMENT \
+            and meta.lidar_measurements:
+        # measurement reports expand every record with full context
+        _measurement_deep_section(story, meta.lidar_measurements,
+                                   styles)
+    if report_type == ReportType.BEFORE_AFTER:
+        _before_after_section(story, issues, styles, photo_ref,
+                              issue_ref)
+    if report_type == ReportType.PROJECT_SUMMARY:
+        _project_summary_section(story, meta, photos, issues,
+                                  styles, photo_ref)
 
     # B02-W015: manual sign-off block (layout; no legal claim)
     _sign_off_section(story, meta, styles)

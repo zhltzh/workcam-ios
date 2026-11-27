@@ -165,7 +165,9 @@ class LidarMeasurementRef(BaseModel):
 
 
 class ReportCreateRequest(BaseModel):
-    report_type: str = Field(pattern="^(site_photo|inspection|evidence)$")
+    report_type: str = Field(pattern="^(site_photo|inspection|"
+                               "evidence|measurement|before_after|"
+                               "project_summary)$")
     page_size: str = Field(default="a4", pattern="^(a4|letter)$")
     per_page: int = Field(default=2, ge=1, le=4)
     photo_ids: list[str] = Field(min_length=1,
