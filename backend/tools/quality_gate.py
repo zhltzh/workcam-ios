@@ -51,12 +51,21 @@ def run(cmd: list[str], cwd: Path | None = None,
 
 
 def gate_full_tests(results: list) -> None:
-    code, out = run([sys.executable, "-m", "pytest", "-q"],
-                    cwd=ROOT, timeout=3600)
+    import tempfile
+    log = Path(tempfile.gettempdir()) / "workcam-gate-pytest.log"
+    proc = subprocess.run(
+        [sys.executable, "-m", "pytest", "-q"],
+        cwd=str(ROOT), capture_output=True, text=True, timeout=3600)
+    out = (proc.stdout or "") + (proc.stderr or "")
+    log.write_text(out[-200_000:], encoding="utf-8",
+                   errors="replace")     # evidence for flake hunts
     tail = out.strip().splitlines()[-1] if out.strip() else ""
-    if code != 0:
+    if proc.returncode != 0:
+        failed = [l for l in out.splitlines()
+                  if l.startswith("FAILED")]
+        name = "; ".join(failed[:3]) if failed else tail
         results.append(("GATE-FAIL", "unit/integration/security tests",
-                        f"pytest exit {code}: {tail}"))
+                        f"pytest exit {proc.returncode}: {name}"))
         return
     m = re.search(r"(\d+) passed", out)
     passed = m.group(1) if m else "?"

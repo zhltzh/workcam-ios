@@ -141,18 +141,37 @@ class TestF04ChunkedUploadThroughput:
             print(f"upload chunk={chunk//1024}KiB:", _pcts(lat))
 
     def test_mid_upload_interruption_resume_cost(self, env):
-        """Interruption at chunk 1 of 2 + status-query resume: the
-        resume path cost is measured separately (the extra GET)."""
+        """FE-I09 root cause (2nd flake, caught by the gate's new
+        failure-name capture): the old assertion compared two
+        wall-clock durations (resumed >= full) - a NON-DETERMINISTIC
+        timing ordering. Both uploads take ~200ms; scheduler jitter
+        routinely inverts the order. The REAL invariant is
+        functional: the interrupted upload RESUMES via the status
+        query (the extra GET is what makes it a resume), completes,
+        and integrity confirms. Wall-clock DELTAS are performance
+        REPORT data, never pass/fail gates."""
         data = env.make_photo(2000)
         pid = env.register(99, data)
         full = env.chunked_upload(pid, data, 128 * 1024)
-        # re-upload another photo with a forced resume query
+        # a second photo with a forced mid-flight resume query
         data2 = env.make_photo(2001)
         pid2 = env.register(98, data2)
         resumed = env.chunked_upload(pid2, data2, 128 * 1024,
                                      restart_at=1)
-        print(f"plain={full*1000:.0f}ms resumed={resumed*1000:.0f}ms")
-        assert resumed >= full       # resume adds work, never less
+        # functional invariant: both completed; the resume path ran
+        # the status query (restart_at triggers it inside the
+        # helper); final integrity confirms the second photo too
+        import hashlib
+        r = env.c.get(
+            f"/api/v1/photos/{pid2}/original/integrity",
+            headers=env.H)
+        assert r.json()["claims"]["file_integrity_verified"] is True
+        assert r.json()["original"]["sha256"] == \
+            hashlib.sha256(data2).hexdigest()
+        # REPORT both durations (perf data, not an assertion)
+        print(f"plain={full*1000:.0f}ms "
+              f"resumed={resumed*1000:.0f}ms "
+              f"(delta reported, never gated)")
 
     def test_duplicate_chunk_resend_is_cheap(self, env):
         data = env.make_photo(2002)
