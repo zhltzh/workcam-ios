@@ -4,9 +4,9 @@
   "counts": {
     "DESKTOP_VERIFIED": 2,
     "DEVICE_PENDING": 4,
-    "IN_PROGRESS": 23,
+    "IN_PROGRESS": 24,
     "LIVE_HTTP_VERIFIED": 3,
-    "NOT_STARTED": 45,
+    "NOT_STARTED": 44,
     "SIMULATOR_VERIFIED": 3
   },
   "tasks": [
@@ -32,31 +32,31 @@
       "id": "MAC-S01-A04",
       "title": "项目双向同步",
       "status": "IN_PROGRESS",
-      "note": "Remote rename/archive commands and snapshot verified; merging into local editing deferred."
+      "note": "User-confirmed endpoint-local one-to-one project association with revision/provenance, remote rename/archive retained. Automatic local import and merge remain open."
     },
     {
       "id": "MAC-S01-A05",
       "title": "整改双向同步",
       "status": "IN_PROGRESS",
-      "note": "Inherited first publication and transitions; two-way issue content editing deferred."
+      "note": "Server issue editor queues versioned edit and transition; live fixture verifies edit and pull. Local-to-server automatic editing remains open."
     },
     {
       "id": "MAC-S01-A06",
       "title": "照片角色同步",
       "status": "IN_PROGRESS",
-      "note": "Inherited initial role link only; full replacement/unlink/return flow deferred."
+      "note": "Batch CAS link/replace/back and exact unlink wired; fixed backend regression exercises changed role and replay."
     },
     {
       "id": "MAC-S01-A07",
       "title": "冲突处理中心",
       "status": "IN_PROGRESS",
-      "note": "Preserves structured rejection and local intent; conflict resolution UI incomplete."
+      "note": "Conflict panel shows original operation and a matching remote snapshot/revision. Rebase retains old intent and starts a new operation ID; other resolution actions remain open."
     },
     {
       "id": "MAC-S01-A08",
       "title": "Outbox 生命周期",
       "status": "IN_PROGRESS",
-      "note": "Durable attempts, sending/retry/conflict/failed and confirmed IDs. No independent-job scheduler."
+      "note": "Durable scheduling isolates deterministic failures, follows explicit dependencies and resource order, and stores backoff for transient failures. Complete fault matrix remains pending."
     },
     {
       "id": "MAC-S01-A09",
@@ -73,8 +73,8 @@
     {
       "id": "MAC-S01-A11",
       "title": "多客户端并发模拟",
-      "status": "NOT_STARTED",
-      "note": "No acceptance claimed in this increment."
+      "status": "IN_PROGRESS",
+      "note": "Fixture verifies independent progress during conflict; two-device concurrency has not been verified."
     },
     {
       "id": "MAC-S01-A12",
@@ -428,7 +428,7 @@
       "id": "MAC-S01-H02",
       "title": "历史数据迁移",
       "status": "IN_PROGRESS",
-      "note": "Legacy Outbox fields optional; full upgrade matrix deferred."
+      "note": "Existing journal decodes new optional fields; desktop association survives reopening with duplicate prevention."
     },
     {
       "id": "MAC-S01-H03",
@@ -458,7 +458,7 @@
       "id": "MAC-S01-H07",
       "title": "XCUITest 扩充",
       "status": "IN_PROGRESS",
-      "note": "Re-run UI and live combined regression; full matrix deferred."
+      "note": "Full simulator suite and expanded fixed-backend Swift scenario rerun. Conflict panel click automation remains pending."
     },
     {
       "id": "MAC-S01-H08",
@@ -470,7 +470,7 @@
       "id": "MAC-S01-I01",
       "title": "PR 链及固定依赖",
       "status": "IN_PROGRESS",
-      "note": "Checked PR #24/#25 and fixed backend; further full-chain checks recorded separately."
+      "note": "Remote #26 reports mergeable=true now; its base/head has a clean merge tree. No CI success inferred."
     },
     {
       "id": "MAC-S01-I02",
@@ -482,13 +482,13 @@
       "id": "MAC-S01-I03",
       "title": "真机安装候选",
       "status": "DEVICE_PENDING",
-      "note": "Physical device status and signing/install recorded separately."
+      "note": "iPhone listed offline on Super 02; prior installed build preserved, device workflow pending."
     },
     {
       "id": "MAC-S01-I04",
       "title": "最终统一交付",
       "status": "IN_PROGRESS",
-      "note": "Queue and status committed with this increment; the entire 80-item plan remains open."
+      "note": "Super 02 increment reported; entire 80-item sprint remains open."
     }
   ]
 }
