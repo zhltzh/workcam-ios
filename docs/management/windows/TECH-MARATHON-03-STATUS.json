@@ -426,11 +426,11 @@
   },
   {
    "id": "E01",
-   "state": "IN_PROGRESS",
+   "state": "DESKTOP_VERIFIED",
    "source": "TECH-MARATHON-03-QUEUE.md",
    "commit": "79933e4",
    "tests": [],
-   "notes": "Night05/PR24 CONTRACTS audited (A06) but UI CODE audit not yet done - queue before E02-E10 to avoid duplicates"
+   "notes": "audit based on real Integration-02 code line numbers: view tree, a11y IDs (5 exist / 5 missing for E10), overlap verdicts (issue editor + annotation canvas + Mac PDF stay Mac; E02/E07/E08/E09 high-value gaps), testability diagnosis (UI zero tests; static render utils extractable) - see E01-mac-ui-audit.md"
   },
   {
    "id": "E02",
@@ -789,10 +789,10 @@
   "at": "79933e4",
   "method": "evidence-based reconciliation against actual code/tests",
   "counts": {
-   "DESKTOP_VERIFIED": 46,
+   "DESKTOP_VERIFIED": 47,
    "CROSS_PLATFORM_PENDING": 3,
    "BLOCKED": 2,
-   "NOT_STARTED": 21,
+   "NOT_STARTED": 20,
    "POC_VERIFIED": 2,
    "IN_PROGRESS": 6
   }
