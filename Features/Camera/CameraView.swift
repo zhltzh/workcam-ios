@@ -72,7 +72,7 @@ struct CameraView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            CameraPreview(session: model.controller.session)
+            CameraPreview(controller: model.controller)
                 .overlay {
                     if showGrid {
                         GeometryReader { proxy in
@@ -169,10 +169,13 @@ struct CameraView: View {
 }
 
 private struct CameraPreview: UIViewRepresentable {
-    let session: AVCaptureSession
+    let controller: CameraController
     func makeUIView(context: Context) -> PreviewView {
         let view = PreviewView()
-        view.layerView.session = session
+        view.controller = controller
+        view.layerView.session = controller.session
+        view.addGestureRecognizer(UITapGestureRecognizer(target: view, action: #selector(PreviewView.focus(_:))))
+        view.addGestureRecognizer(UIPinchGestureRecognizer(target: view, action: #selector(PreviewView.zoom(_:))))
         view.layerView.videoGravity = .resizeAspectFill
         return view
     }
@@ -180,6 +183,20 @@ private struct CameraPreview: UIViewRepresentable {
 }
 
 private final class PreviewView: UIView {
+    weak var controller: CameraController?
+
+    @objc func focus(_ gesture: UITapGestureRecognizer) {
+        guard layerView.connection?.isActive == true else { return }
+        let point = layerView.captureDevicePointConverted(fromLayerPoint: gesture.location(in: self))
+        controller?.focusAndExpose(at: point)
+    }
+
+    @objc func zoom(_ gesture: UIPinchGestureRecognizer) {
+        guard gesture.state == .changed else { return }
+        controller?.adjustZoom(by: gesture.scale)
+        gesture.scale = 1
+    }
+
     override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
     var layerView: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
     override func layoutSubviews() {
