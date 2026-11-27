@@ -25,126 +25,1280 @@
  ],
  "instruction": "Single status source for TM-04. Initial states were reconciled on 2026-11-28 against TM-03's evidence matrix (TECH-MARATHON-03-STATUS.json), the actual test files and the WorkCamCore tree. Inherited DESKTOP_VERIFIED items cite the inherited evidence and must NOT be redone. Every later state change requires a real commit SHA and a real test file.",
  "tasks": [
-  {"id": "A01", "queue": "A", "state": "IN_PROGRESS", "inherits": "TM-03 H06/H11/A01", "commit": null, "tests": [], "notes": "RC3 freeze audit re-run this session: branch/SHA/remote/test evidence re-checked on dev/windows-tm04 baseline a8b59ed"},
-  {"id": "A02", "queue": "A", "state": "IN_PROGRESS", "inherits": "TM-03 reconcile_m03_status.py (80-item matrix)", "commit": null, "tests": [], "notes": "80-item + TM01-TM100 reconciliation done in TM-03; TM-04 adds dependency graph generation"},
-  {"id": "A03", "queue": "A", "state": "NOT_STARTED", "inherits": "W-X01-W-X10 branches exist (dev/windows-b02-w014..w028)", "commit": null, "tests": [], "notes": "delivery-state audit against the ten W-X worktrees pending"},
-  {"id": "A04", "queue": "A", "state": "BLOCKED", "inherits": "TM-03 A05 (4 install failures, winget MSI 0x643)", "commit": null, "tests": [], "notes": "honest BLOCKED; one re-check attempt queued this session before it stays blocked"},
-  {"id": "A05", "queue": "A", "state": "IN_PROGRESS", "inherits": "swift/WorkCamCore 7 modules (Evidence/Geometry/Location/Models/Sync/Time + tests)", "commit": null, "tests": [], "notes": "single package already exists; boundary/duplicate-model audit pending"},
-  {"id": "A06", "queue": "A", "state": "NOT_STARTED", "inherits": "TM-03 E02-E10 XCODE_PENDING set", "commit": null, "tests": [], "notes": "Windows-side syntax/dependency/interface/vector/isolation checks for XCODE_PENDING components"},
-  {"id": "A07", "queue": "A", "state": "NOT_STARTED", "inherits": "handoff/mac-ready/01-START-HERE.md", "commit": null, "tests": [], "notes": "one-command Mac intake + test scripts with pinned deps pending"},
-  {"id": "A08", "queue": "A", "state": "IN_PROGRESS", "inherits": "TM-03 H10 (manifest + START-HERE + device kit)", "commit": null, "tests": [], "notes": "per-component API/example/format/error/migration docs exist in READMEs; completeness pass pending"},
-  {"id": "A09", "queue": "A", "state": "IN_PROGRESS", "inherits": "TM-03 H09 integration-manifest.json (12 components)", "commit": null, "tests": [], "notes": "manifest exists; SHA/dependency/test-result/pending-state enrichment pending"},
-  {"id": "A10", "queue": "A", "state": "IN_PROGRESS", "inherits": "TM-03 H10", "commit": null, "tests": [], "notes": "mac-ready tree exists; TM-04 completeness refresh pending"},
-  {"id": "B01", "queue": "B", "state": "IN_PROGRESS", "inherits": "swift/WorkCamCore/Sources/WorkCamSync/Outbox.swift (279 lines: OutboxEngine/OutboxStore/SyncTransport/ExponentialBackoff)", "commit": null, "tests": ["swift/WorkCamCore/Tests/WorkCamCoreTests/OutboxRuleTests.swift"], "notes": "pure-Swift state machine already extracted; coverage-vs-B-queue gaps audit pending"},
-  {"id": "B02", "queue": "B", "state": "IN_PROGRESS", "inherits": "ConflictDetail.swift (6 kinds, rebase/keep-server/reapply/recreate/cancel/unarchive)", "commit": null, "tests": ["swift/WorkCamCore/Tests/WorkCamCoreTests/ConflictDetailTests.swift"], "notes": "keep-local and defer actions missing; manual-merge absent"},
-  {"id": "B03", "queue": "B", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "field-level diff (identical/independent/true-conflict) not yet authored"},
-  {"id": "B04", "queue": "B", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "stale-intent audit, operation IDs, dependency rebinding, receipt history pending"},
-  {"id": "B05", "queue": "B", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "versioned local/server UUID mapping pending"},
-  {"id": "B06", "queue": "B", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "server project import plan/preview/confirm/idempotency pending"},
-  {"id": "B07", "queue": "B", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "remediation content/status/role bidirectional sync core pending"},
-  {"id": "B08", "queue": "B", "state": "IN_PROGRESS", "inherits": "TM-03 B05 + backend/tests/test_win_hotfix.py (photo link/unlink CAS)", "commit": null, "tests": ["backend/tests/test_win_hotfix.py"], "notes": "CAS replace/unlink covered; withdraw/revert cases to be pinned into the new suite"},
-  {"id": "B09", "queue": "B", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "tombstone/archive/closed-terminal sync semantics pending"},
-  {"id": "B10", "queue": "B", "state": "IN_PROGRESS", "inherits": "TM-03 H02 (cursor persistence, rejected receipts) + A07 e2e", "commit": null, "tests": ["backend/tests/test_win_hotfix.py"], "notes": "cursor/receipt semantics covered; atomic-commit + breakpoint-resume consolidation pending"},
-  {"id": "B11", "queue": "B", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "401/403/409/429/500/502/503 differentiated recovery pending"},
-  {"id": "B12", "queue": "B", "state": "IN_PROGRESS", "inherits": "Outbox.swift ExponentialBackoff + FixedClock (testable clock)", "commit": null, "tests": ["swift/WorkCamCore/Tests/WorkCamCoreTests/OutboxRuleTests.swift"], "notes": "backoff + testable clock exist; Retry-After + jitter semantics audit pending"},
-  {"id": "B13", "queue": "B", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "multi-client concurrency harness pending"},
-  {"id": "B14", "queue": "B", "state": "IN_PROGRESS", "inherits": "TM-03 A02 (test_tm91_weak_network.py 7) + TM35 resumable sessions", "commit": null, "tests": ["backend/tests/test_techlab/test_tm91_weak_network.py"], "notes": "session survival/restart/out-of-order covered; expiry/cancel/duplicate-chunk matrix consolidation pending"},
-  {"id": "B15", "queue": "B", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "final SDK packaging: real-HTTP tests + Swift intake example + failure matrix pending"},
-  {"id": "C01", "queue": "C", "state": "IN_PROGRESS", "inherits": "swift/WorkCamCore Package.swift (7 targets)", "commit": null, "tests": [], "notes": "boundary/dependency-direction audit pending"},
-  {"id": "C02", "queue": "C", "state": "IN_PROGRESS", "inherits": "WorkCamModels/WorkCamBusiness.swift + WorkCamEvidence/EvidenceModels.swift", "commit": null, "tests": ["swift/WorkCamCore/Tests/WorkCamCoreTests/BusinessRuleTests.swift"], "notes": "Project/Issue/Evidence models exist; Photo/Measurement/Report unification audit pending"},
-  {"id": "C03", "queue": "C", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "Repository protocols + DI pending"},
-  {"id": "C04", "queue": "C", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "persistence transaction abstraction pending"},
-  {"id": "C05", "queue": "C", "state": "NOT_STARTED", "inherits": "TM-03 C09 (atomic derivative ops, backend/tests/test_techlab/test_m03_c09_privacy.py)", "commit": null, "tests": ["backend/tests/test_techlab/test_m03_c09_privacy.py"], "notes": "atomic-write component not yet factored out; privacy suite proves the pattern"},
-  {"id": "C06", "queue": "C", "state": "IN_PROGRESS", "inherits": "TM-03 B08 offline index + F03 (IN_PROGRESS)", "commit": null, "tests": ["backend/tests/test_techlab/test_m03_b07_b08_business.py"], "notes": "keyset index exists; pagination/incremental-scan unification pending (F03 profiling feeds this)"},
-  {"id": "C07", "queue": "C", "state": "IN_PROGRESS", "inherits": "WorkCamSync/PhotoIndex.swift + PhotoCacheRuleTests.swift", "commit": null, "tests": ["swift/WorkCamCore/Tests/WorkCamCoreTests/PhotoCacheRuleTests.swift"], "notes": "cache rules exist; LRU/byte-budget coverage audit pending"},
-  {"id": "C08", "queue": "C", "state": "IN_PROGRESS", "inherits": "WorkCamSync/APIClient.swift + ChunkedUploadClient.swift", "commit": null, "tests": [], "notes": "type-safe client exists; cancellation/error-model coverage audit pending"},
-  {"id": "C09", "queue": "C", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "sync task scheduler + dependency graph pending"},
-  {"id": "C10", "queue": "C", "state": "IN_PROGRESS", "inherits": "TM-03 A06 (Night05 payload byte-layout proven) + test_win_hotfix.py", "commit": null, "tests": ["backend/tests/test_techlab/test_m03_a06_night05_contract.py"], "notes": "protocol contracts pinned; canonical-serialization Swift component consolidation pending"},
-  {"id": "C11", "queue": "C", "state": "IN_PROGRESS", "inherits": "WorkCamTime/TimeEstimate.swift + TM-03 C02-era TM24 anchors (test_timegeo_trust.py)", "commit": null, "tests": ["backend/tests/test_techlab/test_timegeo_trust.py"], "notes": "time engine verified server-side; Swift component coverage audit pending"},
-  {"id": "C12", "queue": "C", "state": "IN_PROGRESS", "inherits": "WorkCamLocation/LocationQuality.swift + test_timegeo_trust.py", "commit": null, "tests": ["backend/tests/test_techlab/test_timegeo_trust.py"], "notes": "location quality verified server-side; Swift coverage audit pending"},
-  {"id": "C13", "queue": "C", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "permission/availability/offline state models pending"},
-  {"id": "C14", "queue": "C", "state": "IN_PROGRESS", "inherits": "Outbox.swift FixedClock + InMemoryOutboxStore (injectable clock/store/transport)", "commit": null, "tests": ["swift/WorkCamCore/Tests/WorkCamCoreTests/OutboxRuleTests.swift"], "notes": "clock injectable; filesystem/network/UUID injectors pending"},
-  {"id": "C15", "queue": "C", "state": "IN_PROGRESS", "inherits": "GeometryGoldenVectorTests.swift + geometry-golden-vectors.json (Swift side XCODE_PENDING)", "commit": null, "tests": ["swift/WorkCamCore/Tests/WorkCamCoreTests/GeometryGoldenVectorTests.swift", "backend/tests/test_techlab/test_tm88_geometry_vectors.py"], "notes": "vectors exist and are gated; Swift execution stays Mac (A04 BLOCKED) — never claimed compiled here"},
-  {"id": "D01", "queue": "D", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 B01", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_b01_b03_business.py (19 subset)"], "notes": "8 English versioned templates; inherited, not redone"},
-  {"id": "D02", "queue": "D", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 B03", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_b01_b03_business.py"], "notes": "8 field types + conditional visibility + Swift Codable; inherited"},
-  {"id": "D03", "queue": "D", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 B02", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_b01_b03_business.py"], "notes": "Pass/Fail/NA/Not-Inspected engine; inherited"},
-  {"id": "D04", "queue": "D", "state": "IN_PROGRESS", "inherits": "TM-03 B02 evidence requirements", "commit": null, "tests": ["backend/tests/test_techlab/test_m03_b01_b03_business.py"], "notes": "evidence requirements covered; required-photo/note/measurement-link validation consolidation pending"},
-  {"id": "D05", "queue": "D", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 B04", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_b04_b06_business.py (22 subset)"], "notes": "issue lifecycle + guarded transitions + history; inherited"},
-  {"id": "D06", "queue": "D", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 B05", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_b04_b06_business.py"], "notes": "before/progress/after roles + CAS; inherited"},
-  {"id": "D07", "queue": "D", "state": "IN_PROGRESS", "inherits": "TM-03 B08 location index", "commit": null, "tests": ["backend/tests/test_techlab/test_m03_b07_b08_business.py"], "notes": "location tag indexed; area/floor/room hierarchy model pending"},
-  {"id": "D08", "queue": "D", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 B06", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_b04_b06_business.py"], "notes": "naming expressions + sanitize + reserved names; inherited"},
-  {"id": "D09", "queue": "D", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 B07", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_b07_b08_business.py (16 subset)"], "notes": "batch planner + failure-only retry; inherited"},
-  {"id": "D10", "queue": "D", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 B08", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_b07_b08_business.py"], "notes": "offline keyset search; inherited"},
-  {"id": "D11", "queue": "D", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 B11", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_b09_b11_business.py (18 subset)"], "notes": "deterministic daily digest; inherited"},
-  {"id": "D12", "queue": "D", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 B09", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_b09_b11_business.py"], "notes": "asset candidates + human confirm; inherited"},
-  {"id": "D13", "queue": "D", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 B10", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_b09_b11_business.py"], "notes": "raw points/calibration/units/provenance; inherited"},
-  {"id": "D14", "queue": "D", "state": "IN_PROGRESS", "inherits": "TM-03 A03 (migrations v1-v14 + rollback)", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_tm93_upgrade_matrix.py (14)"], "notes": "archive/restore policy queries pending; migration safety inherited"},
-  {"id": "D15", "queue": "D", "state": "IN_PROGRESS", "inherits": "TM-03 B12 (WorkCamBusiness.swift, CROSS_PLATFORM_PENDING)", "commit": null, "tests": ["swift/WorkCamCore/Tests/WorkCamCoreTests/BusinessRuleTests.swift (13)"], "notes": "Models/Services exist; ViewModel packaging + test pass pending"},
-  {"id": "E01", "queue": "E", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 C02", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_c01_c02_exif_extremes.py (56 subset)"], "notes": "EXIF 1..8 + two real defects fixed historically; inherited"},
-  {"id": "E02", "queue": "E", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 C01", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_c01_c02_exif_extremes.py"], "notes": "watermark layout incl. CJK/logo/refusals; inherited"},
-  {"id": "E03", "queue": "E", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 C03", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_tm63_annotations.py (17)"], "notes": "9 annotation kinds geometry; inherited"},
-  {"id": "E04", "queue": "E", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 C03 + C02 crop/scale", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_tm63_annotations.py", "backend/tests/test_techlab/test_tm_geometry_core.py"], "notes": "hit-testing/undo/redo/soft-delete covered; inherited"},
-  {"id": "E05", "queue": "E", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 C04", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_c04_c05_photo_quality.py (15 subset)"], "notes": "blur/exposure/contrast/resolution advisories; inherited"},
-  {"id": "E06", "queue": "E", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 C05", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_c04_c05_photo_quality.py"], "notes": "SHA-256 + aHash/dHash candidates; never auto-delete; inherited"},
-  {"id": "E07", "queue": "E", "state": "NOT_STARTED", "inherits": "TM-03 C06 NOT_STARTED (selection review open)", "commit": null, "tests": [], "notes": "TM-04 P0: registration selection review doc (ECC/phase-correlation/licenses/OpenCV-free) + isolated PoC on synthetic transforms"},
-  {"id": "E08", "queue": "E", "state": "NOT_STARTED", "inherits": "TM-03 C07 NOT_STARTED", "commit": null, "tests": [], "notes": "compare-view Swift reference (side-by-side/slider/opacity/manual align) pending"},
-  {"id": "E09", "queue": "E", "state": "NOT_STARTED", "inherits": "TM-03 C08 NOT_STARTED", "commit": null, "tests": [], "notes": "TM-04 P0: OCR sample set + result schema + human confirmation + Apple Vision contract; never auto-upgrade"},
-  {"id": "E10", "queue": "E", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 C09", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_c09_privacy.py (9)"], "notes": "derivative-only redaction, originals intact; inherited"},
-  {"id": "E11", "queue": "E", "state": "DESKTOP_VERIFIED", "inherits": "TM geometry suite", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_tm_geometry_core.py (distance_3d/horizontal_and_vertical/backproject)"], "notes": "inherited"},
-  {"id": "E12", "queue": "E", "state": "DESKTOP_VERIFIED", "inherits": "TM geometry suite", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_tm_geometry_core.py (polyline/angle_between/slope/plumb)"], "notes": "inherited"},
-  {"id": "E13", "queue": "E", "state": "DESKTOP_VERIFIED", "inherits": "TM geometry suite", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_tm_geometry_core.py (shoelace/concave/self-intersection/3d-area/perimeter)"], "notes": "inherited"},
-  {"id": "E14", "queue": "E", "state": "DESKTOP_VERIFIED", "inherits": "TM geometry suite + TM-03 B10 EXPERIMENTAL volume note", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_tm_geometry_core.py (plane fitting/RANSAC/volumes)", "backend/tests/test_techlab/test_tm21_pointcloud.py"], "notes": "inherited; volume stays explicitly assumption-labeled (EXPERIMENTAL), never production-claimed"},
-  {"id": "E15", "queue": "E", "state": "DESKTOP_VERIFIED", "inherits": "TM geometry suite", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_tm_geometry_core.py (error propagation x4/repeatability/uncalibrated profile)", "backend/tests/test_techlab/test_tm23_measurement_format.py"], "notes": "inherited; Swift fixed vectors authored (GeometryGoldenVectorTests) but Mac-only compile — never claimed run on Windows"},
-  {"id": "F01", "queue": "F", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 D06", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_d06_report_types.py (6)", "report family regression 89"], "notes": "six types assembled; inherited"},
-  {"id": "F02", "queue": "F", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 D06", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_d06_report_types.py"], "notes": "six types x A4/Letter = 12 samples; inherited"},
-  {"id": "F03", "queue": "F", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 D07", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_d07_d08_pagination_branding.py (6)"], "notes": "100-photo zero-loss pagination; inherited"},
-  {"id": "F04", "queue": "F", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 D08", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_d07_d08_pagination_branding.py"], "notes": "branding/footer/report-ID; inherited"},
-  {"id": "F05", "queue": "F", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 D04", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_d04_evpack_v2.py (11)"], "notes": "evpack/2.0 manifest; inherited"},
-  {"id": "F06", "queue": "F", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 D05", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_d05_streaming_zip.py (8)"], "notes": "ZIP64 streaming 70000 entries, 2.4MB peak; inherited"},
-  {"id": "F07", "queue": "F", "state": "IN_PROGRESS", "inherits": "TM-03 A08 ZIP safety gate + D05 cancel cleanup", "commit": null, "tests": ["backend/tests/test_techlab/test_m03_d05_streaming_zip.py"], "notes": "traversal/duplicate gates exist; full zip-bomb/corrupt-archive matrix consolidation pending"},
-  {"id": "F08", "queue": "F", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 D09", "commit": "79933e4", "tests": ["real browser run (Playwright loopback)", "backend/tools/web_verifier.py mirror (4)"], "notes": "standalone verifier incl. 2 defects found+fixed; inherited"},
-  {"id": "F09", "queue": "F", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 D10", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_d10_interop.py (8)"], "notes": "8 formats with native consumers; inherited"},
-  {"id": "F10", "queue": "F", "state": "IN_PROGRESS", "inherits": "TM-03 D01 (C2PA PoC) + D02 (RFC3161) + D03 (long-term)", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_d02_tsa.py (7)", "backend/tests/test_techlab/test_m03_d03_long_term.py (14)", "backend/tools/c2pa-poc/"], "notes": "all three isolated experiments verified; combined applicability report re-check pending (FE-G06)"},
-  {"id": "G01", "queue": "G", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 F01", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_f01_f02_perf.py (11 subset)"], "notes": "100k metadata seeded generator; inherited"},
-  {"id": "G02", "queue": "G", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 F02", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_f01_f02_perf.py"], "notes": "medium tier 100proj/10k photos; inherited"},
-  {"id": "G03", "queue": "G", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 F02 + F08", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_f01_f02_perf.py", "backend/tests/test_techlab/test_m03_f08_races.py (4)"], "notes": "writer concurrency + races; inherited"},
-  {"id": "G04", "queue": "G", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 F04", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_f04_f06_perf.py (6 subset)"], "notes": "chunk throughput/resume/duplicate; inherited"},
-  {"id": "G05", "queue": "G", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 F05", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_f04_f06_perf.py"], "notes": "10/100/500/1000-photo scale; inherited"},
-  {"id": "G06", "queue": "G", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 F06", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_f04_f06_perf.py"], "notes": "bounded-memory ZIP64; inherited"},
-  {"id": "G07", "queue": "G", "state": "IN_PROGRESS", "inherits": "TM-03 F07 (30s real soak)", "commit": "c7fe170", "tests": ["backend/tests/test_techlab/test_fe_f07_soak.py (3)"], "notes": "30s soak DESKTOP_VERIFIED; 5min/30min tiered runs pending"},
-  {"id": "G08", "queue": "G", "state": "IN_PROGRESS", "inherits": "TM-03 F09", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_tm45_fault_injection.py (5)", "backend/tests/test_techlab/test_tm32_crash_recovery.py (14)"], "notes": "network/disk/db/crash covered; tmpfile-uncreatable + cache-corruption queued"},
-  {"id": "G09", "queue": "G", "state": "IN_PROGRESS", "inherits": "TM-03 FE-A12 red team + A08 sensitive scan", "commit": null, "tests": ["backend/tests/test_techlab/test_fe_a12_redteam.py (10)"], "notes": "red team 10/10; parser fuzzing + scan expansion pending"},
-  {"id": "G10", "queue": "G", "state": "IN_PROGRESS", "inherits": "TM-03 F10 (perf_baseline.json)", "commit": "79933e4", "tests": ["backend/tools/perf_baseline.json"], "notes": "baseline exists; automated P50/P95/P99 regression comparison gate pending"},
-  {"id": "H01", "queue": "H", "state": "POC_VERIFIED", "inherits": "TM-03 G01 tenant isolation PoC", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_b02_w028_tenant_poc.py (10)"], "notes": "isolated PoC; never an MVP blocker"},
-  {"id": "H02", "queue": "H", "state": "NOT_STARTED", "inherits": "TM-03 G02 design notes only", "commit": null, "tests": [], "notes": "enterprise reserve, isolated"},
-  {"id": "H03", "queue": "H", "state": "NOT_STARTED", "inherits": "TM-03 G02 design notes only", "commit": null, "tests": [], "notes": "enterprise reserve, isolated"},
-  {"id": "H04", "queue": "H", "state": "NOT_STARTED", "inherits": "TM-03 G03 design notes only", "commit": null, "tests": [], "notes": "enterprise reserve, isolated; no real email"},
-  {"id": "H05", "queue": "H", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "enterprise reserve, isolated"},
-  {"id": "H06", "queue": "H", "state": "NOT_STARTED", "inherits": "TM-03 G04 design notes only", "commit": null, "tests": [], "notes": "enterprise reserve, isolated"},
-  {"id": "H07", "queue": "H", "state": "NOT_STARTED", "inherits": "TM-03 H07 (RC4 branch not yet split) + TM-04 J01", "commit": null, "tests": [], "notes": "RC4 experimental line split is this session's job"},
-  {"id": "H08", "queue": "H", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "enterprise reserve, isolated"},
-  {"id": "H09", "queue": "H", "state": "NOT_STARTED", "inherits": "TM-03 G06 design notes only", "commit": null, "tests": [], "notes": "enterprise reserve, isolated"},
-  {"id": "H10", "queue": "H", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "enterprise reserve, isolated"},
-  {"id": "I01", "queue": "I", "state": "NOT_STARTED", "inherits": "W028 commerce study (TM-03 G05 design notes)", "commit": null, "tests": [], "notes": "candidate design only"},
-  {"id": "I02", "queue": "I", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "candidate design only"},
-  {"id": "I03", "queue": "I", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "StoreKit 2 adapter protocol; real purchases stay Mac"},
-  {"id": "I04", "queue": "I", "state": "IN_PROGRESS", "inherits": "W025 storage work (dev/windows-b02-w025)", "commit": null, "tests": [], "notes": "storage strategy pieces exist on the b02 line; TM-04 consolidation pending"},
-  {"id": "I05", "queue": "I", "state": "NOT_STARTED", "inherits": "TM-03 G06 design notes only", "commit": null, "tests": [], "notes": "candidate design only; no automatic evidence deletion"},
-  {"id": "I06", "queue": "I", "state": "NOT_STARTED", "inherits": "TM-03 G07 partial (H01 SBOM work)", "commit": null, "tests": [], "notes": "privacy inventory pending"},
-  {"id": "I07", "queue": "I", "state": "IN_PROGRESS", "inherits": "project-wide English UI rule + design-system strings", "commit": null, "tests": [], "notes": "English UI enforced; glossary + localization check pass pending"},
-  {"id": "I08", "queue": "I", "state": "IN_PROGRESS", "inherits": "TM-03 E02 (WCAG AA 141/141) + E10 (a11y baseline)", "commit": "79933e4", "tests": ["swift/WorkCamCore/Tests/WorkCamCoreTests/UIGoldenBaseline.swift"], "notes": "AA verification + a11y IDs pinned; spec document consolidation pending"},
-  {"id": "I09", "queue": "I", "state": "BLOCKED", "inherits": "TM-03 H08 (authored, never built - no Docker Desktop)", "commit": null, "tests": ["backend/Dockerfile + compose (W027)"], "notes": "honest BLOCKED; native deploy verified"},
-  {"id": "I10", "queue": "I", "state": "IN_PROGRESS", "inherits": "TM-03 H01 IN_PROGRESS (gate: pinned deps + licenses + sensitive scan)", "commit": null, "tests": ["backend/tools/quality_gate.py"], "notes": "SBOM + release-risk + App Store checklist consolidation pending"},
-  {"id": "J01", "queue": "J", "state": "NOT_STARTED", "inherits": "TM-03 H07 NOT_STARTED", "commit": null, "tests": [], "notes": "RC4 branch split: experimental modules only (advanced measurement/image algorithms/enterprise), RC3 untouched"},
-  {"id": "J02", "queue": "J", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "versioned dependency management for Swift components pending"},
-  {"id": "J03", "queue": "J", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 H02", "commit": "79933e4", "tests": ["gate: OpenAPI 88 ops live==repo"], "notes": "drift held by gate; inherited"},
-  {"id": "J04", "queue": "J", "state": "IN_PROGRESS", "inherits": "TM-03 A06 + A08 (contract + protocol vectors)", "commit": null, "tests": ["backend/tests/test_techlab/test_m03_a06_night05_contract.py (6)", "backend/tests/test_win_hotfix.py (4)"], "notes": "vector gate pieces exist; Swift-DTO-vs-backend formal gate consolidation pending"},
-  {"id": "J05", "queue": "J", "state": "IN_PROGRESS", "inherits": "TM-03 A03 (migrations, original-byte immutability)", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_tm93_upgrade_matrix.py (14)"], "notes": "immutability proven; combined gate packaging pending"},
-  {"id": "J06", "queue": "J", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 A07", "commit": "79933e4", "tests": ["backend/tests/test_techlab/test_m03_a07_e2e_expanded.py (6)"], "notes": "real-HTTP e2e incl. rotation/chunk restart/conflict rebase; inherited"},
-  {"id": "J07", "queue": "J", "state": "DESKTOP_VERIFIED", "inherits": "TM-03 H11 (fresh clone at 8d79c20)", "commit": "79933e4", "tests": ["fresh clone verified: bootstrap->v14->live HTTP"], "notes": "re-run at final TM-04 freeze remains before RC4 candidate"},
-  {"id": "J08", "queue": "J", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "depends on J01 + B/C queue completion"},
-  {"id": "J09", "queue": "J", "state": "NOT_STARTED", "inherits": null, "commit": null, "tests": [], "notes": "RC5 experimental candidate; not a release"},
-  {"id": "J10", "queue": "J", "state": "IN_PROGRESS", "inherits": null, "commit": null, "tests": [], "notes": "continuous: unified report + matrix + pinned SHAs + Mac-ready final delivery"}
+  {
+   "id": "A01",
+   "queue": "A",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 H06/H11/A01",
+   "commit": "a46cf1e",
+   "tests": [
+    "quality_gate.py re-run on dev/windows-tm04: 1602 passed, 12/12 gates PASSED",
+    "git merge-base --is-ancestor 1f645b6 dev/windows-tm04 (RC3 intact)"
+   ],
+   "notes": "baseline re-verified BEFORE any TM-04 change; numbers match the frozen RC3 report exactly"
+  },
+  {
+   "id": "A02",
+   "queue": "A",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 reconcile_m03_status.py (80-item matrix)",
+   "commit": "a46cf1e",
+   "tests": [
+    "backend/tools/tm04_remaining.py",
+    "docs/management/windows/TM04-REMAINING.json (77 remaining / 32 ready-now / dep graph)"
+   ],
+   "notes": "auto-generated remaining-work + dependency graph from the single status source"
+  },
+  {
+   "id": "A03",
+   "queue": "A",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "W-X01-W-X10 branches exist (dev/windows-b02-w014..w028)",
+   "commit": "d5296d7",
+   "tests": [
+    "git merge-base --is-ancestor audit: 13/15 b02 branches merged; w028-commerce intentionally quarantined (P2 enterprise reserve); b02-management is the planning branch (PR #25); dev/windows-stress-w016 is a parallel session live branch (untouched)"
+   ],
+   "notes": "W-X01..W-X10 has NO machine-readable definition anywhere in docs/git history (searched both); audited against the nearest real entities instead - fact recorded, nothing invented"
+  },
+  {
+   "id": "A04",
+   "queue": "A",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 A05 (4 install failures, winget MSI 0x643)",
+   "commit": "0de386b",
+   "tests": [
+    "swift build: BUILD COMPLETE on Swift 6.4.3 (swift-6.4.3-RELEASE, x86_64-unknown-windows-msvc)",
+    "swift test: Executed 96 tests, with 0 failures (exit 0) - FIRST real Windows execution",
+    "ASCII scratch path required: lld-link fails on the CJK repo path (recorded limitation)"
+   ],
+   "notes": "the TM-03 4x winget-install BLOCKED state is RESOLVED: Swift Developer Toolkit 6.4.3 is now installed and really compiles/tests WorkCamCore; SwiftUI files platform-gated via canImport (Apple-only, honest)"
+  },
+  {
+   "id": "A05",
+   "queue": "A",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "swift/WorkCamCore 7 modules (Evidence/Geometry/Location/Models/Sync/Time + tests)",
+   "commit": "a46cf1e",
+   "tests": [
+    "swift build BUILD COMPLETE",
+    "swift test 96/0",
+    "first real compile fixed 10 latent defects (Equatable/tuple labels/SwiftUI gates/Identifiable/switch exhaustiveness/immutable rebase payload/opaque overload/JSONValue import/dependency direction)"
+   ],
+   "notes": "WorkCamCore is now a REAL Windows-compiled package; module boundary fix: WorkCamEvidence depends on WorkCamGeometry (one shared GeometryError contract)"
+  },
+  {
+   "id": "A06",
+   "queue": "A",
+   "state": "NOT_STARTED",
+   "inherits": "TM-03 E02-E10 XCODE_PENDING set",
+   "commit": null,
+   "tests": [],
+   "notes": "Windows-side syntax/dependency/interface/vector/isolation checks for XCODE_PENDING components"
+  },
+  {
+   "id": "A07",
+   "queue": "A",
+   "state": "CROSS_PLATFORM_PENDING",
+   "inherits": "handoff/mac-ready/01-START-HERE.md",
+   "commit": "a46cf1e",
+   "tests": [
+    "handoff/mac-ready/mac-intake-onecommand.sh (4-step runner: bootstrap -> pytest -> swift test -> live contract, PASS/FAIL per step)"
+   ],
+   "notes": "script delivered; awaits one Mac execution and its four report lines"
+  },
+  {
+   "id": "A08",
+   "queue": "A",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 H10 (manifest + START-HERE + device kit)",
+   "commit": null,
+   "tests": [],
+   "notes": "per-component API/example/format/error/migration docs exist in READMEs; completeness pass pending"
+  },
+  {
+   "id": "A09",
+   "queue": "A",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 H09 integration-manifest.json (12 components)",
+   "commit": null,
+   "tests": [],
+   "notes": "manifest exists; SHA/dependency/test-result/pending-state enrichment pending"
+  },
+  {
+   "id": "A10",
+   "queue": "A",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 H10",
+   "commit": null,
+   "tests": [],
+   "notes": "mac-ready tree exists; TM-04 completeness refresh pending"
+  },
+  {
+   "id": "B01",
+   "queue": "B",
+   "state": "IN_PROGRESS",
+   "inherits": "swift/WorkCamCore/Sources/WorkCamSync/Outbox.swift (279 lines: OutboxEngine/OutboxStore/SyncTransport/ExponentialBackoff)",
+   "commit": null,
+   "tests": [
+    "swift/WorkCamCore/Tests/WorkCamCoreTests/OutboxRuleTests.swift"
+   ],
+   "notes": "pure-Swift state machine already extracted; coverage-vs-B-queue gaps audit pending"
+  },
+  {
+   "id": "B02",
+   "queue": "B",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "ConflictDetail.swift (6 kinds, rebase/keep-server/reapply/recreate/cancel/unarchive)",
+   "commit": "0de386b",
+   "tests": [
+    "swift ConflictResolutionTests 7/7 (REAL execution)",
+    "backend/tests/test_techlab/test_tm04_sync_core_parity.py (25)"
+   ],
+   "notes": "four user decisions with exact outbox semantics: keepLocal stamps base_revision for CAS, takeServer keeps the local payload as audit (never deleted), manualMerge requires user payload, deferred never auto-retries"
+  },
+  {
+   "id": "B03",
+   "queue": "B",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": null,
+   "commit": "0de386b",
+   "tests": [
+    "swift FieldDiffTests 8/8 (REAL execution)",
+    "parity suite (subset)"
+   ],
+   "notes": "three-way engine: identical/independent/conflicting; only conflicting fields reach users; mechanical merge re-enters via the server revision gate"
+  },
+  {
+   "id": "B04",
+   "queue": "B",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "stale-intent audit, operation IDs, dependency rebinding, receipt history pending"
+  },
+  {
+   "id": "B05",
+   "queue": "B",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "versioned local/server UUID mapping pending"
+  },
+  {
+   "id": "B06",
+   "queue": "B",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "server project import plan/preview/confirm/idempotency pending"
+  },
+  {
+   "id": "B07",
+   "queue": "B",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "remediation content/status/role bidirectional sync core pending"
+  },
+  {
+   "id": "B08",
+   "queue": "B",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 B05 + backend/tests/test_win_hotfix.py (photo link/unlink CAS)",
+   "commit": null,
+   "tests": [
+    "backend/tests/test_win_hotfix.py"
+   ],
+   "notes": "CAS replace/unlink covered; withdraw/revert cases to be pinned into the new suite"
+  },
+  {
+   "id": "B09",
+   "queue": "B",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "tombstone/archive/closed-terminal sync semantics pending"
+  },
+  {
+   "id": "B10",
+   "queue": "B",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 H02 (cursor persistence, rejected receipts) + A07 e2e",
+   "commit": null,
+   "tests": [
+    "backend/tests/test_win_hotfix.py"
+   ],
+   "notes": "cursor/receipt semantics covered; atomic-commit + breakpoint-resume consolidation pending"
+  },
+  {
+   "id": "B11",
+   "queue": "B",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": null,
+   "commit": "0de386b",
+   "tests": [
+    "swift SyncRecoveryTests 9/9 (REAL execution)",
+    "parity suite decision table"
+   ],
+   "notes": "401 reauth / 403 escalate / 409 rebase / 429+5xx bounded backoff honoring Retry-After clamped to [0,300] / other 4xx fail-fast / dead-letter at max attempts (never deleted)"
+  },
+  {
+   "id": "B12",
+   "queue": "B",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "Outbox.swift ExponentialBackoff + FixedClock (testable clock)",
+   "commit": "0de386b",
+   "tests": [
+    "swift SyncRecoveryTests.test_retry_after_clamped_to_envelope (REAL)",
+    "Outbox.swift ExponentialBackoff jitterRatio + MutableClock (step-advance test clock)"
+   ],
+   "notes": "Retry-After channel + bounded exponential backoff + testable clocks; FixedClock never-advances defect fixed via MutableClock"
+  },
+  {
+   "id": "B13",
+   "queue": "B",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "multi-client concurrency harness pending"
+  },
+  {
+   "id": "B14",
+   "queue": "B",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 A02 (test_tm91_weak_network.py 7) + TM35 resumable sessions",
+   "commit": null,
+   "tests": [
+    "backend/tests/test_techlab/test_tm91_weak_network.py"
+   ],
+   "notes": "session survival/restart/out-of-order covered; expiry/cancel/duplicate-chunk matrix consolidation pending"
+  },
+  {
+   "id": "B15",
+   "queue": "B",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "final SDK packaging: real-HTTP tests + Swift intake example + failure matrix pending"
+  },
+  {
+   "id": "C01",
+   "queue": "C",
+   "state": "IN_PROGRESS",
+   "inherits": "swift/WorkCamCore Package.swift (7 targets)",
+   "commit": null,
+   "tests": [],
+   "notes": "boundary/dependency-direction audit pending"
+  },
+  {
+   "id": "C02",
+   "queue": "C",
+   "state": "IN_PROGRESS",
+   "inherits": "WorkCamModels/WorkCamBusiness.swift + WorkCamEvidence/EvidenceModels.swift",
+   "commit": null,
+   "tests": [
+    "swift/WorkCamCore/Tests/WorkCamCoreTests/BusinessRuleTests.swift"
+   ],
+   "notes": "Project/Issue/Evidence models exist; Photo/Measurement/Report unification audit pending"
+  },
+  {
+   "id": "C03",
+   "queue": "C",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "Repository protocols + DI pending"
+  },
+  {
+   "id": "C04",
+   "queue": "C",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "persistence transaction abstraction pending"
+  },
+  {
+   "id": "C05",
+   "queue": "C",
+   "state": "NOT_STARTED",
+   "inherits": "TM-03 C09 (atomic derivative ops, backend/tests/test_techlab/test_m03_c09_privacy.py)",
+   "commit": null,
+   "tests": [
+    "backend/tests/test_techlab/test_m03_c09_privacy.py"
+   ],
+   "notes": "atomic-write component not yet factored out; privacy suite proves the pattern"
+  },
+  {
+   "id": "C06",
+   "queue": "C",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 B08 offline index + F03 (IN_PROGRESS)",
+   "commit": null,
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b07_b08_business.py"
+   ],
+   "notes": "keyset index exists; pagination/incremental-scan unification pending (F03 profiling feeds this)"
+  },
+  {
+   "id": "C07",
+   "queue": "C",
+   "state": "IN_PROGRESS",
+   "inherits": "WorkCamSync/PhotoIndex.swift + PhotoCacheRuleTests.swift",
+   "commit": null,
+   "tests": [
+    "swift/WorkCamCore/Tests/WorkCamCoreTests/PhotoCacheRuleTests.swift"
+   ],
+   "notes": "cache rules exist; LRU/byte-budget coverage audit pending"
+  },
+  {
+   "id": "C08",
+   "queue": "C",
+   "state": "IN_PROGRESS",
+   "inherits": "WorkCamSync/APIClient.swift + ChunkedUploadClient.swift",
+   "commit": null,
+   "tests": [],
+   "notes": "type-safe client exists; cancellation/error-model coverage audit pending"
+  },
+  {
+   "id": "C09",
+   "queue": "C",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "sync task scheduler + dependency graph pending"
+  },
+  {
+   "id": "C10",
+   "queue": "C",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 A06 (Night05 payload byte-layout proven) + test_win_hotfix.py",
+   "commit": null,
+   "tests": [
+    "backend/tests/test_techlab/test_m03_a06_night05_contract.py"
+   ],
+   "notes": "protocol contracts pinned; canonical-serialization Swift component consolidation pending"
+  },
+  {
+   "id": "C11",
+   "queue": "C",
+   "state": "IN_PROGRESS",
+   "inherits": "WorkCamTime/TimeEstimate.swift + TM-03 C02-era TM24 anchors (test_timegeo_trust.py)",
+   "commit": null,
+   "tests": [
+    "backend/tests/test_techlab/test_timegeo_trust.py"
+   ],
+   "notes": "time engine verified server-side; Swift component coverage audit pending"
+  },
+  {
+   "id": "C12",
+   "queue": "C",
+   "state": "IN_PROGRESS",
+   "inherits": "WorkCamLocation/LocationQuality.swift + test_timegeo_trust.py",
+   "commit": null,
+   "tests": [
+    "backend/tests/test_techlab/test_timegeo_trust.py"
+   ],
+   "notes": "location quality verified server-side; Swift coverage audit pending"
+  },
+  {
+   "id": "C13",
+   "queue": "C",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "permission/availability/offline state models pending"
+  },
+  {
+   "id": "C14",
+   "queue": "C",
+   "state": "IN_PROGRESS",
+   "inherits": "Outbox.swift FixedClock + InMemoryOutboxStore (injectable clock/store/transport)",
+   "commit": null,
+   "tests": [
+    "swift/WorkCamCore/Tests/WorkCamCoreTests/OutboxRuleTests.swift"
+   ],
+   "notes": "clock injectable; filesystem/network/UUID injectors pending"
+  },
+  {
+   "id": "C15",
+   "queue": "C",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "GeometryGoldenVectorTests.swift + geometry-golden-vectors.json (Swift side XCODE_PENDING)",
+   "commit": "0de386b",
+   "tests": [
+    "swift test: 96 tests, 0 failures on Windows 6.4.3 (first real run)",
+    "GeometryGoldenVectorTests green incl. Bundle.module resource fix",
+    "cross-language parity: test_tm04_sync_core_parity.py (25) + tm88 vectors via Python suite"
+   ],
+   "notes": "Swift rule suites now EXECUTE on Windows (not just authored); OpenSSL cross-language sig suite inherited from W023 (DV); Apple-only UI reference tests stay platform-gated"
+  },
+  {
+   "id": "D01",
+   "queue": "D",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 B01",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b01_b03_business.py (19 subset)"
+   ],
+   "notes": "8 English versioned templates; inherited, not redone"
+  },
+  {
+   "id": "D02",
+   "queue": "D",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 B03",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b01_b03_business.py"
+   ],
+   "notes": "8 field types + conditional visibility + Swift Codable; inherited"
+  },
+  {
+   "id": "D03",
+   "queue": "D",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 B02",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b01_b03_business.py"
+   ],
+   "notes": "Pass/Fail/NA/Not-Inspected engine; inherited"
+  },
+  {
+   "id": "D04",
+   "queue": "D",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 B02 evidence requirements",
+   "commit": null,
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b01_b03_business.py"
+   ],
+   "notes": "evidence requirements covered; required-photo/note/measurement-link validation consolidation pending"
+  },
+  {
+   "id": "D05",
+   "queue": "D",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 B04",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b04_b06_business.py (22 subset)"
+   ],
+   "notes": "issue lifecycle + guarded transitions + history; inherited"
+  },
+  {
+   "id": "D06",
+   "queue": "D",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 B05",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b04_b06_business.py"
+   ],
+   "notes": "before/progress/after roles + CAS; inherited"
+  },
+  {
+   "id": "D07",
+   "queue": "D",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 B08 location index",
+   "commit": null,
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b07_b08_business.py"
+   ],
+   "notes": "location tag indexed; area/floor/room hierarchy model pending"
+  },
+  {
+   "id": "D08",
+   "queue": "D",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 B06",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b04_b06_business.py"
+   ],
+   "notes": "naming expressions + sanitize + reserved names; inherited"
+  },
+  {
+   "id": "D09",
+   "queue": "D",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 B07",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b07_b08_business.py (16 subset)"
+   ],
+   "notes": "batch planner + failure-only retry; inherited"
+  },
+  {
+   "id": "D10",
+   "queue": "D",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 B08",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b07_b08_business.py"
+   ],
+   "notes": "offline keyset search; inherited"
+  },
+  {
+   "id": "D11",
+   "queue": "D",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 B11",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b09_b11_business.py (18 subset)"
+   ],
+   "notes": "deterministic daily digest; inherited"
+  },
+  {
+   "id": "D12",
+   "queue": "D",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 B09",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b09_b11_business.py"
+   ],
+   "notes": "asset candidates + human confirm; inherited"
+  },
+  {
+   "id": "D13",
+   "queue": "D",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 B10",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_b09_b11_business.py"
+   ],
+   "notes": "raw points/calibration/units/provenance; inherited"
+  },
+  {
+   "id": "D14",
+   "queue": "D",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 A03 (migrations v1-v14 + rollback)",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm93_upgrade_matrix.py (14)"
+   ],
+   "notes": "archive/restore policy queries pending; migration safety inherited"
+  },
+  {
+   "id": "D15",
+   "queue": "D",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 B12 (WorkCamBusiness.swift, CROSS_PLATFORM_PENDING)",
+   "commit": null,
+   "tests": [
+    "swift/WorkCamCore/Tests/WorkCamCoreTests/BusinessRuleTests.swift (13)"
+   ],
+   "notes": "Models/Services exist; ViewModel packaging + test pass pending"
+  },
+  {
+   "id": "E01",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 C02",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_c01_c02_exif_extremes.py (56 subset)"
+   ],
+   "notes": "EXIF 1..8 + two real defects fixed historically; inherited"
+  },
+  {
+   "id": "E02",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 C01",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_c01_c02_exif_extremes.py"
+   ],
+   "notes": "watermark layout incl. CJK/logo/refusals; inherited"
+  },
+  {
+   "id": "E03",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 C03",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm63_annotations.py (17)"
+   ],
+   "notes": "9 annotation kinds geometry; inherited"
+  },
+  {
+   "id": "E04",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 C03 + C02 crop/scale",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm63_annotations.py",
+    "backend/tests/test_techlab/test_tm_geometry_core.py"
+   ],
+   "notes": "hit-testing/undo/redo/soft-delete covered; inherited"
+  },
+  {
+   "id": "E05",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 C04",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_c04_c05_photo_quality.py (15 subset)"
+   ],
+   "notes": "blur/exposure/contrast/resolution advisories; inherited"
+  },
+  {
+   "id": "E06",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 C05",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_c04_c05_photo_quality.py"
+   ],
+   "notes": "SHA-256 + aHash/dHash candidates; never auto-delete; inherited"
+  },
+  {
+   "id": "E07",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 C06 NOT_STARTED (selection review open)",
+   "commit": "0b841ce",
+   "tests": [
+    "backend/tests/test_techlab/test_tm04_e07_registration_poc.py (19 passed)",
+    "docs/tech-lab/tm04-e07-registration-selection.md"
+   ],
+   "notes": "selection review done (OpenCV ECC/SIFT/ORB rejected for phase 1: dep cost; adopted FFT phase correlation + overlap-window NCC subpixel); isolated PoC pc+ncc/1: integer+subpixel shifts within 0.5px incl. brightness/noise; uncorrelated/rotated/flat/tiny/color REFUSED with names; never auto-declares repair verified"
+  },
+  {
+   "id": "E08",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 C07 NOT_STARTED",
+   "commit": "0de386b",
+   "tests": [
+    "swift CompareLogicTests 9/9 (REAL execution)"
+   ],
+   "notes": "AlignmentSession: auto-registration is a PENDING PROPOSAL until user accepts/adjusts; reject leaves unaligned (no helpful nudge); manual align direct; display-space only, originals untouched; SwiftUI reference behind canImport gate"
+  },
+  {
+   "id": "E09",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 C08 NOT_STARTED",
+   "commit": "d5296d7",
+   "tests": [
+    "swift OCRContractTests 9/9 (REAL execution)",
+    "backend/tests/test_techlab/test_tm04_e09_ocr_schema.py (11 passed)",
+    "test-vectors/ocr: 108 synthetic samples + deterministic manifest"
+   ],
+   "notes": "selection review: Apple Vision is the only production path (zero deps, on-device, privacy); OCR data contract: candidates + closed taxonomy + human-confirmation machine (audited who/when, no confidence-threshold promotion possible) + isSearchable B08 gate + TextRecognitionService seam; Mac runs real recognition (DEVICE side)"
+  },
+  {
+   "id": "E10",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 C09",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_c09_privacy.py (9)"
+   ],
+   "notes": "derivative-only redaction, originals intact; inherited"
+  },
+  {
+   "id": "E11",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM geometry suite",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm_geometry_core.py (distance_3d/horizontal_and_vertical/backproject)"
+   ],
+   "notes": "inherited"
+  },
+  {
+   "id": "E12",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM geometry suite",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm_geometry_core.py (polyline/angle_between/slope/plumb)"
+   ],
+   "notes": "inherited"
+  },
+  {
+   "id": "E13",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM geometry suite",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm_geometry_core.py (shoelace/concave/self-intersection/3d-area/perimeter)"
+   ],
+   "notes": "inherited"
+  },
+  {
+   "id": "E14",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM geometry suite + TM-03 B10 EXPERIMENTAL volume note",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm_geometry_core.py (plane fitting/RANSAC/volumes)",
+    "backend/tests/test_techlab/test_tm21_pointcloud.py"
+   ],
+   "notes": "inherited; volume stays explicitly assumption-labeled (EXPERIMENTAL), never production-claimed"
+  },
+  {
+   "id": "E15",
+   "queue": "E",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM geometry suite",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm_geometry_core.py (error propagation x4/repeatability/uncalibrated profile)",
+    "backend/tests/test_techlab/test_tm23_measurement_format.py"
+   ],
+   "notes": "inherited; Swift fixed vectors authored (GeometryGoldenVectorTests) but Mac-only compile — never claimed run on Windows"
+  },
+  {
+   "id": "F01",
+   "queue": "F",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 D06",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d06_report_types.py (6)",
+    "report family regression 89"
+   ],
+   "notes": "six types assembled; inherited"
+  },
+  {
+   "id": "F02",
+   "queue": "F",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 D06",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d06_report_types.py"
+   ],
+   "notes": "six types x A4/Letter = 12 samples; inherited"
+  },
+  {
+   "id": "F03",
+   "queue": "F",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 D07",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d07_d08_pagination_branding.py (6)"
+   ],
+   "notes": "100-photo zero-loss pagination; inherited"
+  },
+  {
+   "id": "F04",
+   "queue": "F",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 D08",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d07_d08_pagination_branding.py"
+   ],
+   "notes": "branding/footer/report-ID; inherited"
+  },
+  {
+   "id": "F05",
+   "queue": "F",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 D04",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d04_evpack_v2.py (11)"
+   ],
+   "notes": "evpack/2.0 manifest; inherited"
+  },
+  {
+   "id": "F06",
+   "queue": "F",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 D05",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d05_streaming_zip.py (8)"
+   ],
+   "notes": "ZIP64 streaming 70000 entries, 2.4MB peak; inherited"
+  },
+  {
+   "id": "F07",
+   "queue": "F",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 A08 ZIP safety gate + D05 cancel cleanup",
+   "commit": null,
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d05_streaming_zip.py"
+   ],
+   "notes": "traversal/duplicate gates exist; full zip-bomb/corrupt-archive matrix consolidation pending"
+  },
+  {
+   "id": "F08",
+   "queue": "F",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 D09",
+   "commit": "79933e4",
+   "tests": [
+    "real browser run (Playwright loopback)",
+    "backend/tools/web_verifier.py mirror (4)"
+   ],
+   "notes": "standalone verifier incl. 2 defects found+fixed; inherited"
+  },
+  {
+   "id": "F09",
+   "queue": "F",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 D10",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d10_interop.py (8)"
+   ],
+   "notes": "8 formats with native consumers; inherited"
+  },
+  {
+   "id": "F10",
+   "queue": "F",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 D01 (C2PA PoC) + D02 (RFC3161) + D03 (long-term)",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_d02_tsa.py (7)",
+    "backend/tests/test_techlab/test_m03_d03_long_term.py (14)",
+    "backend/tools/c2pa-poc/"
+   ],
+   "notes": "all three isolated experiments verified; combined applicability report re-check pending (FE-G06)"
+  },
+  {
+   "id": "G01",
+   "queue": "G",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 F01",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_f01_f02_perf.py (11 subset)"
+   ],
+   "notes": "100k metadata seeded generator; inherited"
+  },
+  {
+   "id": "G02",
+   "queue": "G",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 F02",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_f01_f02_perf.py"
+   ],
+   "notes": "medium tier 100proj/10k photos; inherited"
+  },
+  {
+   "id": "G03",
+   "queue": "G",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 F02 + F08",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_f01_f02_perf.py",
+    "backend/tests/test_techlab/test_m03_f08_races.py (4)"
+   ],
+   "notes": "writer concurrency + races; inherited"
+  },
+  {
+   "id": "G04",
+   "queue": "G",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 F04",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_f04_f06_perf.py (6 subset)"
+   ],
+   "notes": "chunk throughput/resume/duplicate; inherited"
+  },
+  {
+   "id": "G05",
+   "queue": "G",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 F05",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_f04_f06_perf.py"
+   ],
+   "notes": "10/100/500/1000-photo scale; inherited"
+  },
+  {
+   "id": "G06",
+   "queue": "G",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 F06",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_f04_f06_perf.py"
+   ],
+   "notes": "bounded-memory ZIP64; inherited"
+  },
+  {
+   "id": "G07",
+   "queue": "G",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 F07 (30s real soak)",
+   "commit": "c7fe170",
+   "tests": [
+    "backend/tests/test_techlab/test_fe_f07_soak.py (3)"
+   ],
+   "notes": "30s soak DESKTOP_VERIFIED; 5min/30min tiered runs pending"
+  },
+  {
+   "id": "G08",
+   "queue": "G",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 F09",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm45_fault_injection.py (5)",
+    "backend/tests/test_techlab/test_tm32_crash_recovery.py (14)"
+   ],
+   "notes": "network/disk/db/crash covered; tmpfile-uncreatable + cache-corruption queued"
+  },
+  {
+   "id": "G09",
+   "queue": "G",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 FE-A12 red team + A08 sensitive scan",
+   "commit": null,
+   "tests": [
+    "backend/tests/test_techlab/test_fe_a12_redteam.py (10)"
+   ],
+   "notes": "red team 10/10; parser fuzzing + scan expansion pending"
+  },
+  {
+   "id": "G10",
+   "queue": "G",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 F10 (perf_baseline.json)",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tools/perf_baseline.json"
+   ],
+   "notes": "baseline exists; automated P50/P95/P99 regression comparison gate pending"
+  },
+  {
+   "id": "H01",
+   "queue": "H",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 G01 tenant isolation PoC",
+   "commit": "d5296d7",
+   "tests": [
+    "backend/tools/sbom_report.py",
+    "docs/management/windows/TM04-SBOM.json (CycloneDX 1.5, 39 components)",
+    "OSV.dev batch scan performed via local proxy: found 12 known pip CVEs, remediated pip 25.0.1->26.3, rescan = 0 known vulns"
+   ],
+   "notes": "transitive SBOM + REAL vulnerability scan + honest coverage (39/39 license metadata; importlib graph limitation stated)"
+  },
+  {
+   "id": "H02",
+   "queue": "H",
+   "state": "NOT_STARTED",
+   "inherits": "TM-03 G02 design notes only",
+   "commit": null,
+   "tests": [],
+   "notes": "enterprise reserve, isolated"
+  },
+  {
+   "id": "H03",
+   "queue": "H",
+   "state": "NOT_STARTED",
+   "inherits": "TM-03 G02 design notes only",
+   "commit": null,
+   "tests": [],
+   "notes": "enterprise reserve, isolated"
+  },
+  {
+   "id": "H04",
+   "queue": "H",
+   "state": "NOT_STARTED",
+   "inherits": "TM-03 G03 design notes only",
+   "commit": null,
+   "tests": [],
+   "notes": "enterprise reserve, isolated; no real email"
+  },
+  {
+   "id": "H05",
+   "queue": "H",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "enterprise reserve, isolated"
+  },
+  {
+   "id": "H06",
+   "queue": "H",
+   "state": "NOT_STARTED",
+   "inherits": "TM-03 G04 design notes only",
+   "commit": null,
+   "tests": [],
+   "notes": "enterprise reserve, isolated"
+  },
+  {
+   "id": "H07",
+   "queue": "H",
+   "state": "NOT_STARTED",
+   "inherits": "TM-03 H07 (RC4 branch not yet split) + TM-04 J01",
+   "commit": null,
+   "tests": [],
+   "notes": "RC4 experimental line split is this session's job"
+  },
+  {
+   "id": "H08",
+   "queue": "H",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "enterprise reserve, isolated"
+  },
+  {
+   "id": "H09",
+   "queue": "H",
+   "state": "NOT_STARTED",
+   "inherits": "TM-03 G06 design notes only",
+   "commit": null,
+   "tests": [],
+   "notes": "enterprise reserve, isolated"
+  },
+  {
+   "id": "H10",
+   "queue": "H",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "enterprise reserve, isolated"
+  },
+  {
+   "id": "I01",
+   "queue": "I",
+   "state": "NOT_STARTED",
+   "inherits": "W028 commerce study (TM-03 G05 design notes)",
+   "commit": null,
+   "tests": [],
+   "notes": "candidate design only"
+  },
+  {
+   "id": "I02",
+   "queue": "I",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "candidate design only"
+  },
+  {
+   "id": "I03",
+   "queue": "I",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "StoreKit 2 adapter protocol; real purchases stay Mac"
+  },
+  {
+   "id": "I04",
+   "queue": "I",
+   "state": "IN_PROGRESS",
+   "inherits": "W025 storage work (dev/windows-b02-w025)",
+   "commit": null,
+   "tests": [],
+   "notes": "storage strategy pieces exist on the b02 line; TM-04 consolidation pending"
+  },
+  {
+   "id": "I05",
+   "queue": "I",
+   "state": "NOT_STARTED",
+   "inherits": "TM-03 G06 design notes only",
+   "commit": null,
+   "tests": [],
+   "notes": "candidate design only; no automatic evidence deletion"
+  },
+  {
+   "id": "I06",
+   "queue": "I",
+   "state": "NOT_STARTED",
+   "inherits": "TM-03 G07 partial (H01 SBOM work)",
+   "commit": null,
+   "tests": [],
+   "notes": "privacy inventory pending"
+  },
+  {
+   "id": "I07",
+   "queue": "I",
+   "state": "IN_PROGRESS",
+   "inherits": "project-wide English UI rule + design-system strings",
+   "commit": null,
+   "tests": [],
+   "notes": "English UI enforced; glossary + localization check pass pending"
+  },
+  {
+   "id": "I08",
+   "queue": "I",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 E02 (WCAG AA 141/141) + E10 (a11y baseline)",
+   "commit": "79933e4",
+   "tests": [
+    "swift/WorkCamCore/Tests/WorkCamCoreTests/UIGoldenBaseline.swift"
+   ],
+   "notes": "AA verification + a11y IDs pinned; spec document consolidation pending"
+  },
+  {
+   "id": "I09",
+   "queue": "I",
+   "state": "BLOCKED",
+   "inherits": "TM-03 H08 (authored, never built - no Docker Desktop)",
+   "commit": null,
+   "tests": [
+    "backend/Dockerfile + compose (W027)"
+   ],
+   "notes": "honest BLOCKED; native deploy verified"
+  },
+  {
+   "id": "I10",
+   "queue": "I",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 H01 IN_PROGRESS (gate: pinned deps + licenses + sensitive scan)",
+   "commit": null,
+   "tests": [
+    "backend/tools/quality_gate.py"
+   ],
+   "notes": "SBOM + release-risk + App Store checklist consolidation pending"
+  },
+  {
+   "id": "J01",
+   "queue": "J",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 H07 NOT_STARTED",
+   "commit": "d5296d7",
+   "tests": [
+    "docs/management/windows/RC4-CANDIDATE.md",
+    "quality gate isolation check stays green (techlab never imported by app routes)"
+   ],
+   "notes": "RC4 line = dev/windows-tm04 (created from a8b59ed; RC3 1f645b6 verified ancestor, frozen); experimental quarantine list pinned; freeze SHA to be recorded at J08"
+  },
+  {
+   "id": "J02",
+   "queue": "J",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "versioned dependency management for Swift components pending"
+  },
+  {
+   "id": "J03",
+   "queue": "J",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 H02",
+   "commit": "79933e4",
+   "tests": [
+    "gate: OpenAPI 88 ops live==repo"
+   ],
+   "notes": "drift held by gate; inherited"
+  },
+  {
+   "id": "J04",
+   "queue": "J",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 A06 + A08 (contract + protocol vectors)",
+   "commit": null,
+   "tests": [
+    "backend/tests/test_techlab/test_m03_a06_night05_contract.py (6)",
+    "backend/tests/test_win_hotfix.py (4)"
+   ],
+   "notes": "vector gate pieces exist; Swift-DTO-vs-backend formal gate consolidation pending"
+  },
+  {
+   "id": "J05",
+   "queue": "J",
+   "state": "IN_PROGRESS",
+   "inherits": "TM-03 A03 (migrations, original-byte immutability)",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_tm93_upgrade_matrix.py (14)"
+   ],
+   "notes": "immutability proven; combined gate packaging pending"
+  },
+  {
+   "id": "J06",
+   "queue": "J",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 A07",
+   "commit": "79933e4",
+   "tests": [
+    "backend/tests/test_techlab/test_m03_a07_e2e_expanded.py (6)"
+   ],
+   "notes": "real-HTTP e2e incl. rotation/chunk restart/conflict rebase; inherited"
+  },
+  {
+   "id": "J07",
+   "queue": "J",
+   "state": "DESKTOP_VERIFIED",
+   "inherits": "TM-03 H11 (fresh clone at 8d79c20)",
+   "commit": "79933e4",
+   "tests": [
+    "fresh clone verified: bootstrap->v14->live HTTP"
+   ],
+   "notes": "re-run at final TM-04 freeze remains before RC4 candidate"
+  },
+  {
+   "id": "J08",
+   "queue": "J",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "depends on J01 + B/C queue completion"
+  },
+  {
+   "id": "J09",
+   "queue": "J",
+   "state": "NOT_STARTED",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "RC5 experimental candidate; not a release"
+  },
+  {
+   "id": "J10",
+   "queue": "J",
+   "state": "IN_PROGRESS",
+   "inherits": null,
+   "commit": null,
+   "tests": [],
+   "notes": "continuous: unified report + matrix + pinned SHAs + Mac-ready final delivery"
+  }
  ],
  "initial_counts": {
   "DESKTOP_VERIFIED": 40,
@@ -152,5 +1306,22 @@
   "BLOCKED": 2,
   "IN_PROGRESS": 39,
   "NOT_STARTED": 38
+ },
+ "session_updates": {
+  "updated_on": "2026-11-28",
+  "commits": [
+   "a46cf1e",
+   "e17d09f",
+   "0b841ce",
+   "0de386b",
+   "d5296d7"
+  ],
+  "counts_after_first_sprint": {
+   "DESKTOP_VERIFIED": 55,
+   "NOT_STARTED": 30,
+   "CROSS_PLATFORM_PENDING": 1,
+   "IN_PROGRESS": 33,
+   "BLOCKED": 1
+  }
  }
 }
