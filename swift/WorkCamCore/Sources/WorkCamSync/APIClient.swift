@@ -258,6 +258,81 @@ public final class WorkCamAPIClient: Sendable {
         try await call("POST", "/api/v1/sync/batch", body: request)
     }
 
+    /// M03/H02 parity with Mac Integration 02: a receipt is a SUCCESS
+    /// only when status is applied/duplicate AND the result carries
+    /// no embedded rejection. A REJECTED-REPLAY looks like
+    /// status="duplicate" with result.status="rejected" + error -
+    /// surfacing that as success would silently swallow conflicts.
+    public static func receiptSucceeded(
+        _ receipt: SyncBatchResponse.Receipt) -> Result<
+            SyncBatchResponse.Receipt, APIError> {
+        if ["applied", "duplicate"].contains(receipt.status) {
+            if let st = receipt.result.objectValue?["status"],
+               case .string(let embedded) = st, embedded == "rejected" {
+                return .failure(.http(
+                    status: 409,
+                    body: receipt.error ?? APIErrorBody(
+                        code: "sync_rejected",
+                        message: "the server preserved a prior " +
+                                "rejection for this operation id",
+                        details: .empty)))
+            }
+            return .success(receipt)
+        }
+        return .failure(.http(
+            status: 409,
+            body: receipt.error ?? APIErrorBody(
+                code: "sync_rejected", message: receipt.status,
+                details: .empty)))
+    }
+
+    // ---- incremental downlink (WIN-HOTFIX-02/03) -----------------
+
+    public struct PullEvent: Codable, Sendable, Equatable {
+        public let seq: Int
+        public let entityType: String
+        public let entityID: String
+        public let action: String
+        public let revision: Int?
+        public let payloadHint: String?
+        public let createdAt: String
+        public let state: JSONValue?
+        public let tombstone: Bool?
+
+        enum CodingKeys: String, CodingKey {
+            case seq, action, revision, state, tombstone
+            case entityType = "entity_type"
+            case entityID = "entity_id"
+            case payloadHint = "payload_hint"
+            case createdAt = "created_at"
+        }
+    }
+
+    public struct PullPage: Codable, Sendable, Equatable {
+        public let items: [PullEvent]
+        public let cursor: Int
+        public let hasMore: Bool
+        public let limit: Int
+
+        enum CodingKeys: String, CodingKey {
+            case items, cursor, limit
+            case hasMore = "has_more"
+        }
+    }
+
+    /// GET /api/v1/sync/events - incremental pull for THIS owner.
+    /// Each entity_type filter needs its OWN cursor (the server
+    /// counts matching rows, not global slots).
+    public func pullEvents(cursor: Int, limit: Int = 100,
+                            includeState: Bool = false,
+                            entityType: String? = nil) async throws
+            -> PullPage {
+        var path = "/api/v1/sync/events?cursor=\(cursor)&limit=\(limit)"
+        if includeState { path += "&include_state=true" }
+        if let et = entityType { path += "&entity_type=\(et)" }
+        return try await call("GET", path)
+    }
+
     public func uploadSessionStatus(photoID: String,
                                     uploadID: String) async throws
             -> [String: JSONValue] {

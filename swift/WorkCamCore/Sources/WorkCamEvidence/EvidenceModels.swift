@@ -109,6 +109,18 @@ public enum JSONValue: Codable, Sendable, Equatable {
         case .object(let o): try c.encode(o)
         }
     }
+
+    /// Convenience accessor for the object case (nil otherwise).
+    public var objectValue: [String: JSONValue]? {
+        if case .object(let o) = self { return o }
+        return nil
+    }
+
+    /// Convenience accessor for the string case (nil otherwise).
+    public var stringValue: String? {
+        if case .string(let s) = self { return s }
+        return nil
+    }
 }
 
 /// Canonical payload builder - the byte contract (TM01/TM02):

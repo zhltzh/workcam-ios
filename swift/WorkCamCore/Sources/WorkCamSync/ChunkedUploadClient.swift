@@ -36,16 +36,20 @@ public protocol UploadTransport: Sendable {
     func openSession(photoID: String, claimedSha256: String,
                      chunkSize: Int, totalChunks: Int,
                      totalBytes: Int) async throws
-        -> (uploadID: String, receivedChunks: [Int])
+        -> (uploadID: String, receivedChunks: [Int],
+            echoedChunkSize: Int, echoedTotalChunks: Int)
     /// PUT chunk (server verifies X-Chunk-SHA256)
     func putChunk(photoID: String, uploadID: String, index: Int,
                   chunkSHA256: String, data: Data) async throws -> Bool
     /// GET status (resume: what does the server already hold?)
     func sessionStatus(photoID: String, uploadID: String) async throws
         -> (receivedChunks: [Int], totalChunks: Int)
+    /// GET /photos/{id}/original/integrity (pre-check + post-check)
+    func sessionIntegrity(photoID: String) async throws
+        -> [String: Any]
     /// POST complete (server re-assembles + full-file hash proof)
     func complete(photoID: String, uploadID: String) async throws
-        -> Void
+        -> (bound: Bool, status: String)
     /// DELETE session
     func cancel(photoID: String, uploadID: String) async throws -> Void
 }
@@ -89,11 +93,31 @@ public actor ChunkedUploadClient {
         guard source.totalBytes > 0 else {
             throw UploadError.named("empty upload")
         }
+        // M03/H02 parity with the Mac Integration 02 client: an
+        // integrity GET FIRST skips a needless session when the
+        // photo is already bound (the resume path after crashes).
+        if let integrity = try? await transport.sessionIntegrity(
+            photoID: photoID), Self.integrityConfirmed(
+                integrity, claimed: claimedSha256) {
+            return                    // already stored + bound
+        }
         let n = (source.totalBytes + chunkSize - 1) / chunkSize
         let session = try await transport.openSession(
             photoID: photoID, claimedSha256: claimedSha256,
             chunkSize: chunkSize, totalChunks: n,
             totalBytes: source.totalBytes)
+        // M03/H02: the open response ECHOES the session parameters -
+        // a mismatched echo means a stale/proxied response; refuse.
+        guard session.uploadID.count == 32,
+              session.uploadID.allSatisfy({
+                  $0.isHexDigit && $0.isLowercase || $0.isNumber }),
+              session.echoedChunkSize == chunkSize,
+              session.echoedTotalChunks == n,
+              session.receivedChunks.allSatisfy({ (0..<n).contains($0) })
+        else {
+            throw UploadError.named("session open response echoes " +
+                                    "mismatched parameters")
+        }
         uploadID = session.uploadID
         totalChunks = n
         receivedCount = session.receivedChunks.count
@@ -101,12 +125,25 @@ public actor ChunkedUploadClient {
         // re-open, TM35) - continue from what the server holds
         var have = Set(session.receivedChunks)
         try await sendMissing(photoID: photoID, have: &have)
-        try await transport.complete(photoID: photoID,
-                                     uploadID: session.uploadID)
+        let done = try await transport.complete(photoID: photoID,
+                                                uploadID: session.uploadID)
+        // M03/H02 parity: post-complete integrity re-check - the
+        // server's verdict, never the client's assumption.
+        guard done.bound == true, done.status == "completed" else {
+            throw UploadError.named("complete did not bind")
+        }
+        let final = try await transport.sessionIntegrity(
+            photoID: photoID)
+        guard Self.integrityConfirmed(final, claimed: claimedSha256)
+        else {
+            throw UploadError.named(
+                "post-complete integrity failed to confirm the hash")
+        }
     }
 
     /// Resume an interrupted upload by ASKING the server what it has
-    /// (never re-hash-guessing from local state).
+    /// (never re-hash-guessing from local state). Ends with the same
+    /// post-complete integrity re-check as start().
     public func resume(photoID: String, uploadID: String) async throws {
         self.uploadID = uploadID
         let st = try await transport.sessionStatus(
@@ -115,7 +152,32 @@ public actor ChunkedUploadClient {
         var have = Set(st.receivedChunks)
         receivedCount = have.count
         try await sendMissing(photoID: photoID, have: &have)
-        try await transport.complete(photoID: photoID, uploadID: uploadID)
+        let done = try await transport.complete(photoID: photoID,
+                                                uploadID: uploadID)
+        guard done.bound == true, done.status == "completed" else {
+            throw UploadError.named("complete did not bind")
+        }
+        let final = try await transport.sessionIntegrity(
+            photoID: photoID)
+        guard Self.integrityConfirmed(final, claimed: claimedSha256)
+        else {
+            throw UploadError.named(
+                "post-complete integrity failed to confirm the hash")
+        }
+    }
+
+    /// Mac Integration 02 parity: the server's integrity verdict
+    /// keys (original.sha256, bound_to_photo,
+    /// claims.file_integrity_verified) - never the client's own hash.
+    static func integrityConfirmed(_ json: [String: Any],
+                                    claimed: String) -> Bool {
+        guard let original = json["original"] as? [String: Any],
+              original["sha256"] as? String == claimed,
+              json["bound_to_photo"] as? Bool == true,
+              let claims = json["claims"] as? [String: Any],
+              claims["file_integrity_verified"] as? Bool == true
+        else { return false }
+        return true
     }
 
     public func cancel(photoID: String) async throws {
