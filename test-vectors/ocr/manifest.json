@@ -1,0 +1,1550 @@
+{
+ "schema": "ocr-samples/1.0",
+ "license_note": "synthetic programmatic renders; no third-party or scraped content",
+ "image_size": [
+  480,
+  240
+ ],
+ "bbox_convention": "u,v,w,h normalized, v from TOP",
+ "recognition_languages_expected": [
+  "en-US"
+ ],
+ "samples": [
+  {
+   "file": "samples/000_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-4021-A",
+   "text_lines": [
+    "SN-4021-A"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "SN-4021-A"
+  },
+  {
+   "file": "samples/001_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-4021-A",
+   "text_lines": [
+    "SN-4021-A"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "SN-4021-A"
+  },
+  {
+   "file": "samples/002_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-4021-A",
+   "text_lines": [
+    "SN-4021-A"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "SN-4021-A"
+  },
+  {
+   "file": "samples/003_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-4021-A",
+   "text_lines": [
+    "SN-4021-A"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "SN-4021-A"
+  },
+  {
+   "file": "samples/004_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-7734-C",
+   "text_lines": [
+    "SN-7734-C"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "SN-7734-C"
+  },
+  {
+   "file": "samples/005_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-7734-C",
+   "text_lines": [
+    "SN-7734-C"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "SN-7734-C"
+  },
+  {
+   "file": "samples/006_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-7734-C",
+   "text_lines": [
+    "SN-7734-C"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "SN-7734-C"
+  },
+  {
+   "file": "samples/007_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-7734-C",
+   "text_lines": [
+    "SN-7734-C"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "SN-7734-C"
+  },
+  {
+   "file": "samples/008_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-2026-118",
+   "text_lines": [
+    "SN-2026-118"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "SN-2026-118"
+  },
+  {
+   "file": "samples/009_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-2026-118",
+   "text_lines": [
+    "SN-2026-118"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "SN-2026-118"
+  },
+  {
+   "file": "samples/010_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-2026-118",
+   "text_lines": [
+    "SN-2026-118"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "SN-2026-118"
+  },
+  {
+   "file": "samples/011_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-2026-118",
+   "text_lines": [
+    "SN-2026-118"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "SN-2026-118"
+  },
+  {
+   "file": "samples/012_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-9001-Z",
+   "text_lines": [
+    "SN-9001-Z"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "SN-9001-Z"
+  },
+  {
+   "file": "samples/013_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-9001-Z",
+   "text_lines": [
+    "SN-9001-Z"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "SN-9001-Z"
+  },
+  {
+   "file": "samples/014_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-9001-Z",
+   "text_lines": [
+    "SN-9001-Z"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "SN-9001-Z"
+  },
+  {
+   "file": "samples/015_serial_number.png",
+   "field_type": "serial_number",
+   "text": "SN-9001-Z",
+   "text_lines": [
+    "SN-9001-Z"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "SN-9001-Z"
+  },
+  {
+   "file": "samples/016_serial_number.png",
+   "field_type": "serial_number",
+   "text": "WC-TM04-77",
+   "text_lines": [
+    "WC-TM04-77"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "WC-TM04-77"
+  },
+  {
+   "file": "samples/017_serial_number.png",
+   "field_type": "serial_number",
+   "text": "WC-TM04-77",
+   "text_lines": [
+    "WC-TM04-77"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "WC-TM04-77"
+  },
+  {
+   "file": "samples/018_serial_number.png",
+   "field_type": "serial_number",
+   "text": "WC-TM04-77",
+   "text_lines": [
+    "WC-TM04-77"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "WC-TM04-77"
+  },
+  {
+   "file": "samples/019_serial_number.png",
+   "field_type": "serial_number",
+   "text": "WC-TM04-77",
+   "text_lines": [
+    "WC-TM04-77"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "WC-TM04-77"
+  },
+  {
+   "file": "samples/020_model_plate.png",
+   "field_type": "model_plate",
+   "text": "MODEL CT-500 INPUT 230V SER. SN-4021-A",
+   "text_lines": [
+    "MODEL CT-500",
+    "INPUT 230V",
+    "SER. SN-4021-A"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "MODEL CT-500 INPUT 230V SER. SN-4021-A"
+  },
+  {
+   "file": "samples/021_model_plate.png",
+   "field_type": "model_plate",
+   "text": "MODEL CT-500 INPUT 230V SER. SN-4021-A",
+   "text_lines": [
+    "MODEL CT-500",
+    "INPUT 230V",
+    "SER. SN-4021-A"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "MODEL CT-500 INPUT 230V SER. SN-4021-A"
+  },
+  {
+   "file": "samples/022_model_plate.png",
+   "field_type": "model_plate",
+   "text": "MODEL CT-500 INPUT 230V SER. SN-4021-A",
+   "text_lines": [
+    "MODEL CT-500",
+    "INPUT 230V",
+    "SER. SN-4021-A"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "MODEL CT-500 INPUT 230V SER. SN-4021-A"
+  },
+  {
+   "file": "samples/023_model_plate.png",
+   "field_type": "model_plate",
+   "text": "MODEL CT-500 INPUT 230V SER. SN-4021-A",
+   "text_lines": [
+    "MODEL CT-500",
+    "INPUT 230V",
+    "SER. SN-4021-A"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "MODEL CT-500 INPUT 230V SER. SN-4021-A"
+  },
+  {
+   "file": "samples/024_model_plate.png",
+   "field_type": "model_plate",
+   "text": "PUMP UNIT P2 MAX 6.5 BAR MADE 2026",
+   "text_lines": [
+    "PUMP UNIT P2",
+    "MAX 6.5 BAR",
+    "MADE 2026"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "PUMP UNIT P2 MAX 6.5 BAR MADE 2026"
+  },
+  {
+   "file": "samples/025_model_plate.png",
+   "field_type": "model_plate",
+   "text": "PUMP UNIT P2 MAX 6.5 BAR MADE 2026",
+   "text_lines": [
+    "PUMP UNIT P2",
+    "MAX 6.5 BAR",
+    "MADE 2026"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "PUMP UNIT P2 MAX 6.5 BAR MADE 2026"
+  },
+  {
+   "file": "samples/026_model_plate.png",
+   "field_type": "model_plate",
+   "text": "PUMP UNIT P2 MAX 6.5 BAR MADE 2026",
+   "text_lines": [
+    "PUMP UNIT P2",
+    "MAX 6.5 BAR",
+    "MADE 2026"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "PUMP UNIT P2 MAX 6.5 BAR MADE 2026"
+  },
+  {
+   "file": "samples/027_model_plate.png",
+   "field_type": "model_plate",
+   "text": "PUMP UNIT P2 MAX 6.5 BAR MADE 2026",
+   "text_lines": [
+    "PUMP UNIT P2",
+    "MAX 6.5 BAR",
+    "MADE 2026"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "PUMP UNIT P2 MAX 6.5 BAR MADE 2026"
+  },
+  {
+   "file": "samples/028_model_plate.png",
+   "field_type": "model_plate",
+   "text": "PANEL B-12 RATED 32A IEC CLASS I",
+   "text_lines": [
+    "PANEL B-12",
+    "RATED 32A",
+    "IEC CLASS I"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "PANEL B-12 RATED 32A IEC CLASS I"
+  },
+  {
+   "file": "samples/029_model_plate.png",
+   "field_type": "model_plate",
+   "text": "PANEL B-12 RATED 32A IEC CLASS I",
+   "text_lines": [
+    "PANEL B-12",
+    "RATED 32A",
+    "IEC CLASS I"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "PANEL B-12 RATED 32A IEC CLASS I"
+  },
+  {
+   "file": "samples/030_model_plate.png",
+   "field_type": "model_plate",
+   "text": "PANEL B-12 RATED 32A IEC CLASS I",
+   "text_lines": [
+    "PANEL B-12",
+    "RATED 32A",
+    "IEC CLASS I"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "PANEL B-12 RATED 32A IEC CLASS I"
+  },
+  {
+   "file": "samples/031_model_plate.png",
+   "field_type": "model_plate",
+   "text": "PANEL B-12 RATED 32A IEC CLASS I",
+   "text_lines": [
+    "PANEL B-12",
+    "RATED 32A",
+    "IEC CLASS I"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "PANEL B-12 RATED 32A IEC CLASS I"
+  },
+  {
+   "file": "samples/032_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "12.5 bar",
+   "text_lines": [
+    "12.5 bar"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "12.5 BAR"
+  },
+  {
+   "file": "samples/033_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "12.5 bar",
+   "text_lines": [
+    "12.5 bar"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "12.5 BAR"
+  },
+  {
+   "file": "samples/034_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "12.5 bar",
+   "text_lines": [
+    "12.5 bar"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "12.5 BAR"
+  },
+  {
+   "file": "samples/035_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "12.5 bar",
+   "text_lines": [
+    "12.5 bar"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "12.5 BAR"
+  },
+  {
+   "file": "samples/036_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "48.2 psi",
+   "text_lines": [
+    "48.2 psi"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "48.2 PSI"
+  },
+  {
+   "file": "samples/037_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "48.2 psi",
+   "text_lines": [
+    "48.2 psi"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "48.2 PSI"
+  },
+  {
+   "file": "samples/038_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "48.2 psi",
+   "text_lines": [
+    "48.2 psi"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "48.2 PSI"
+  },
+  {
+   "file": "samples/039_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "48.2 psi",
+   "text_lines": [
+    "48.2 psi"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "48.2 PSI"
+  },
+  {
+   "file": "samples/040_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "23.1 kPa",
+   "text_lines": [
+    "23.1 kPa"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "23.1 KPA"
+  },
+  {
+   "file": "samples/041_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "23.1 kPa",
+   "text_lines": [
+    "23.1 kPa"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "23.1 KPA"
+  },
+  {
+   "file": "samples/042_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "23.1 kPa",
+   "text_lines": [
+    "23.1 kPa"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "23.1 KPA"
+  },
+  {
+   "file": "samples/043_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "23.1 kPa",
+   "text_lines": [
+    "23.1 kPa"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "23.1 KPA"
+  },
+  {
+   "file": "samples/044_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "96.4 dB",
+   "text_lines": [
+    "96.4 dB"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "96.4 DB"
+  },
+  {
+   "file": "samples/045_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "96.4 dB",
+   "text_lines": [
+    "96.4 dB"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "96.4 DB"
+  },
+  {
+   "file": "samples/046_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "96.4 dB",
+   "text_lines": [
+    "96.4 dB"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "96.4 DB"
+  },
+  {
+   "file": "samples/047_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "96.4 dB",
+   "text_lines": [
+    "96.4 dB"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "96.4 DB"
+  },
+  {
+   "file": "samples/048_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "0.75 kW",
+   "text_lines": [
+    "0.75 kW"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "0.75 KW"
+  },
+  {
+   "file": "samples/049_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "0.75 kW",
+   "text_lines": [
+    "0.75 kW"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "0.75 KW"
+  },
+  {
+   "file": "samples/050_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "0.75 kW",
+   "text_lines": [
+    "0.75 kW"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "0.75 KW"
+  },
+  {
+   "file": "samples/051_measurement_reading.png",
+   "field_type": "measurement_reading",
+   "text": "0.75 kW",
+   "text_lines": [
+    "0.75 kW"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "0.75 KW"
+  },
+  {
+   "file": "samples/052_location_label.png",
+   "field_type": "location_label",
+   "text": "LEVEL 3 - ROOM 12",
+   "text_lines": [
+    "LEVEL 3 - ROOM 12"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "LEVEL 3 - ROOM 12"
+  },
+  {
+   "file": "samples/053_location_label.png",
+   "field_type": "location_label",
+   "text": "LEVEL 3 - ROOM 12",
+   "text_lines": [
+    "LEVEL 3 - ROOM 12"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "LEVEL 3 - ROOM 12"
+  },
+  {
+   "file": "samples/054_location_label.png",
+   "field_type": "location_label",
+   "text": "LEVEL 3 - ROOM 12",
+   "text_lines": [
+    "LEVEL 3 - ROOM 12"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "LEVEL 3 - ROOM 12"
+  },
+  {
+   "file": "samples/055_location_label.png",
+   "field_type": "location_label",
+   "text": "LEVEL 3 - ROOM 12",
+   "text_lines": [
+    "LEVEL 3 - ROOM 12"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "LEVEL 3 - ROOM 12"
+  },
+  {
+   "file": "samples/056_location_label.png",
+   "field_type": "location_label",
+   "text": "ZONE B / PANEL 4",
+   "text_lines": [
+    "ZONE B / PANEL 4"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "ZONE B / PANEL 4"
+  },
+  {
+   "file": "samples/057_location_label.png",
+   "field_type": "location_label",
+   "text": "ZONE B / PANEL 4",
+   "text_lines": [
+    "ZONE B / PANEL 4"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "ZONE B / PANEL 4"
+  },
+  {
+   "file": "samples/058_location_label.png",
+   "field_type": "location_label",
+   "text": "ZONE B / PANEL 4",
+   "text_lines": [
+    "ZONE B / PANEL 4"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "ZONE B / PANEL 4"
+  },
+  {
+   "file": "samples/059_location_label.png",
+   "field_type": "location_label",
+   "text": "ZONE B / PANEL 4",
+   "text_lines": [
+    "ZONE B / PANEL 4"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "ZONE B / PANEL 4"
+  },
+  {
+   "file": "samples/060_location_label.png",
+   "field_type": "location_label",
+   "text": "ROOF - NORTH SIDE",
+   "text_lines": [
+    "ROOF - NORTH SIDE"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "ROOF - NORTH SIDE"
+  },
+  {
+   "file": "samples/061_location_label.png",
+   "field_type": "location_label",
+   "text": "ROOF - NORTH SIDE",
+   "text_lines": [
+    "ROOF - NORTH SIDE"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "ROOF - NORTH SIDE"
+  },
+  {
+   "file": "samples/062_location_label.png",
+   "field_type": "location_label",
+   "text": "ROOF - NORTH SIDE",
+   "text_lines": [
+    "ROOF - NORTH SIDE"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "ROOF - NORTH SIDE"
+  },
+  {
+   "file": "samples/063_location_label.png",
+   "field_type": "location_label",
+   "text": "ROOF - NORTH SIDE",
+   "text_lines": [
+    "ROOF - NORTH SIDE"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "ROOF - NORTH SIDE"
+  },
+  {
+   "file": "samples/064_location_label.png",
+   "field_type": "location_label",
+   "text": "BASEMENT P2",
+   "text_lines": [
+    "BASEMENT P2"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "BASEMENT P2"
+  },
+  {
+   "file": "samples/065_location_label.png",
+   "field_type": "location_label",
+   "text": "BASEMENT P2",
+   "text_lines": [
+    "BASEMENT P2"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "BASEMENT P2"
+  },
+  {
+   "file": "samples/066_location_label.png",
+   "field_type": "location_label",
+   "text": "BASEMENT P2",
+   "text_lines": [
+    "BASEMENT P2"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "BASEMENT P2"
+  },
+  {
+   "file": "samples/067_location_label.png",
+   "field_type": "location_label",
+   "text": "BASEMENT P2",
+   "text_lines": [
+    "BASEMENT P2"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "BASEMENT P2"
+  },
+  {
+   "file": "samples/068_location_label.png",
+   "field_type": "location_label",
+   "text": "STAIR 5",
+   "text_lines": [
+    "STAIR 5"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "STAIR 5"
+  },
+  {
+   "file": "samples/069_location_label.png",
+   "field_type": "location_label",
+   "text": "STAIR 5",
+   "text_lines": [
+    "STAIR 5"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "STAIR 5"
+  },
+  {
+   "file": "samples/070_location_label.png",
+   "field_type": "location_label",
+   "text": "STAIR 5",
+   "text_lines": [
+    "STAIR 5"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "STAIR 5"
+  },
+  {
+   "file": "samples/071_location_label.png",
+   "field_type": "location_label",
+   "text": "STAIR 5",
+   "text_lines": [
+    "STAIR 5"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "STAIR 5"
+  },
+  {
+   "file": "samples/072_date_code.png",
+   "field_type": "date_code",
+   "text": "2026-03",
+   "text_lines": [
+    "2026-03"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "2026-03"
+  },
+  {
+   "file": "samples/073_date_code.png",
+   "field_type": "date_code",
+   "text": "2026-03",
+   "text_lines": [
+    "2026-03"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "2026-03"
+  },
+  {
+   "file": "samples/074_date_code.png",
+   "field_type": "date_code",
+   "text": "2026-03",
+   "text_lines": [
+    "2026-03"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "2026-03"
+  },
+  {
+   "file": "samples/075_date_code.png",
+   "field_type": "date_code",
+   "text": "2026-03",
+   "text_lines": [
+    "2026-03"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "2026-03"
+  },
+  {
+   "file": "samples/076_date_code.png",
+   "field_type": "date_code",
+   "text": "2026-11-28",
+   "text_lines": [
+    "2026-11-28"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "2026-11-28"
+  },
+  {
+   "file": "samples/077_date_code.png",
+   "field_type": "date_code",
+   "text": "2026-11-28",
+   "text_lines": [
+    "2026-11-28"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "2026-11-28"
+  },
+  {
+   "file": "samples/078_date_code.png",
+   "field_type": "date_code",
+   "text": "2026-11-28",
+   "text_lines": [
+    "2026-11-28"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "2026-11-28"
+  },
+  {
+   "file": "samples/079_date_code.png",
+   "field_type": "date_code",
+   "text": "2026-11-28",
+   "text_lines": [
+    "2026-11-28"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "2026-11-28"
+  },
+  {
+   "file": "samples/080_date_code.png",
+   "field_type": "date_code",
+   "text": "WK 48 / 2026",
+   "text_lines": [
+    "WK 48 / 2026"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "WK 48 / 2026"
+  },
+  {
+   "file": "samples/081_date_code.png",
+   "field_type": "date_code",
+   "text": "WK 48 / 2026",
+   "text_lines": [
+    "WK 48 / 2026"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "WK 48 / 2026"
+  },
+  {
+   "file": "samples/082_date_code.png",
+   "field_type": "date_code",
+   "text": "WK 48 / 2026",
+   "text_lines": [
+    "WK 48 / 2026"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "WK 48 / 2026"
+  },
+  {
+   "file": "samples/083_date_code.png",
+   "field_type": "date_code",
+   "text": "WK 48 / 2026",
+   "text_lines": [
+    "WK 48 / 2026"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "WK 48 / 2026"
+  },
+  {
+   "file": "samples/084_date_code.png",
+   "field_type": "date_code",
+   "text": "03-2026",
+   "text_lines": [
+    "03-2026"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "03-2026"
+  },
+  {
+   "file": "samples/085_date_code.png",
+   "field_type": "date_code",
+   "text": "03-2026",
+   "text_lines": [
+    "03-2026"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "03-2026"
+  },
+  {
+   "file": "samples/086_date_code.png",
+   "field_type": "date_code",
+   "text": "03-2026",
+   "text_lines": [
+    "03-2026"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "03-2026"
+  },
+  {
+   "file": "samples/087_date_code.png",
+   "field_type": "date_code",
+   "text": "03-2026",
+   "text_lines": [
+    "03-2026"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "03-2026"
+  },
+  {
+   "file": "samples/088_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "4021044",
+   "text_lines": [
+    "4021044"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "4021044"
+  },
+  {
+   "file": "samples/089_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "4021044",
+   "text_lines": [
+    "4021044"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "4021044"
+  },
+  {
+   "file": "samples/090_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "4021044",
+   "text_lines": [
+    "4021044"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "4021044"
+  },
+  {
+   "file": "samples/091_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "4021044",
+   "text_lines": [
+    "4021044"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "4021044"
+  },
+  {
+   "file": "samples/092_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "7734012",
+   "text_lines": [
+    "7734012"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "7734012"
+  },
+  {
+   "file": "samples/093_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "7734012",
+   "text_lines": [
+    "7734012"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "7734012"
+  },
+  {
+   "file": "samples/094_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "7734012",
+   "text_lines": [
+    "7734012"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "7734012"
+  },
+  {
+   "file": "samples/095_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "7734012",
+   "text_lines": [
+    "7734012"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "7734012"
+  },
+  {
+   "file": "samples/096_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "2026118",
+   "text_lines": [
+    "2026118"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "2026118"
+  },
+  {
+   "file": "samples/097_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "2026118",
+   "text_lines": [
+    "2026118"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "2026118"
+  },
+  {
+   "file": "samples/098_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "2026118",
+   "text_lines": [
+    "2026118"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "2026118"
+  },
+  {
+   "file": "samples/099_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "2026118",
+   "text_lines": [
+    "2026118"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "2026118"
+  },
+  {
+   "file": "samples/100_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "9001001",
+   "text_lines": [
+    "9001001"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "9001001"
+  },
+  {
+   "file": "samples/101_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "9001001",
+   "text_lines": [
+    "9001001"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "9001001"
+  },
+  {
+   "file": "samples/102_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "9001001",
+   "text_lines": [
+    "9001001"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "9001001"
+  },
+  {
+   "file": "samples/103_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "9001001",
+   "text_lines": [
+    "9001001"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "9001001"
+  },
+  {
+   "file": "samples/104_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "1204800",
+   "text_lines": [
+    "1204800"
+   ],
+   "transform": {
+    "angle": 0.0,
+    "brightness": 1.0,
+    "noise_seed": 0
+   },
+   "expected_normalized": "1204800"
+  },
+  {
+   "file": "samples/105_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "1204800",
+   "text_lines": [
+    "1204800"
+   ],
+   "transform": {
+    "angle": 2.5,
+    "brightness": 1.0,
+    "noise_seed": 11
+   },
+   "expected_normalized": "1204800"
+  },
+  {
+   "file": "samples/106_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "1204800",
+   "text_lines": [
+    "1204800"
+   ],
+   "transform": {
+    "angle": -3.0,
+    "brightness": 0.88,
+    "noise_seed": 22
+   },
+   "expected_normalized": "1204800"
+  },
+  {
+   "file": "samples/107_barcode_text.png",
+   "field_type": "barcode_text",
+   "text": "1204800",
+   "text_lines": [
+    "1204800"
+   ],
+   "transform": {
+    "angle": 4.5,
+    "brightness": 1.12,
+    "noise_seed": 33
+   },
+   "expected_normalized": "1204800"
+  }
+ ]
+}

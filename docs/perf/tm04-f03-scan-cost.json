@@ -1,0 +1,36 @@
+{
+ "schema": "tm04-f03-scan-cost/1.0",
+ "host": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.12.10",
+  "machine": "AMD64",
+  "cpu_count": 8
+ },
+ "note": "DESKTOP host measurements; NOT iPhone numbers. Durations are informative only - no gate uses wall-clock (two-flakes rule).",
+ "results": [
+  {
+   "files": 1000,
+   "metadata_pass_seconds": 0.115,
+   "full_hash_pass_seconds": 0.323,
+   "incremental_after_edits_seconds": 0.093,
+   "files_rehashed_incrementally": 2,
+   "bytes_hashed_full": 1932817
+  },
+  {
+   "files": 5000,
+   "metadata_pass_seconds": 0.42,
+   "full_hash_pass_seconds": 1.49,
+   "incremental_after_edits_seconds": 0.441,
+   "files_rehashed_incrementally": 10,
+   "bytes_hashed_full": 9418257
+  },
+  {
+   "files": 10000,
+   "metadata_pass_seconds": 0.945,
+   "full_hash_pass_seconds": 3.076,
+   "incremental_after_edits_seconds": 0.928,
+   "files_rehashed_incrementally": 20,
+   "bytes_hashed_full": 18545682
+  }
+ ]
+}

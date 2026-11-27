@@ -1,0 +1,1136 @@
+{
+ "sbom": {
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:workcam-tm04-20261128073057",
+  "version": 1,
+  "metadata": {
+   "timestamp": "2026-11-27T23:30:57+00:00",
+   "component": {
+    "type": "application",
+    "name": "WorkCam backend",
+    "version": "tm04"
+   },
+   "tools": [
+    {
+     "vendor": "workcam",
+     "name": "sbom_report.py",
+     "version": "1"
+    }
+   ]
+  },
+  "components": [
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-annotated-doc",
+    "name": "annotated-doc",
+    "version": "0.0.7",
+    "purl": "pkg:pypi/annotated-doc@0.0.7",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-annotated-types",
+    "name": "annotated-types",
+    "version": "0.8.0",
+    "purl": "pkg:pypi/annotated-types@0.8.0",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-anyio",
+    "name": "anyio",
+    "version": "4.16.0",
+    "purl": "pkg:pypi/anyio@4.16.0",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-certifi",
+    "name": "certifi",
+    "version": "2026.11.20",
+    "purl": "pkg:pypi/certifi@2026.11.20",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-cffi",
+    "name": "cffi",
+    "version": "2.1.1",
+    "purl": "pkg:pypi/cffi@2.1.1",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-charset-normalizer",
+    "name": "charset-normalizer",
+    "version": "3.5.3",
+    "purl": "pkg:pypi/charset-normalizer@3.5.3",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-click",
+    "name": "click",
+    "version": "8.5.1",
+    "purl": "pkg:pypi/click@8.5.1",
+    "licenses": [
+     {
+      "license": {
+       "name": "B"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-colorama",
+    "name": "colorama",
+    "version": "0.4.6",
+    "purl": "pkg:pypi/colorama@0.4.6",
+    "licenses": [
+     {
+      "license": {
+       "name": "OSI Approved :: BSD License"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-contourpy",
+    "name": "contourpy",
+    "version": "1.4.0",
+    "purl": "pkg:pypi/contourpy@1.4.0",
+    "licenses": [
+     {
+      "license": {
+       "name": "B"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-cryptography",
+    "name": "cryptography",
+    "version": "50.0.2",
+    "purl": "pkg:pypi/cryptography@50.0.2",
+    "licenses": [
+     {
+      "license": {
+       "name": "A"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "direct"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-cycler",
+    "name": "cycler",
+    "version": "0.12.1",
+    "purl": "pkg:pypi/cycler@0.12.1",
+    "licenses": [
+     {
+      "license": {
+       "name": "C"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-fastapi",
+    "name": "fastapi",
+    "version": "0.165.0",
+    "purl": "pkg:pypi/fastapi@0.165.0",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "direct"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-fonttools",
+    "name": "fonttools",
+    "version": "4.68.0",
+    "purl": "pkg:pypi/fonttools@4.68.0",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-h11",
+    "name": "h11",
+    "version": "0.16.0",
+    "purl": "pkg:pypi/h11@0.16.0",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-httpcore",
+    "name": "httpcore",
+    "version": "1.0.9",
+    "purl": "pkg:pypi/httpcore@1.0.9",
+    "licenses": [
+     {
+      "license": {
+       "name": "B"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-httpx",
+    "name": "httpx",
+    "version": "0.28.1",
+    "purl": "pkg:pypi/httpx@0.28.1",
+    "licenses": [
+     {
+      "license": {
+       "name": "B"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "direct"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-idna",
+    "name": "idna",
+    "version": "3.20",
+    "purl": "pkg:pypi/idna@3.20",
+    "licenses": [
+     {
+      "license": {
+       "name": "B"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-iniconfig",
+    "name": "iniconfig",
+    "version": "2.3.1",
+    "purl": "pkg:pypi/iniconfig@2.3.1",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-kiwisolver",
+    "name": "kiwisolver",
+    "version": "1.5.1",
+    "purl": "pkg:pypi/kiwisolver@1.5.1",
+    "licenses": [
+     {
+      "license": {
+       "name": "="
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-matplotlib",
+    "name": "matplotlib",
+    "version": "3.11.2",
+    "purl": "pkg:pypi/matplotlib@3.11.2",
+    "licenses": [
+     {
+      "license": {
+       "name": "L"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "direct"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-numpy",
+    "name": "numpy",
+    "version": "2.5.5",
+    "purl": "pkg:pypi/numpy@2.5.5",
+    "licenses": [
+     {
+      "license": {
+       "name": "B"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-opentelemetry-api",
+    "name": "opentelemetry-api",
+    "version": "1.45.2",
+    "purl": "pkg:pypi/opentelemetry-api@1.45.2",
+    "licenses": [
+     {
+      "license": {
+       "name": "A"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-packaging",
+    "name": "packaging",
+    "version": "26.4",
+    "purl": "pkg:pypi/packaging@26.4",
+    "licenses": [
+     {
+      "license": {
+       "name": "A"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-pillow",
+    "name": "pillow",
+    "version": "13.0.0",
+    "purl": "pkg:pypi/pillow@13.0.0",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "direct"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-pip",
+    "name": "pip",
+    "version": "26.3",
+    "purl": "pkg:pypi/pip@26.3",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-pluggy",
+    "name": "pluggy",
+    "version": "1.7.0",
+    "purl": "pkg:pypi/pluggy@1.7.0",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-pycparser",
+    "name": "pycparser",
+    "version": "3.12",
+    "purl": "pkg:pypi/pycparser@3.12",
+    "licenses": [
+     {
+      "license": {
+       "name": "B"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-pydantic",
+    "name": "pydantic",
+    "version": "2.14.4",
+    "purl": "pkg:pypi/pydantic@2.14.4",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "direct"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-pydantic_core",
+    "name": "pydantic_core",
+    "version": "2.50.5",
+    "purl": "pkg:pypi/pydantic_core@2.50.5",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-pygments",
+    "name": "Pygments",
+    "version": "2.21.0",
+    "purl": "pkg:pypi/Pygments@2.21.0",
+    "licenses": [
+     {
+      "license": {
+       "name": "B"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-pyparsing",
+    "name": "pyparsing",
+    "version": "3.3.3",
+    "purl": "pkg:pypi/pyparsing@3.3.3",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-pytest",
+    "name": "pytest",
+    "version": "9.2.0",
+    "purl": "pkg:pypi/pytest@9.2.0",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "direct"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-python-dateutil",
+    "name": "python-dateutil",
+    "version": "4.0.0",
+    "purl": "pkg:pypi/python-dateutil@4.0.0",
+    "licenses": [
+     {
+      "license": {
+       "name": "B"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-reportlab",
+    "name": "reportlab",
+    "version": "5.1.1",
+    "purl": "pkg:pypi/reportlab@5.1.1",
+    "licenses": [
+     {
+      "license": {
+       "name": "B"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "direct"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-starlette",
+    "name": "starlette",
+    "version": "1.10.0",
+    "purl": "pkg:pypi/starlette@1.10.0",
+    "licenses": [
+     {
+      "license": {
+       "name": "B"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-typing-inspection",
+    "name": "typing-inspection",
+    "version": "0.4.5",
+    "purl": "pkg:pypi/typing-inspection@0.4.5",
+    "licenses": [
+     {
+      "license": {
+       "name": "M"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-typing_extensions",
+    "name": "typing_extensions",
+    "version": "4.16.0",
+    "purl": "pkg:pypi/typing_extensions@4.16.0",
+    "licenses": [
+     {
+      "license": {
+       "name": "P"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-tzdata",
+    "name": "tzdata",
+    "version": "2026.6",
+    "purl": "pkg:pypi/tzdata@2026.6",
+    "licenses": [
+     {
+      "license": {
+       "name": "A"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "transitive"
+     }
+    ]
+   },
+   {
+    "type": "library",
+    "bom-ref": "workcam-backend-uvicorn",
+    "name": "uvicorn",
+    "version": "0.54.0",
+    "purl": "pkg:pypi/uvicorn@0.54.0",
+    "licenses": [
+     {
+      "license": {
+       "name": "B"
+      }
+     }
+    ],
+    "properties": [
+     {
+      "name": "workcam:scope",
+      "value": "direct"
+     }
+    ]
+   }
+  ],
+  "dependencies": [
+   {
+    "ref": "workcam-backend-cryptography",
+    "dependsOn": [
+     "workcam-backend-annotated-doc",
+     "workcam-backend-annotated-types",
+     "workcam-backend-anyio",
+     "workcam-backend-certifi",
+     "workcam-backend-cffi",
+     "workcam-backend-charset-normalizer",
+     "workcam-backend-click",
+     "workcam-backend-colorama",
+     "workcam-backend-contourpy",
+     "workcam-backend-cycler",
+     "workcam-backend-fonttools",
+     "workcam-backend-h11",
+     "workcam-backend-httpcore",
+     "workcam-backend-idna",
+     "workcam-backend-iniconfig",
+     "workcam-backend-kiwisolver",
+     "workcam-backend-numpy",
+     "workcam-backend-opentelemetry-api",
+     "workcam-backend-packaging",
+     "workcam-backend-pip",
+     "workcam-backend-pluggy",
+     "workcam-backend-pycparser",
+     "workcam-backend-pydantic_core",
+     "workcam-backend-pygments",
+     "workcam-backend-pyparsing",
+     "workcam-backend-python-dateutil",
+     "workcam-backend-starlette",
+     "workcam-backend-typing-inspection",
+     "workcam-backend-typing_extensions",
+     "workcam-backend-tzdata"
+    ]
+   },
+   {
+    "ref": "workcam-backend-fastapi",
+    "dependsOn": [
+     "workcam-backend-annotated-doc",
+     "workcam-backend-annotated-types",
+     "workcam-backend-anyio",
+     "workcam-backend-certifi",
+     "workcam-backend-cffi",
+     "workcam-backend-charset-normalizer",
+     "workcam-backend-click",
+     "workcam-backend-colorama",
+     "workcam-backend-contourpy",
+     "workcam-backend-cycler",
+     "workcam-backend-fonttools",
+     "workcam-backend-h11",
+     "workcam-backend-httpcore",
+     "workcam-backend-idna",
+     "workcam-backend-iniconfig",
+     "workcam-backend-kiwisolver",
+     "workcam-backend-numpy",
+     "workcam-backend-opentelemetry-api",
+     "workcam-backend-packaging",
+     "workcam-backend-pip",
+     "workcam-backend-pluggy",
+     "workcam-backend-pycparser",
+     "workcam-backend-pydantic_core",
+     "workcam-backend-pygments",
+     "workcam-backend-pyparsing",
+     "workcam-backend-python-dateutil",
+     "workcam-backend-starlette",
+     "workcam-backend-typing-inspection",
+     "workcam-backend-typing_extensions",
+     "workcam-backend-tzdata"
+    ]
+   },
+   {
+    "ref": "workcam-backend-httpx",
+    "dependsOn": [
+     "workcam-backend-annotated-doc",
+     "workcam-backend-annotated-types",
+     "workcam-backend-anyio",
+     "workcam-backend-certifi",
+     "workcam-backend-cffi",
+     "workcam-backend-charset-normalizer",
+     "workcam-backend-click",
+     "workcam-backend-colorama",
+     "workcam-backend-contourpy",
+     "workcam-backend-cycler",
+     "workcam-backend-fonttools",
+     "workcam-backend-h11",
+     "workcam-backend-httpcore",
+     "workcam-backend-idna",
+     "workcam-backend-iniconfig",
+     "workcam-backend-kiwisolver",
+     "workcam-backend-numpy",
+     "workcam-backend-opentelemetry-api",
+     "workcam-backend-packaging",
+     "workcam-backend-pip",
+     "workcam-backend-pluggy",
+     "workcam-backend-pycparser",
+     "workcam-backend-pydantic_core",
+     "workcam-backend-pygments",
+     "workcam-backend-pyparsing",
+     "workcam-backend-python-dateutil",
+     "workcam-backend-starlette",
+     "workcam-backend-typing-inspection",
+     "workcam-backend-typing_extensions",
+     "workcam-backend-tzdata"
+    ]
+   },
+   {
+    "ref": "workcam-backend-matplotlib",
+    "dependsOn": [
+     "workcam-backend-annotated-doc",
+     "workcam-backend-annotated-types",
+     "workcam-backend-anyio",
+     "workcam-backend-certifi",
+     "workcam-backend-cffi",
+     "workcam-backend-charset-normalizer",
+     "workcam-backend-click",
+     "workcam-backend-colorama",
+     "workcam-backend-contourpy",
+     "workcam-backend-cycler",
+     "workcam-backend-fonttools",
+     "workcam-backend-h11",
+     "workcam-backend-httpcore",
+     "workcam-backend-idna",
+     "workcam-backend-iniconfig",
+     "workcam-backend-kiwisolver",
+     "workcam-backend-numpy",
+     "workcam-backend-opentelemetry-api",
+     "workcam-backend-packaging",
+     "workcam-backend-pip",
+     "workcam-backend-pluggy",
+     "workcam-backend-pycparser",
+     "workcam-backend-pydantic_core",
+     "workcam-backend-pygments",
+     "workcam-backend-pyparsing",
+     "workcam-backend-python-dateutil",
+     "workcam-backend-starlette",
+     "workcam-backend-typing-inspection",
+     "workcam-backend-typing_extensions",
+     "workcam-backend-tzdata"
+    ]
+   },
+   {
+    "ref": "workcam-backend-pillow",
+    "dependsOn": [
+     "workcam-backend-annotated-doc",
+     "workcam-backend-annotated-types",
+     "workcam-backend-anyio",
+     "workcam-backend-certifi",
+     "workcam-backend-cffi",
+     "workcam-backend-charset-normalizer",
+     "workcam-backend-click",
+     "workcam-backend-colorama",
+     "workcam-backend-contourpy",
+     "workcam-backend-cycler",
+     "workcam-backend-fonttools",
+     "workcam-backend-h11",
+     "workcam-backend-httpcore",
+     "workcam-backend-idna",
+     "workcam-backend-iniconfig",
+     "workcam-backend-kiwisolver",
+     "workcam-backend-numpy",
+     "workcam-backend-opentelemetry-api",
+     "workcam-backend-packaging",
+     "workcam-backend-pip",
+     "workcam-backend-pluggy",
+     "workcam-backend-pycparser",
+     "workcam-backend-pydantic_core",
+     "workcam-backend-pygments",
+     "workcam-backend-pyparsing",
+     "workcam-backend-python-dateutil",
+     "workcam-backend-starlette",
+     "workcam-backend-typing-inspection",
+     "workcam-backend-typing_extensions",
+     "workcam-backend-tzdata"
+    ]
+   },
+   {
+    "ref": "workcam-backend-pydantic",
+    "dependsOn": [
+     "workcam-backend-annotated-doc",
+     "workcam-backend-annotated-types",
+     "workcam-backend-anyio",
+     "workcam-backend-certifi",
+     "workcam-backend-cffi",
+     "workcam-backend-charset-normalizer",
+     "workcam-backend-click",
+     "workcam-backend-colorama",
+     "workcam-backend-contourpy",
+     "workcam-backend-cycler",
+     "workcam-backend-fonttools",
+     "workcam-backend-h11",
+     "workcam-backend-httpcore",
+     "workcam-backend-idna",
+     "workcam-backend-iniconfig",
+     "workcam-backend-kiwisolver",
+     "workcam-backend-numpy",
+     "workcam-backend-opentelemetry-api",
+     "workcam-backend-packaging",
+     "workcam-backend-pip",
+     "workcam-backend-pluggy",
+     "workcam-backend-pycparser",
+     "workcam-backend-pydantic_core",
+     "workcam-backend-pygments",
+     "workcam-backend-pyparsing",
+     "workcam-backend-python-dateutil",
+     "workcam-backend-starlette",
+     "workcam-backend-typing-inspection",
+     "workcam-backend-typing_extensions",
+     "workcam-backend-tzdata"
+    ]
+   },
+   {
+    "ref": "workcam-backend-pytest",
+    "dependsOn": [
+     "workcam-backend-annotated-doc",
+     "workcam-backend-annotated-types",
+     "workcam-backend-anyio",
+     "workcam-backend-certifi",
+     "workcam-backend-cffi",
+     "workcam-backend-charset-normalizer",
+     "workcam-backend-click",
+     "workcam-backend-colorama",
+     "workcam-backend-contourpy",
+     "workcam-backend-cycler",
+     "workcam-backend-fonttools",
+     "workcam-backend-h11",
+     "workcam-backend-httpcore",
+     "workcam-backend-idna",
+     "workcam-backend-iniconfig",
+     "workcam-backend-kiwisolver",
+     "workcam-backend-numpy",
+     "workcam-backend-opentelemetry-api",
+     "workcam-backend-packaging",
+     "workcam-backend-pip",
+     "workcam-backend-pluggy",
+     "workcam-backend-pycparser",
+     "workcam-backend-pydantic_core",
+     "workcam-backend-pygments",
+     "workcam-backend-pyparsing",
+     "workcam-backend-python-dateutil",
+     "workcam-backend-starlette",
+     "workcam-backend-typing-inspection",
+     "workcam-backend-typing_extensions",
+     "workcam-backend-tzdata"
+    ]
+   },
+   {
+    "ref": "workcam-backend-reportlab",
+    "dependsOn": [
+     "workcam-backend-annotated-doc",
+     "workcam-backend-annotated-types",
+     "workcam-backend-anyio",
+     "workcam-backend-certifi",
+     "workcam-backend-cffi",
+     "workcam-backend-charset-normalizer",
+     "workcam-backend-click",
+     "workcam-backend-colorama",
+     "workcam-backend-contourpy",
+     "workcam-backend-cycler",
+     "workcam-backend-fonttools",
+     "workcam-backend-h11",
+     "workcam-backend-httpcore",
+     "workcam-backend-idna",
+     "workcam-backend-iniconfig",
+     "workcam-backend-kiwisolver",
+     "workcam-backend-numpy",
+     "workcam-backend-opentelemetry-api",
+     "workcam-backend-packaging",
+     "workcam-backend-pip",
+     "workcam-backend-pluggy",
+     "workcam-backend-pycparser",
+     "workcam-backend-pydantic_core",
+     "workcam-backend-pygments",
+     "workcam-backend-pyparsing",
+     "workcam-backend-python-dateutil",
+     "workcam-backend-starlette",
+     "workcam-backend-typing-inspection",
+     "workcam-backend-typing_extensions",
+     "workcam-backend-tzdata"
+    ]
+   },
+   {
+    "ref": "workcam-backend-uvicorn",
+    "dependsOn": [
+     "workcam-backend-annotated-doc",
+     "workcam-backend-annotated-types",
+     "workcam-backend-anyio",
+     "workcam-backend-certifi",
+     "workcam-backend-cffi",
+     "workcam-backend-charset-normalizer",
+     "workcam-backend-click",
+     "workcam-backend-colorama",
+     "workcam-backend-contourpy",
+     "workcam-backend-cycler",
+     "workcam-backend-fonttools",
+     "workcam-backend-h11",
+     "workcam-backend-httpcore",
+     "workcam-backend-idna",
+     "workcam-backend-iniconfig",
+     "workcam-backend-kiwisolver",
+     "workcam-backend-numpy",
+     "workcam-backend-opentelemetry-api",
+     "workcam-backend-packaging",
+     "workcam-backend-pip",
+     "workcam-backend-pluggy",
+     "workcam-backend-pycparser",
+     "workcam-backend-pydantic_core",
+     "workcam-backend-pygments",
+     "workcam-backend-pyparsing",
+     "workcam-backend-python-dateutil",
+     "workcam-backend-starlette",
+     "workcam-backend-typing-inspection",
+     "workcam-backend-typing_extensions",
+     "workcam-backend-tzdata"
+    ]
+   }
+  ]
+ },
+ "scan": {
+  "performed": true,
+  "source": "OSV.dev batch API (free, key-less)",
+  "vulnerabilities": []
+ },
+ "coverage": {
+  "total_installed": 39,
+  "direct": 9,
+  "transitive": 30,
+  "with_license_metadata": 39,
+  "permissive_known": 0,
+  "scanned": 39,
+  "notes": "importlib cannot enumerate the resolver graph offline; edges are scope-layered (direct->all transitives), and that limitation is stated rather than papered over."
+ }
+}
