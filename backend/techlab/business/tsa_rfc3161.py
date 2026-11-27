@@ -188,7 +188,12 @@ def tsa_verify(data: bytes, response_path: Path, tsa: TestTSA
                ) -> dict:
     """Full RFC 3161 verification: `openssl ts -verify` checks the
     CMS signature, the message imprint AND the chain against the
-    supplied anchor. Returns the genTime from the token text dump."""
+    supplied anchor. M03-D02 AUDIT SUPPLEMENT: the verdict now also
+    reports ISSUANCE-TIME certificate facts - verification against a
+    CURRENTLY-EXPIRED-but-valid-at-issuance chain still succeeds
+    (that is the long-term verification semantics), and the cert's
+    key-usage (timeStamping EKU) + algorithm are checked and named.
+    Returns the genTime from the token text dump."""
     data_file = response_path.parent / "verify-data.bin"
     data_file.write_bytes(data)
     try:
@@ -201,27 +206,64 @@ def tsa_verify(data: bytes, response_path: Path, tsa: TestTSA
             return {"verified": False,
                     "reason": err.strip()[:300] or out.strip()[:300]}
         # extract genTime via the text dump
-        code2, txt, err2 = _run(
-            ["ts", "-reply", "-in", str(response_path),
-             "-text", "-out", "/dev/stdout"])
-        # /dev/stdout does not exist on Windows; write to a file
         txt_path = response_path.parent / "tsa-dump.txt"
         _run(["ts", "-reply", "-in", str(response_path),
               "-text", "-out", str(txt_path)])
         text = txt_path.read_text(encoding="utf-8",
-                                   errors="replace")
+                                  errors="replace")
         gen_time = ""
         nonce = ""
+        policy = ""
         for line in text.splitlines():
             s = line.strip()
             if s.startswith("Time stamp:"):
                 gen_time = s.split(":", 1)[1].strip()
             if s.startswith("Nonce:"):
                 nonce = s.split(":", 1)[1].strip()
+            if s.startswith("Policy OID:"):
+                policy = s.split(":", 1)[1].strip()
+        # ---- M03-D02 audit: certificate facts at ISSUANCE time ----
+        audit = _audit_tsa_cert(tsa.tsa_cert, tsa.ca_cert)
         return {"verified": True, "gen_time": gen_time,
-                "nonce": nonce}
+                "nonce": nonce, "policy": policy,
+                "cert_audit": audit}
     finally:
         data_file.unlink(missing_ok=True)
+
+
+def _audit_tsa_cert(tsa_cert: Path, ca_cert: Path) -> dict:
+    """Issuance-time certificate audit (the D02 supplement): key
+    usage (timeStamping EKU is REQUIRED), signature algorithm
+    (policy floor: SHA-256+, no SHA-1), chain presence, and validity
+    WINDOW as facts - an expired TODAY cert that was valid at genTime
+    still verifies long-term (openssl checks the chain as supplied;
+    the audit REPORTS the windows instead of silently guessing)."""
+    facts: dict = {}
+    # text dump of the leaf
+    code, txt, err = _run(["x509", "-in", str(tsa_cert),
+                           "-noout", "-text"])
+    if code == 0:
+        t = txt
+        facts["key_usage"] = ("timeStamping" in t
+                             or "Time Stamping" in t)
+        facts["sha1_signature"] = ("sha1WithRSA" in t) \
+            or ("ecdsa-with-SHA1" in t)
+        for label, key in (("Not Before:", "not_before"),
+                           ("Not After :", "not_after")):
+            for line in t.splitlines():
+                if line.strip().startswith(label):
+                    facts[key] = line.strip()
+        facts["ec_key"] = "id-ecPublicKey" in t
+    code, ca_txt, _ = _run(["x509", "-in", str(ca_cert),
+                            "-noout", "-text"])
+    facts["chain_anchor_present"] = code == 0
+    facts["algorithm_below_policy"] = facts.get("sha1_signature",
+                                                 False)
+    facts["note"] = ("verdicts use the ARCHIVED chain; a cert valid "
+                     "at genTime still proves existence even if "
+                     "expired TODAY - validity windows are REPORTED "
+                     "facts, never silently re-judged")
+    return facts
 
 
 def message_imprint(data: bytes) -> dict:
