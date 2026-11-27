@@ -474,19 +474,23 @@
   },
   {
    "id": "E07",
-   "state": "NOT_STARTED",
+   "state": "XCODE_PENDING",
    "source": "TECH-MARATHON-03-QUEUE.md",
-   "commit": "79933e4",
-   "tests": [],
-   "notes": "UI reference work not started; E01 audit first"
+   "commit": "1d85d8f",
+   "tests": [
+    "swift rule suite pending Mac compile (A05 BLOCKED on Windows)"
+   ],
+   "notes": "TrustDetailView: real ten-dimension list UI, per-row status+reason+failureCondition, footer states the no-score rule explicitly; unknown rows grey (never green) | XCODE_PENDING: authored on Windows, Mac compiles"
   },
   {
    "id": "E08",
-   "state": "NOT_STARTED",
+   "state": "XCODE_PENDING",
    "source": "TECH-MARATHON-03-QUEUE.md",
-   "commit": "79933e4",
-   "tests": [],
-   "notes": "UI reference work not started; E01 audit first"
+   "commit": "1d85d8f",
+   "tests": [
+    "swift rule suite pending Mac compile (A05 BLOCKED on Windows)"
+   ],
+   "notes": "SyncCenterModel: testable ViewModel (refresh/syncNow/resolveConflict over the real OutboxEngine + H02 pull contract), honest queue-vs-server-confirmed wording in footer, conflict rows route to manual resolution (TM68 semantics); stable a11y IDs (syncPendingCount/syncLastTime/syncConflictRow/syncNowButton/syncMessage) | XCODE_PENDING: authored on Windows, Mac compiles"
   },
   {
    "id": "E09",
@@ -792,9 +796,10 @@
    "DESKTOP_VERIFIED": 47,
    "CROSS_PLATFORM_PENDING": 3,
    "BLOCKED": 2,
-   "NOT_STARTED": 20,
+   "NOT_STARTED": 18,
    "POC_VERIFIED": 2,
-   "IN_PROGRESS": 6
+   "IN_PROGRESS": 6,
+   "XCODE_PENDING": 2
   }
  }
 }
