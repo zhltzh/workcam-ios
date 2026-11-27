@@ -53,6 +53,7 @@ class ProjectCreate(BaseModel):
 
 
 class ProjectPatch(BaseModel):
+    expected_revision: int | None = Field(default=None, ge=1)
     name: str | None = Field(default=None, min_length=1, max_length=200)
     description: str | None = Field(default=None, max_length=2000)
     site_address: str | None = Field(default=None, max_length=500)
@@ -205,6 +206,9 @@ async def patch_project(project_id: str, body: ProjectPatch,
             (project_id,)).fetchone()
         if row is None or row["owner_token"] != token:
             raise ApiError(404, "not_found", "project not found")
+        if body.expected_revision is not None and body.expected_revision != row["revision"]:
+            raise ApiError(409, "revision_conflict", "project revision changed",
+                           {"current_revision": row["revision"]})
         if row["status"] == "archived":
             raise ApiError(409, "project_archived",
                            "archived projects are immutable")
@@ -217,7 +221,7 @@ async def patch_project(project_id: str, body: ProjectPatch,
         if not updates:
             raise ApiError(400, "empty_patch",
                            "at least one field must be provided")
-        updates.append("updated_at = ?")
+        updates.extend(["updated_at = ?", "revision = revision + 1"])
         params.append(utc_now())
         params.append(project_id)
         conn.execute(
@@ -226,6 +230,8 @@ async def patch_project(project_id: str, body: ProjectPatch,
         row = conn.execute(
             "SELECT * FROM mvp_projects WHERE project_id = ?",
             (project_id,)).fetchone()
+        from app.api.sync import _emit_event
+        _emit_event(conn, token, "project", project_id, "updated", row["revision"])
     return row_to_project(row)
 
 
@@ -245,10 +251,12 @@ async def archive_project(project_id: str, request: Request):
             return row_to_project(row)
         conn.execute(
             "UPDATE mvp_projects SET status='archived', archived_at=?, "
-            "updated_at=? WHERE project_id=?", (now, now, project_id))
+            "updated_at=?, revision=revision+1 WHERE project_id=?", (now, now, project_id))
         row = conn.execute(
             "SELECT * FROM mvp_projects WHERE project_id = ?",
             (project_id,)).fetchone()
+        from app.api.sync import _emit_event
+        _emit_event(conn, token, "project", project_id, "archived", row["revision"])
     return row_to_project(row)
 
 

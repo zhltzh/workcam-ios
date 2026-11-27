@@ -177,9 +177,8 @@ def test_openapi_security_annotations(repo_openapi):
         for method, op in item.items():
             if method not in METHODS:
                 continue
-            if "{device_token}" in path and method in ("get", "post") \
-                    and "revoke" in path or (
-                    "{device_token}" in path and method == "get"):
+            if "{device_token}" in path and (
+                    method == "get" or path.endswith(("/revoke", "/suspend", "/resume"))):
                 assert op.get("security") == [{"adminCode": []}], \
                     f"{method} {path} must stay admin-gated"
                 continue

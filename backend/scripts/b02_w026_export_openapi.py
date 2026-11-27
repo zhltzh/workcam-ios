@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.main import app
 
-BASELINE = "31917e3"
+BASELINE = "31917e3 → 2b535a0 + WIN-HOTFIX"
 
 # ---------------------------------------------------------------- enrichment
 
@@ -242,14 +242,15 @@ OPS: dict[tuple[str, str], tuple[str, str]] = {
         "(applied|duplicate|rejected). operation_id + request-hash ledger "
         "in the business DB: same replay -> stored receipt (duplicate), "
         "different content -> rejected op_id_conflict; deterministic "
-        "rejections are ledgered too. NOTE: each op's payload must carry "
+        "rejections are ledgered too. Rejected replays retain error details and "
+        "result.status=rejected. project_archive uses expected_revision; role "
+        "replacement requires expected_previous_photo_id. Each payload must carry "
         "its own operation_id (executors validate payload.operation_id)."),
     ("get", "/api/v1/sync/events"): ("Pull incremental events",
-        "Restart-stable cursor: restart-stable AUTOINCREMENT seq. High-"
-        "water window: rows inserted mid-pull land on the NEXT page. "
-        "entity_type filter: project|photo|evidence_link|original "
-        "(baseline 31917e3 emits project and photo events only - see the "
-        "contract report). Owner-isolated."),
+        "Owner-scoped, monotonic cursor. Limit counts matching rows. "
+        "Store a separate cursor per filter. include_state=true returns current "
+        "project/photo/issue/annotation snapshots and annotation tombstones; "
+        "other kinds remain event pointers. Persist changes and cursor atomically."),
     ("post", "/api/v1/devices/enroll"): ("Enroll a device",
         "Requires the out-of-band enrollment code. Returns a RANDOM "
         "server-issued token (W012 security change - tokens are never "
@@ -277,7 +278,7 @@ def _is_business(path: str) -> bool:
 def enrich(spec: dict) -> dict:
     spec["info"]["description"] = (
         "WorkCam trusted-photography prototype backend, baseline "
-        f"{BASELINE} (W013-R1). Business surface /api/v1 requires an "
+        f"{BASELINE}. Business surface /api/v1 requires an "
         "enrolled X-Device-Token; errors use the unified envelope "
         "{\"detail\": {\"code\", \"message\", \"details\"}}. "
         "This is a PROTOTYPE, not a production authentication service. "

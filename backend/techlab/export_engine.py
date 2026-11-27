@@ -126,7 +126,12 @@ class RssMeter:
 
 
 def _peak_working_set_bytes() -> int:
-    """Windows: PeakWorkingSetSize of the current process."""
+    """Peak resident bytes of the current process."""
+    import sys
+    if sys.platform != "win32":
+        import resource
+        peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        return peak if sys.platform == "darwin" else peak * 1024
     import ctypes
     from ctypes import wintypes
 

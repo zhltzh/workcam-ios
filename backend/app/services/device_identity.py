@@ -67,27 +67,30 @@ def audit(event_type: str, device_token: str | None = None,
     """Structured audit event. Sensitive fields redacted: the caller
     may pass a token; only its FINGERPRINT is persisted. Detail values
     are scanned for token-like strings and truncated."""
-    safe_detail = {}
-    for k, v in (detail or {}).items():
-        if k.lower() in ("token", "device_token", "x-device-token",
-                         "private_key", "secret", "signature_b64"):
-            v = "[REDACTED]"
-        if isinstance(v, str) and len(v) > 300:
-            v = v[:300] + "…"
-        safe_detail[k] = v
-    fp = token_fingerprint(device_token) if device_token else None
     try:
         with db() as conn:
-            conn.execute(
-                "INSERT INTO mvp_audit_log (ts, event_type, "
-                "device_token, device_id, detail) VALUES (?,?,?,?,?)",
-                (utc_now(), event_type, fp, None,
-                 json.dumps(safe_detail, ensure_ascii=False)))
+            _write_audit(conn, event_type, device_token, detail)
     except Exception:
-        # audit must never break the request path; failure here means
-        # the audit DB is unavailable (startup misconfig) - swallowed
-        # but visible in stderr via the exception short-circuit above
+        # Preserve best-effort behavior for unrelated, already committed actions.
         pass
+
+
+def _write_audit(conn, event_type: str, device_token: str | None,
+                 detail: dict | None = None) -> None:
+    safe_detail = {}
+    for key, value in (detail or {}).items():
+        if key.lower() in ("token", "device_token", "x-device-token",
+                           "private_key", "secret", "signature_b64"):
+            value = "[REDACTED]"
+        if isinstance(value, str) and len(value) > 300:
+            value = value[:300] + "…"
+        safe_detail[key] = value
+    fingerprint = token_fingerprint(device_token) if device_token else None
+    conn.execute(
+        "INSERT INTO mvp_audit_log (ts, event_type, "
+        "device_token, device_id, detail) VALUES (?,?,?,?,?)",
+        (utc_now(), event_type, fingerprint, None,
+         json.dumps(safe_detail, ensure_ascii=False)))
 
 
 def prune_audit(max_age_days: int = 90) -> int:
@@ -151,9 +154,15 @@ def enroll_device(public_key_b64: str, device_id: str,
             "AND status = 'active'",
             (public_key_b64,)).fetchone()
         if existing is not None:
-            audit("device_enroll_replay", existing["device_token"],
-                  {"device_id": device_id})
+            _write_audit(conn, "device_enroll_replay", existing["device_token"],
+                         {"device_id": device_id})
             return existing["device_token"]
+        suspended_key = conn.execute(
+            "SELECT 1 FROM mvp_devices WHERE public_key_b64 = ? AND status = 'suspended'",
+            (public_key_b64,)).fetchone()
+        if suspended_key is not None:
+            raise ApiError(409, "device_suspended",
+                           "an administrator must resume this device before enrollment")
         revoked_key = conn.execute(
             "SELECT 1 FROM mvp_devices WHERE public_key_b64 = ? "
             "AND status = 'revoked'",
@@ -183,7 +192,7 @@ def enroll_device(public_key_b64: str, device_id: str,
             "public_key_b64, key_fingerprint, status, enrolled_at) "
             "VALUES (?,?,?,?,'active',?)",
             (token, device_id, public_key_b64, fingerprint, now))
-    audit("device_enrolled", token, {"device_id": device_id})
+        _write_audit(conn, "device_enrolled", token, {"device_id": device_id})
     return token
 
 
