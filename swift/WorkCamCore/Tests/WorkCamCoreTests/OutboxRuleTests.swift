@@ -119,7 +119,12 @@ final class OutboxRuleTests: XCTestCase {
                 }
             }
         }
-        let engine = makeEngine()
+        let clock = MutableClock()
+        let engine = OutboxEngine(
+            store: InMemoryOutboxStore(),
+            backoff: ExponentialBackoff(baseSeconds: 1, maxSeconds: 2,
+                                        jitterRatio: 0),
+            clock: clock)
         try engine.enqueue(OutboxOperation(
             operationID: "d", op: "project_create",
             payloadJSON: "{}"))
@@ -129,7 +134,9 @@ final class OutboxRuleTests: XCTestCase {
         XCTAssertEqual(op.state, .pending)     // back in the queue
         XCTAssertEqual(op.attempts, 1)
         XCTAssertNotNil(op.nextAttemptAt)
-        // the FIXED clock means the retry is immediately due
+        // advance past the backoff interval so the retry is DUE
+        // (FixedClock never advances - see MutableClock's doc note)
+        clock.advance(by: 2)
         _ = try await engine.drain(transport: transport)
         op = engine.store.loadAll().first!
         XCTAssertEqual(op.state, .acknowledged)

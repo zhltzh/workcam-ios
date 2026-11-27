@@ -107,7 +107,10 @@ public struct ExponentialBackoff: Sendable {
 }
 
 public final class OutboxEngine: @unchecked Sendable {
-    private let store: OutboxStore
+    /// Internal (not private): the rule suite reads the store via
+    /// @testable to assert state transitions (TM-04 fix: the suite
+    /// was authored against this access level but never compiled).
+    let store: OutboxStore
     private let backoff: ExponentialBackoff
     private let clock: BackoffClock
 
@@ -312,4 +315,28 @@ public struct FixedClock: BackoffClock {
         self.date = date
     }
     public func now() -> Date { date }
+}
+
+/// Reference-clock the rule suite can STEP between drain rounds.
+/// TM-04 fix: FixedClock never advances, so "retry is due" tests
+/// built on it could never pass - the op's nextAttemptAt always
+/// sat one baseInterval in the future of the frozen 'now'.
+/// (Class semantics: the engine must observe later advances.)
+public final class MutableClock: BackoffClock, @unchecked Sendable {
+    private var current: Date
+    private let lock = NSLock()
+
+    public init(date: Date = Date(timeIntervalSince1970: 1_000_000)) {
+        self.current = date
+    }
+
+    public func now() -> Date {
+        lock.lock(); defer { lock.unlock() }
+        return current
+    }
+
+    public func advance(by seconds: TimeInterval) {
+        lock.lock(); defer { lock.unlock() }
+        current = current.addingTimeInterval(seconds)
+    }
 }

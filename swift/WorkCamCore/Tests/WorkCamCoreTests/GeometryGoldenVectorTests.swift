@@ -99,7 +99,14 @@ final class GeometryGoldenVectorTests: XCTestCase {
     }
 
     func loadVectors() throws -> VectorDoc {
+        // SwiftPM test resources ride in Bundle.module; the legacy
+        // Bundle(for:) lookup never found them on Windows (TM-04
+        // first real run finding).
+        #if SWIFT_PACKAGE
+        let bundle = Bundle.module
+        #else
         let bundle = Bundle(for: type(of: self))
+        #endif
         guard let url = bundle.url(
             forResource: "geometry-golden-vectors",
             withExtension: "json") else {
@@ -139,12 +146,18 @@ final class GeometryGoldenVectorTests: XCTestCase {
         let tol = c.tolerance ?? 1e-9
 
         func d(_ key: String) -> Double {
-            i[key]?.doubleValue ?? XCTFail("input \(key) missing")
-                .doubleValue ?? 0
+            guard let v = i[key]?.doubleValue else {
+                XCTFail("input \(key) missing")
+                return 0
+            }
+            return v
         }
         func ed(_ key: String) -> Double {
-            e[key]?.doubleValue ?? XCTFail(
-                "expected \(key) missing in \(c.name)").doubleValue ?? 0
+            guard let v = e[key]?.doubleValue else {
+                XCTFail("expected \(key) missing in \(c.name)")
+                return 0
+            }
+            return v
         }
 
         switch c.category {
@@ -208,7 +221,11 @@ final class GeometryGoldenVectorTests: XCTestCase {
                       a.count == 3, b.count == 3 {
                 let pa = (a[0], a[1], a[2])
                 let pb = (b[0], b[1], b[2])
-                if let dist = try? distance3D(pa, pb) {
+                // TM-04 fix: only the plain-distance cases carry
+                // `meters`; the horizontal/vertical split cases do
+                // not, and the unconditional read failed them.
+                if e["meters"] != nil,
+                   let dist = try? distance3D(pa, pb) {
                     assertClose(dist, ed("meters"), tol,
                                 "\(c.name).meters")
                 }
@@ -234,12 +251,25 @@ final class GeometryGoldenVectorTests: XCTestCase {
             }
 
         case "slope":
-            if let s = slopeFromVerticalDeltaSafe(
-                horizontal: d("horizontal"), vertical: d("vertical")) {
-                assertClose(s.percent, ed("percent"), tol,
-                            "\(c.name).percent")
-                assertClose(s.degrees, ed("degrees"), tol,
-                            "\(c.name).degrees")
+            // TM-04 fix: the category has TWO input shapes -
+            // horizontal/vertical deltas, and plumb normals whose
+            // expectation is deviation-from-vertical degrees.
+            if i["horizontal"] != nil {
+                if let s = slopeFromVerticalDeltaSafe(
+                    horizontal: d("horizontal"),
+                    vertical: d("vertical")) {
+                    assertClose(s.percent, ed("percent"), tol,
+                                "\(c.name).percent")
+                    assertClose(s.degrees, ed("degrees"), tol,
+                                "\(c.name).degrees")
+                }
+            } else if let n = i["normal"]?.doubleArray, n.count == 3,
+                      e["deviation_deg"] != nil {
+                if let dev = try? deviationFromVertical(
+                    (n[0], n[1], n[2])) {
+                    assertClose(dev, ed("deviation_deg"), tol,
+                                "\(c.name).deviation_deg")
+                }
             }
 
         case "units":
@@ -260,9 +290,27 @@ final class GeometryGoldenVectorTests: XCTestCase {
             }
 
         case "volume":
-            if e["cubic_meters"] != nil {
-                assertClose(ed("cubic_meters"), ed("cubic_meters"),
-                            0, "self-check")
+            // TM-04 fix: was a self-comparing placeholder that
+            // verified nothing; now both real volume cases run.
+            if let base = i["base_area_sqm"]?.doubleValue,
+               let height = i["height_m"]?.doubleValue,
+               e["cubic_meters"] != nil {
+                if let v = try? extrusionVolume(
+                    baseAreaSqm: base, heightM: height) {
+                    assertClose(v.cubicMeters, ed("cubic_meters"),
+                                tol, "\(c.name).cubic_meters")
+                }
+            } else if let pts = i["points"]?.doubleArray,
+                      pts.count % 3 == 0,
+                      e["cubic_meters"] != nil {
+                let p3: [Point3] = stride(from: 0, to: pts.count,
+                                          by: 3).map {
+                    (pts[$0], pts[$0 + 1], pts[$0 + 2])
+                }
+                if let v = try? boundingBoxVolume(p3) {
+                    assertClose(v.cubicMeters, ed("cubic_meters"),
+                                tol, "\(c.name).cubic_meters")
+                }
             }
 
         default:

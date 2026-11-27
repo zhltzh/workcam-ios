@@ -47,16 +47,16 @@ final class PhotoCacheRuleTests: XCTestCase {
         // The type system is the enforcement: CachedPhotoAsset.Kind
         // has NO original case. This test exists so a reviewer of a
         // future change has to consciously break it.
+        // TM-04 fix: the old version force-unwrapped the deliberately
+        // INVALID rawValue ("original") - a guaranteed crash once the
+        // suite actually ran. RawValue comparisons state the same
+        // contract without exploding.
+        let originalish = CachedPhotoAsset.Kind(rawValue: "original")
+        XCTAssertNil(originalish)
         let kinds = CachedPhotoAsset.Kind.allCases
-        XCTAssertTrue(kinds.allSatisfy { $0 != .someOriginal })
-    }
-}
-
-private extension CachedPhotoAsset.Kind {
-    static var someOriginal: CachedPhotoAsset.Kind {
-        // a deliberately invalid construction: if the enum ever gains
-        // an original case this test fails to compile = loud review
-        CachedPhotoAsset.Kind(rawValue: "original")!
+        XCTAssertTrue(kinds.allSatisfy { kind in
+            originalish != kind
+        })
     }
 }
 
@@ -80,7 +80,10 @@ final class PhotoIndexRuleTests: XCTestCase {
 
     func test_keyset_pagination_is_drift_free() {
         let index = PhotoIndex()
-        for i in (0..<10).map({ 100 - $0 }) {   // inserted out of order
+        // TM-04 fix: the old `map({100 - $0})` iterated the MAPPED
+        // values (ph-91..ph-100), not the intended ph-0..ph-9;
+        // reversed() inserts out of order with the real ids.
+        for i in (0..<10).reversed() {      // inserted out of order
             index.upsert(entry("ph-\(i)", day: i))
         }
         var q = PhotoIndexQuery(limit: 4)
