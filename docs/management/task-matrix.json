@@ -1,0 +1,1835 @@
+{
+ "matrix_version": "unified-matrix/1.0",
+ "generated_from": "backend/tools/fe_k01_matrix.py",
+ "baseline": {
+  "branch": "dev/windows-tm-geometry",
+  "report_head": "852253b",
+  "full_suite": "1589 passed / 3 skipped / 0 failed",
+  "gate": "12/12 PASSED (re-run on new versions per discipline)"
+ },
+ "status_vocabulary": [
+  "NOT_STARTED",
+  "IMPLEMENTED",
+  "DESKTOP_VERIFIED",
+  "CROSS_PLATFORM_PENDING",
+  "XCODE_PENDING",
+  "DEVICE_PENDING",
+  "POC_VERIFIED",
+  "BLOCKED",
+  "ISOLATED_CANDIDATE",
+  "INTEGRATED"
+ ],
+ "counts": {
+  "DESKTOP_VERIFIED": 29,
+  "DESKTOP_VERIFIED (Swift side CROSS_PLATFORM_PENDING)": 1,
+  "CROSS_PLATFORM_PENDING (contract only)": 1,
+  "DESKTOP_VERIFIED (synthetic CAs; real-Apple DEVICE_PENDING)": 1,
+  "DESKTOP_VERIFIED (production routes)": 1,
+  "DESKTOP_VERIFIED; server checkpoint = ISOLATED_CANDIDATE": 1,
+  "DESKTOP_VERIFIED (engine+CLI bridge); production route ISOLATED_CANDIDATE": 1,
+  "DESKTOP_VERIFIED (CLI + web via Python mirror); BROWSER RUN PENDING FE-G09": 1,
+  "DESKTOP_VERIFIED; FE-A12 expansion queued": 1,
+  "DESKTOP_VERIFIED (Swift CROSS_PLATFORM_PENDING)": 2,
+  "DESKTOP_VERIFIED (thresholds configurable)": 1,
+  "DESIGN COMPLETE; collection DEVICE_PENDING": 1,
+  "DESKTOP_VERIFIED (volume = EXPERIMENTAL label enforced)": 1,
+  "DESKTOP_VERIFIED (uncalibrated = conservative, no fake CI)": 1,
+  "DESKTOP_VERIFIED (synthetic; device DEVICE_PENDING)": 1,
+  "DESKTOP_VERIFIED (DXF = POC_VERIFIED isolated)": 1,
+  "CROSS_PLATFORM_PENDING (authored + vector-matched, never compiled here)": 1,
+  "DESKTOP_VERIFIED (P95 0.854ms; live HTTP 15ms replay)": 1,
+  "DESKTOP_VERIFIED (physical delete of originals NOT implemented by design)": 1,
+  "NOT_STARTED": 7,
+  "DESKTOP_VERIFIED (receiptSucceeded rejected-replay encoded)": 1,
+  "DESKTOP_VERIFIED (dual-thread clients in-suite); FE-D12 sweep queued": 1,
+  "CROSS_PLATFORM_PENDING": 1,
+  "DESKTOP_VERIFIED (1MiB = stream unit; 2.4MB python peak measured)": 1,
+  "DESKTOP_VERIFIED (2 real defects fixed + cross-reference pinned)": 1,
+  "DESKTOP_VERIFIED (disclaimer always appended)": 1,
+  "DESKTOP_VERIFIED (near != exact, never auto-delete)": 1,
+  "DESKTOP_VERIFIED (data+roles); UI reference NOT_STARTED": 1,
+  "DESKTOP_VERIFIED (out-of-frame defect fixed)": 1,
+  "DESKTOP_VERIFIED (100-photo zero-loss proven)": 1,
+  "POC_VERIFIED (isolated; NOT certification)": 1,
+  "DESKTOP_VERIFIED (real protocol; test CA clearly labeled)": 1,
+  "DESKTOP_VERIFIED via mirror; REAL BROWSER RUN PENDING": 1,
+  "CROSS_PLATFORM_PENDING (Integration-02 parity encoded)": 1,
+  "DESKTOP_VERIFIED (3 real defects fixed)": 1,
+  "DESKTOP_VERIFIED (11 registered digests)": 1,
+  "DESKTOP_VERIFIED (client refuses redirects; TLS is a deployment concern)": 1,
+  "DESKTOP_VERIFIED (token never logged; audit redacted)": 1,
+  "DESKTOP_VERIFIED (9 pinned, permissive)": 1,
+  "DESKTOP_VERIFIED currently; ROOT-CAUSE FIX QUEUED": 1,
+  "DESKTOP_VERIFIED (12/12)": 1,
+  "POC_VERIFIED (isolated)": 1,
+  "DESKTOP_VERIFIED (12 components; refreshed per batch)": 1,
+  "INTEGRATED (this branch IS the RC3 candidate; main untouched)": 1,
+  "DESKTOP_VERIFIED at 8d79c20 (fresh clone earlier); re-run at freeze": 1,
+  "CHECKLIST EXISTS; FE-K11 user-friendly pack queued": 1
+ },
+ "capabilities": [
+  {
+   "capability_id": "evidence-schema",
+   "title": "Unified evidence protocol schema v1.x + evpack",
+   "paths": [
+    "backend/docs/evidence/evidence-schema-v1.json",
+    "backend/tools/evidence_schema.py",
+    "backend/techlab/business/evpack_v2.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM01",
+    "M03-?",
+    "FE-A01",
+    "FE-G01"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "v2/v3 production protocol switch awaits product review",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "crosslang-vectors",
+   "title": "Cross-language golden vectors (Python/Swift/OpenSSL)",
+   "paths": [
+    "test-vectors/crosslang/tm02-protocol-vectors.json",
+    "test-vectors/crosslang/TM02ProtocolVectorTests.swift",
+    "backend/tools/tm02_gen_vectors.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (Swift side CROSS_PLATFORM_PENDING)",
+   "number_maps": [
+    "TM02",
+    "FE-A02"
+   ],
+   "dependencies": [
+    "evidence-schema"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "FE-A02 asks >=1000 meaningful cases: current 100+34+40; expansion queued behind FE-A02 sweep",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "secure-enclave-contract",
+   "title": "Secure Enclave integration contract",
+   "paths": [
+    "docs/mac/TM55-HANDOFF.md#A4",
+    "backend/tools/appattest/README.md"
+   ],
+   "verify_status": "CROSS_PLATFORM_PENDING (contract only)",
+   "number_maps": [
+    "FE-A03"
+   ],
+   "dependencies": [
+    "app-attest-server"
+   ],
+   "platforms": [
+    "mac"
+   ],
+   "unfinished_reason": "hardware acceptance is Mac-only by definition",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "app-attest-server",
+   "title": "App Attest server-side verification",
+   "paths": [
+    "backend/tools/appattest/app_attest_verify.py",
+    "backend/tools/appattest/cbor_min.py",
+    "backend/tools/appattest/synth_vectors.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (synthetic CAs; real-Apple DEVICE_PENDING)",
+   "number_maps": [
+    "TM04",
+    "M03-A05-part",
+    "FE-A04"
+   ],
+   "dependencies": [
+    "evidence-schema"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "dev/prod anchor isolation DONE (TM43); Apple root cross-check device-pending",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "device-key-lifecycle",
+   "title": "Device identity + key lifecycle + evidence binding",
+   "paths": [
+    "backend/app/services/device_identity.py",
+    "backend/tests/test_techlab/test_tm03_key_lifecycle.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (production routes)",
+   "number_maps": [
+    "TM03",
+    "FE-A05",
+    "FE-D10"
+   ],
+   "dependencies": [
+    "app-attest-server"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "possession proof != hardware-origin proof (pinned everywhere)",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "audit-chain",
+   "title": "Evidence chain + Merkle + checkpoints",
+   "paths": [
+    "backend/tools/evidence_chain/audit_chain.py",
+    "backend/tests/test_techlab/test_tm05_audit_chain.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED; server checkpoint = ISOLATED_CANDIDATE",
+   "number_maps": [
+    "TM05",
+    "FE-A06",
+    "FE-A07"
+   ],
+   "dependencies": [
+    "evidence-schema"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "checkpoint anchoring into sync flow awaits review; no external anchor = tail truncation undetectable (proven)",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "trust-engine-10d",
+   "title": "Ten-dimension trust engine + bridges",
+   "paths": [
+    "backend/tools/trust_engine/trust_levels.py",
+    "backend/tools/evidence-verifier/trust_bridge.py",
+    "backend/tools/web_verifier.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (engine+CLI bridge); production route ISOLATED_CANDIDATE",
+   "number_maps": [
+    "TM07",
+    "TM58",
+    "FE-A08",
+    "FE-A11-part"
+   ],
+   "dependencies": [
+    "evidence-schema",
+    "device-key-lifecycle"
+   ],
+   "platforms": [
+    "win",
+    "browser"
+   ],
+   "unfinished_reason": "FE-A11 cross-verifier consistency sweep queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "provenance-boundary",
+   "title": "Photo source & authenticity boundary",
+   "paths": [
+    "backend/tools/provenance/source_model.py",
+    "docs/evidence/tm08-provenance-threat-model.md"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM08",
+    "FE-A09"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "long-term-evidence",
+   "title": "Long-term verification policy + renewal",
+   "paths": [
+    "backend/techlab/business/long_term_evidence.py",
+    "backend/techlab/business/tsa_rfc3161.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "M03-D03",
+    "FE-A10",
+    "FE-G07",
+    "FE-G08-part"
+   ],
+   "dependencies": [
+    "evidence-schema"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "revocation material (CRL/OCSP) not fetched offline - recorded as a stated limit",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "standalone-verifiers",
+   "title": "W018 CLI + web verifier + Swift verifier models",
+   "paths": [
+    "backend/tools/evidence-verifier/verify_evidence.py",
+    "docs/web-verifier/verifier.html",
+    "backend/tools/web_verifier.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (CLI + web via Python mirror); BROWSER RUN PENDING FE-G09",
+   "number_maps": [
+    "TM06",
+    "M03-D09",
+    "FE-A11",
+    "FE-G09"
+   ],
+   "dependencies": [
+    "trust-engine-10d"
+   ],
+   "platforms": [
+    "win",
+    "browser",
+    "mac"
+   ],
+   "unfinished_reason": "FE-G09 requires a REAL browser run (Playwright tool available)",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "red-team-regression",
+   "title": "Evidence red-team suite",
+   "paths": [
+    "backend/tests/test_techlab/test_tm06_trust_bridge.py",
+    "backend/tests/test_techlab/test_m03_a07_e2e_expanded.py",
+    "backend/tests/test_techlab/test_tm44_parser_fuzz.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED; FE-A12 expansion queued",
+   "number_maps": [
+    "TM44-part",
+    "FE-A12"
+   ],
+   "dependencies": [
+    "evidence-schema"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "FE-A12 asks the full 10-attack sweep incl. project-ownership swap",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "time-anchor",
+   "title": "Server-signed time anchor protocol",
+   "paths": [
+    "backend/app/api (time-anchor routes)",
+    "backend/techlab/timegeo_trust.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM09-part",
+    "FE-B01",
+    "FE-B05-part"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "multi-anchor conflict policy = design note queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "monotonic-clock",
+   "title": "Injectable monotonic clock model",
+   "paths": [
+    "backend/techlab/time_uncertainty.py",
+    "swift/WorkCamCore/Sources/WorkCamTime/TimeEstimate.swift"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (Swift CROSS_PLATFORM_PENDING)",
+   "number_maps": [
+    "TM10",
+    "FE-B02",
+    "FE-B03",
+    "FE-B04-part"
+   ],
+   "dependencies": [
+    "time-anchor"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "sleep/hibernate edge cases = Mac device half",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "clock-anomaly",
+   "title": "Clock rollback/forward + DST + date boundaries",
+   "paths": [
+    "backend/tests/test_techlab/test_tm09_anchor_consistency.py",
+    "backend/tests/test_techlab/test_tm45_fault_injection.py (rate window)"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM09-part",
+    "FE-B04"
+   ],
+   "dependencies": [
+    "monotonic-clock"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "gnss-quality",
+   "title": "Location quality + risk + thresholds",
+   "paths": [
+    "backend/techlab/location_quality.py",
+    "swift/WorkCamCore/Sources/WorkCamLocation/LocationQuality.swift"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (thresholds configurable)",
+   "number_maps": [
+    "TM12",
+    "FE-B06",
+    "FE-B07"
+   ],
+   "dependencies": [
+    "monotonic-clock"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "device calibration pending (TM22)",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "gnss-test-matrix",
+   "title": "Offline GNSS collection matrix + CSV",
+   "paths": [
+    "docs/tech-lab/tm11-gnss-research-brief.md"
+   ],
+   "verify_status": "DESIGN COMPLETE; collection DEVICE_PENDING",
+   "number_maps": [
+    "TM11",
+    "FE-B08"
+   ],
+   "dependencies": [
+    "gnss-quality"
+   ],
+   "platforms": [
+    "mac"
+   ],
+   "unfinished_reason": "Mac executes the collection; Windows ships the analyzer",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "geodesy",
+   "title": "WGS84/ECEF/ENU/GeoJSON/KML + dateline",
+   "paths": [
+    "backend/techlab/geometry/geo.py",
+    "backend/tests/test_techlab/test_tm_geometry_core.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM13",
+    "FE-B09"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "UTM NOT implemented (projection choice awaits product need - honest)",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "time-geo-joint",
+   "title": "Joint time+location evidence semantics",
+   "paths": [
+    "docs/evidence/evidence-schema-v1.json (trust_rules)",
+    "backend/tools/trust_engine/trust_levels.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM07-part",
+    "FE-B10"
+   ],
+   "dependencies": [
+    "trust-engine-10d",
+    "gnss-quality"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "geometry-core",
+   "title": "3D math + backprojection + intrinsics",
+   "paths": [
+    "backend/techlab/geometry/camera.py",
+    "backend/techlab/geometry/measurement.py",
+    "backend/tests/test_techlab/test_tm_geometry_core.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM15",
+    "TM16",
+    "TM20",
+    "FE-C01",
+    "FE-C02",
+    "FE-C03",
+    "FE-C06"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "plane-fitting",
+   "title": "LSQ/PCA/RANSAC plane fits + residuals",
+   "paths": [
+    "backend/techlab/geometry/plane.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM17",
+    "FE-C05"
+   ],
+   "dependencies": [
+    "geometry-core"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "area-volume",
+   "title": "Polygon areas + self-intersection + basic volumes",
+   "paths": [
+    "backend/techlab/geometry/area.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (volume = EXPERIMENTAL label enforced)",
+   "number_maps": [
+    "TM18",
+    "TM19",
+    "FE-C04",
+    "FE-C07"
+   ],
+   "dependencies": [
+    "plane-fitting"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "FE-C07 irregular point-cloud volume stays isolated PoC",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "pointcloud",
+   "title": "Voxel/statistical/radius filters + PLY + reports",
+   "paths": [
+    "backend/techlab/geometry/pointcloud.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM21",
+    "FE-C08"
+   ],
+   "dependencies": [
+    "geometry-core"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "measurement-quality",
+   "title": "Uncertainty + calibration + propagation",
+   "paths": [
+    "backend/techlab/geometry/quality.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (uncalibrated = conservative, no fake CI)",
+   "number_maps": [
+    "TM22",
+    "FE-C09"
+   ],
+   "dependencies": [
+    "geometry-core"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "device calibration is the Mac half",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "lidar-analyzer",
+   "title": "Three-mode analysis + CSV + grouped stats",
+   "paths": [
+    "backend/tools/tech-lab (W-02 core)",
+    "backend/tests/test_techlab/test_b02w016_lidar.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (synthetic; device DEVICE_PENDING)",
+   "number_maps": [
+    "TM14",
+    "M03-A02-map",
+    "FE-C10",
+    "FE-C11-part"
+   ],
+   "dependencies": [
+    "pointcloud"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "real-device matrix FE-C11: template DESIGNED, collection Mac",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "measurement-formats",
+   "title": "Open measurement records + SVG/PLY/DXF",
+   "paths": [
+    "backend/techlab/geometry/measurement_format.py",
+    "backend/techlab/geometry/dxf_poc.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (DXF = POC_VERIFIED isolated)",
+   "number_maps": [
+    "TM23",
+    "FE-G10-part"
+   ],
+   "dependencies": [
+    "geometry-core"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "swift-geometry",
+   "title": "WorkCamCore geometry package",
+   "paths": [
+    "swift/WorkCamCore/Sources/WorkCamGeometry/*.swift",
+    "swift/WorkCamCore/Tests/WorkCamCoreTests/GeometryGoldenVectorTests.swift"
+   ],
+   "verify_status": "CROSS_PLATFORM_PENDING (authored + vector-matched, never compiled here)",
+   "number_maps": [
+    "TM61",
+    "TM65",
+    "FE-C12"
+   ],
+   "dependencies": [
+    "geometry-core",
+    "plane-fitting",
+    "area-volume",
+    "pointcloud"
+   ],
+   "platforms": [
+    "mac"
+   ],
+   "unfinished_reason": "Swift toolchain BLOCKED after 4 honest attempts",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "enrollment-lock-fix",
+   "title": "Same-key enrollment 31s-lock fix",
+   "paths": [
+    "backend/app/services/device_identity.py (same-connection audit)",
+    "backend/scripts/bench_enrollment.py",
+    "backend/tests/test_win_hotfix.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (P95 0.854ms; live HTTP 15ms replay)",
+   "number_maps": [
+    "WIN-HOTFIX-01",
+    "FE-D01"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "FE-D01 re-verification sweep queued (unified latency accounting)",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "bidirectional-sync",
+   "title": "Uplink batch + downlink cursor events",
+   "paths": [
+    "backend/app/api/sync.py",
+    "swift/WorkCamCore/Sources/WorkCamSync/Outbox.swift"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "WIN-HOTFIX-02/03",
+    "FE-D02",
+    "FE-D03"
+   ],
+   "dependencies": [
+    "enrollment-lock-fix"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "checklist/measurement uplink ops = FE-D02 expansion",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "tombstones-archive",
+   "title": "Archive vs logical vs physical delete",
+   "paths": [
+    "backend/app/api/sync.py (archived status + tombstones)",
+    "backend/app/api/mvp.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (physical delete of originals NOT implemented by design)",
+   "number_maps": [
+    "FE-D04"
+   ],
+   "dependencies": [
+    "bidirectional-sync"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "multi-client-conflicts",
+   "title": "Conflict engine + races + prefix visibility",
+   "paths": [
+    "backend/tests/test_techlab/test_tm34_conflicts.py",
+    "backend/tests/test_techlab/test_m03_f08_races.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM34",
+    "M03-F08",
+    "FE-D05",
+    "FE-D06-part"
+   ],
+   "dependencies": [
+    "bidirectional-sync"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "FE-I09: F08 poll-thread timing flake needs a deterministic sync mechanism (queued P0)",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "chunked-upload",
+   "title": "Resumable sessions + integrity proof",
+   "paths": [
+    "backend/app/services/chunked_upload.py",
+    "swift/WorkCamCore/Sources/WorkCamSync/ChunkedUploadClient.swift"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM35",
+    "FE-D07",
+    "FE-D08-part"
+   ],
+   "dependencies": [
+    "enrollment-lock-fix"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "FE-D08 resource-limit sweep (hostile Content-Length) queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "download-recovery",
+   "title": "Metadata/derivative/original download candidate",
+   "paths": [
+    "(not started)"
+   ],
+   "verify_status": "NOT_STARTED",
+   "number_maps": [
+    "FE-D09"
+   ],
+   "dependencies": [
+    "bidirectional-sync"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "FE-D09 design queued: Range-based original download + integrity re-hash, reuse chunk-session hashing",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "api-client-parity",
+   "title": "API client contract (Mac Integration 02)",
+   "paths": [
+    "swift/WorkCamCore/Sources/WorkCamSync/APIClient.swift",
+    "docs/api/openapi.json",
+    "test-vectors/win-hotfix/vectors.json"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (receiptSucceeded rejected-replay encoded)",
+   "number_maps": [
+    "M03-H02",
+    "FE-D11"
+   ],
+   "dependencies": [
+    "bidirectional-sync"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "Mac client drift re-check after every backend change (gate holds it)",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "dual-client-e2e",
+   "title": "Two independent clients full-chain",
+   "paths": [
+    "backend/scripts/win_hotfix_live.py (single-client live)",
+    "backend/tests/test_techlab/test_tm91_weak_network.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (dual-thread clients in-suite); FE-D12 sweep queued",
+   "number_maps": [
+    "FE-D12"
+   ],
+   "dependencies": [
+    "bidirectional-sync",
+    "chunked-upload"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "FE-D12: full two-client scripted journey incl. history+recovery",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "immutable-storage",
+   "title": "Content-addressed original store + fsck",
+   "paths": [
+    "backend/app/services/original_store.py",
+    "backend/app/services/evidence_recovery.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM31",
+    "TM32",
+    "FE-E01",
+    "FE-E02",
+    "FE-E03"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "FE-E03 crash-recovery expansion (DER write torn files) queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "low-storage-safety",
+   "title": "Disk-full / write-fail never fakes success",
+   "paths": [
+    "backend/tests/test_techlab/test_tm32_crash_recovery.py (disk full)",
+    "backend/tests/test_techlab/test_tm45_fault_injection.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "FE-E04-part"
+   ],
+   "dependencies": [
+    "immutable-storage"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "tmpfile-uncreatable scenario queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "cache-thumbnails",
+   "title": "Byte-budget LRU (derivative-only by type)",
+   "paths": [
+    "swift/WorkCamCore/Sources/WorkCamSync/PhotoIndex.swift"
+   ],
+   "verify_status": "CROSS_PLATFORM_PENDING",
+   "number_maps": [
+    "TM72",
+    "FE-E06"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "mac"
+   ],
+   "unfinished_reason": "thumbnail generator itself is Mac (CoreGraphics)",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "db-scale",
+   "title": "10k photos / 100k metadata baselines",
+   "paths": [
+    "backend/tools/synth_data.py",
+    "backend/tests/test_techlab/test_m03_f01_f02_perf.py",
+    "backend/tools/perf_baseline.json"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "M03-F01/F02",
+    "FE-E07",
+    "FE-E12-part"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "photo-directory scan deep-dive FE-E05 queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "streaming-pipelines",
+   "title": "Streaming SHA-256/ZIP64/upload/backup",
+   "paths": [
+    "backend/techlab/business/streaming_zip.py",
+    "backend/tests/test_techlab/test_m03_f04_f06_perf.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (1MiB = stream unit; 2.4MB python peak measured)",
+   "number_maps": [
+    "M03-D05",
+    "FE-E08"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "backup-restore",
+   "title": "Project packages + full backup + rollback",
+   "paths": [
+    "backend/app/services/backup_v2.py",
+    "backend/tests/test_techlab/test_tm36_backup_v2.py",
+    "backend/tests/test_techlab/test_tm93_upgrade_matrix.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM36",
+    "FE-E09"
+   ],
+   "dependencies": [
+    "immutable-storage"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "incremental backup = ISOLATED_CANDIDATE design note",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "longrun-stability",
+   "title": "Configurable-duration soak",
+   "paths": [
+    "(F07 deep-dive not started)"
+   ],
+   "verify_status": "NOT_STARTED",
+   "number_maps": [
+    "FE-E10"
+   ],
+   "dependencies": [
+    "db-scale"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "soak runner design queued; existing longest run = 8min full suite",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "fault-injection",
+   "title": "Network/disk/db/process/migration faults",
+   "paths": [
+    "backend/tests/test_techlab/test_tm45_fault_injection.py",
+    "backend/tests/test_techlab/test_tm91_weak_network.py",
+    "backend/tests/test_techlab/test_tm32_crash_recovery.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM45",
+    "M03-A02",
+    "FE-E11"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "permission-failure + cache-corruption injections queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "exif-vectors",
+   "title": "EXIF 1..8 + extreme watermark vectors",
+   "paths": [
+    "test-vectors/geometry/exif-watermark-extreme-vectors.json",
+    "backend/tests/test_techlab/test_m03_c01_c02_exif_extremes.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (2 real defects fixed + cross-reference pinned)",
+   "number_maps": [
+    "M03-C01",
+    "M03-C02",
+    "FE-F01"
+   ],
+   "dependencies": [
+    "watermark-layout"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "FE-F01 asymmetric-pattern corner probe queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "annotation-geometry",
+   "title": "Normalized 9-kind annotations + transforms",
+   "paths": [
+    "backend/techlab/geometry/annotations.py",
+    "swift/WorkCamCore/Sources/WorkCamGeometry/Annotations.swift"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM63",
+    "FE-F02"
+   ],
+   "dependencies": [
+    "geometry-core"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "mirror variants (EXIF 2/4/5/7) on annotations queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "watermark-layout",
+   "title": "Rendering-free layout engine",
+   "paths": [
+    "backend/techlab/geometry/watermark_layout.py",
+    "swift/WorkCamCore/Sources/WorkCamGeometry/WatermarkLayout.swift"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM64",
+    "FE-F03"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "W011 10-vector file parity held (mapping documented)",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "photo-quality",
+   "title": "Blur/exposure/contrast/resolution advice",
+   "paths": [
+    "backend/techlab/business/photo_quality.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (disclaimer always appended)",
+   "number_maps": [
+    "M03-C04",
+    "FE-F04"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "occlusion heuristic queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "duplicate-candidates",
+   "title": "SHA-256 exact + aHash/dHash near",
+   "paths": [
+    "backend/techlab/business/photo_quality.py (duplicates)",
+    "swift/.../PhotoIndex.swift (duplicateCandidates)"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (near != exact, never auto-delete)",
+   "number_maps": [
+    "M03-C05",
+    "TM27",
+    "FE-F05"
+   ],
+   "dependencies": [
+    "photo-quality"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "rotation/crop resilience sweep queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "image-registration",
+   "title": "Feature/affine/homography registration",
+   "paths": [
+    "(not started - selection review pending)"
+   ],
+   "verify_status": "NOT_STARTED",
+   "number_maps": [
+    "M03-C06",
+    "FE-F06"
+   ],
+   "dependencies": [
+    "geometry-core"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "selection review document + isolated PoC queued (ECC? SIFT license? OpenCV-free constraint) - honest hold",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "beforeafter-compare",
+   "title": "Side-by-side/slide/overlay models",
+   "paths": [
+    "backend/techlab/business/issues.py (roles)"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (data+roles); UI reference NOT_STARTED",
+   "number_maps": [
+    "M03-B05",
+    "FE-F07"
+   ],
+   "dependencies": [
+    "annotation-geometry"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "Swift compare-view model queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "ocr-engineering",
+   "title": "OCR sample set + schema + human-confirm",
+   "paths": [
+    "(not started)"
+   ],
+   "verify_status": "NOT_STARTED",
+   "number_maps": [
+    "M03-C08",
+    "FE-F08"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "legal sample set + Vision contract + confirm-loop queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "privacy-redaction",
+   "title": "Derivative-only redaction + audit record",
+   "paths": [
+    "backend/techlab/business/privacy_redaction.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (out-of-frame defect fixed)",
+   "number_maps": [
+    "M03-C09",
+    "FE-F09"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "EXIF-scrub on derivatives queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "report-six",
+   "title": "Six report templates A4+Letter + Page X of Y",
+   "paths": [
+    "backend/app/services/report_pdf.py",
+    "backend/app/api/reports.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (100-photo zero-loss proven)",
+   "number_maps": [
+    "M03-D06",
+    "M03-D07",
+    "M03-D08",
+    "FE-G03",
+    "FE-G04"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "report snapshot immutability FE-G05: DB row already pins photo set - deep audit queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "zip64-interop",
+   "title": "Streaming ZIP64 cross-platform",
+   "paths": [
+    "backend/techlab/business/streaming_zip.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "M03-D05",
+    "FE-G02"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "macOS unzip CLI cross-check queued (needs Mac)",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "c2pa-poc",
+   "title": "C2PA study + PoC",
+   "paths": [
+    "backend/tools/c2pa-poc/ (W-019)",
+    "docs/tech-lab/c2pa/"
+   ],
+   "verify_status": "POC_VERIFIED (isolated; NOT certification)",
+   "number_maps": [
+    "TM37-part",
+    "FE-G06"
+   ],
+   "dependencies": [
+    "evidence-schema"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "FE-G06 re-check vs current goals queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "rfc3161",
+   "title": "Local test TSA + issuance audit",
+   "paths": [
+    "backend/techlab/business/tsa_rfc3161.py",
+    "backend/tests/test_techlab/test_m03_d02_tsa.py",
+    "backend/tests/test_techlab/test_m03_d02_d03_audit.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (real protocol; test CA clearly labeled)",
+   "number_maps": [
+    "M03-D02",
+    "FE-G07"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "public TSA = deployment config, never claimed here",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "evpack2",
+   "title": "Open evidence package V2",
+   "paths": [
+    "backend/techlab/business/evpack_v2.py",
+    "backend/tests/test_techlab/test_m03_d04_evpack_v2.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "M03-D04",
+    "FE-G01"
+   ],
+   "dependencies": [
+    "immutable-storage"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "web-verifier",
+   "title": "Offline HTML verifier",
+   "paths": [
+    "docs/web-verifier/verifier.html",
+    "backend/tools/web_verifier.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED via mirror; REAL BROWSER RUN PENDING",
+   "number_maps": [
+    "M03-D09",
+    "FE-G09"
+   ],
+   "dependencies": [
+    "evpack2",
+    "trust-engine-10d"
+   ],
+   "platforms": [
+    "browser"
+   ],
+   "unfinished_reason": "FE-G09: Playwright tool available - real browser pass queued P0",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "interop-formats",
+   "title": "8-format delivery + native consumers",
+   "paths": [
+    "backend/tests/test_techlab/test_m03_d10_interop.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "M03-D10",
+    "FE-G10"
+   ],
+   "dependencies": [
+    "evpack2",
+    "measurement-formats"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "English third-party verification guide queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "business-templates",
+   "title": "8 templates + checklist + forms",
+   "paths": [
+    "backend/techlab/business/templates.py",
+    "swift/WorkCamCore/Sources/WorkCamModels/WorkCamBusiness.swift"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (Swift CROSS_PLATFORM_PENDING)",
+   "number_maps": [
+    "M03-B01/02/03",
+    "FE-H01/02/03"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "form version migration queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "issue-lifecycle-biz",
+   "title": "Lifecycle + roles + naming",
+   "paths": [
+    "backend/techlab/business/issues.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "M03-B04/05/06",
+    "FE-H04-part"
+   ],
+   "dependencies": [
+    "business-templates"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "Mac state-machine diff re-check queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "photo-ops-search",
+   "title": "Batch planner + offline search",
+   "paths": [
+    "backend/techlab/business/photo_ops.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "M03-B07/08",
+    "FE-H05"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "assets-dailylog",
+   "title": "Assets + measurements + daily log",
+   "paths": [
+    "backend/techlab/business/records.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "M03-B09/10/11",
+    "FE-H06"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "swift-sync-package",
+   "title": "Outbox/upload/api/recovery Swift package",
+   "paths": [
+    "swift/WorkCamCore/Sources/WorkCamSync/*.swift"
+   ],
+   "verify_status": "CROSS_PLATFORM_PENDING (Integration-02 parity encoded)",
+   "number_maps": [
+    "M03-B12-part",
+    "TM67/69/70",
+    "FE-H08"
+   ],
+   "dependencies": [
+    "api-client-parity",
+    "chunked-upload"
+   ],
+   "platforms": [
+    "mac"
+   ],
+   "unfinished_reason": "",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "ios-design-system",
+   "title": "Design system + core screens reference",
+   "paths": [
+    "(not started)"
+   ],
+   "verify_status": "NOT_STARTED",
+   "number_maps": [
+    "TM82-87",
+    "M03-E02-07",
+    "FE-H09/H10"
+   ],
+   "dependencies": [
+    "swift-sync-package"
+   ],
+   "platforms": [
+    "mac"
+   ],
+   "unfinished_reason": "P1 queue; Night 05 audit FE-E01 first to avoid duplication",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "xcuitest-suite",
+   "title": "XCUITest reference",
+   "paths": [
+    "(not started)"
+   ],
+   "verify_status": "NOT_STARTED",
+   "number_maps": [
+    "TM90",
+    "M03-E10",
+    "FE-H12"
+   ],
+   "dependencies": [
+    "ios-design-system"
+   ],
+   "platforms": [
+    "mac"
+   ],
+   "unfinished_reason": "needs Mac accessibility identifiers",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "sync-center-settings",
+   "title": "Sync center + settings reference",
+   "paths": [
+    "(not started)"
+   ],
+   "verify_status": "NOT_STARTED",
+   "number_maps": [
+    "M03-E08/09",
+    "FE-H11"
+   ],
+   "dependencies": [
+    "swift-sync-package"
+   ],
+   "platforms": [
+    "mac"
+   ],
+   "unfinished_reason": "P1 queue",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "authz-audit",
+   "title": "Identity/token/ownership/cross-user",
+   "paths": [
+    "backend/tests/test_mvp_security.py",
+    "backend/tests/test_techlab/test_b02_w021_security_audit.py",
+    "backend/tests/test_techlab/test_m03_a06_night05_contract.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "TM43/21",
+    "M03-A08-part",
+    "FE-I01"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "parser-security",
+   "title": "JSON/CBOR/DER/B64/ZIP/CSV hostile inputs",
+   "paths": [
+    "backend/tests/test_techlab/test_tm44_parser_fuzz.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (3 real defects fixed)",
+   "number_maps": [
+    "TM44",
+    "FE-I02"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "CSV injection + image-metadata sweep queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "resource-limits",
+   "title": "Bombs/nesting/oversize/concurrency",
+   "paths": [
+    "backend/tests/test_techlab/test_tm44_parser_fuzz.py (zip bomb)",
+    "backend/tools/appattest/cbor_min.py (depth cap)"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "FE-I03",
+    "FE-D08-part"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "hostile Content-Length upload probe queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "path-safety",
+   "title": "Traversal/absolute/dupes/temp isolation",
+   "paths": [
+    "backend/techlab/business/evpack_v2.py (safe_rel_path)",
+    "backend/tools/evidence-verifier/verify_evidence.py (zip-slip)"
+   ],
+   "verify_status": "DESKTOP_VERIFIED",
+   "number_maps": [
+    "FE-I04"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "symlink case documented (Windows store has no symlinks)",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "secret-hygiene",
+   "title": "Fingerprint-registered test keys + scans",
+   "paths": [
+    "backend/test-keys/MANIFEST.sha256",
+    "backend/tools/quality_gate.py (sensitive scan)"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (11 registered digests)",
+   "number_maps": [
+    "M03-A08",
+    "FE-I05"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "git-history scan queued (low risk: gate holds new adds)",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "network-security",
+   "title": "TLS/redirect/timeout/isolation",
+   "paths": [
+    "(client-side rules live in Swift package; server is loopback by design)"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (client refuses redirects; TLS is a deployment concern)",
+   "number_maps": [
+    "FE-I06"
+   ],
+   "dependencies": [
+    "api-client-parity"
+   ],
+   "platforms": [
+    "win",
+    "mac"
+   ],
+   "unfinished_reason": "production TLS = deployment doc (never disabled in tests)",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "data-privacy",
+   "title": "Location/photo/OCR/log audit",
+   "paths": [
+    "backend/app/services/device_identity.py (audit redaction)",
+    "docs/evidence/tm08-provenance-threat-model.md"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (token never logged; audit redacted)",
+   "number_maps": [
+    "FE-I07"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "privacy manifest (App Store) queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "supply-chain",
+   "title": "Dependency/licenses/SBOM",
+   "paths": [
+    "backend/requirements.txt",
+    "backend/tools/quality_gate.py (license gate)"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (9 pinned, permissive)",
+   "number_maps": [
+    "TM47-part",
+    "FE-I08"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "full SBOM (transitive) queued",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "flaky-fix",
+   "title": "F08 poll-thread deterministic sync",
+   "paths": [
+    "backend/tests/test_techlab/test_m03_f08_races.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED currently; ROOT-CAUSE FIX QUEUED",
+   "number_maps": [
+    "FE-I09"
+   ],
+   "dependencies": [
+    "multi-client-conflicts"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "P0: the batch-prefix observer races on thread start; fix = start reader AFTER batch thread begins or use an event-sync",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "security-regression",
+   "title": "Integrated final security regression",
+   "paths": [
+    "backend/tools/quality_gate.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (12/12)",
+   "number_maps": [
+    "FE-I10"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "expands as I-queue items land",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "enterprise-tenant",
+   "title": "Multi-tenant isolation candidate",
+   "paths": [
+    "backend/tests/test_techlab/test_b02_w028_tenant_poc.py",
+    "docs/commerce/b02-w028-commerce-foundations.md"
+   ],
+   "verify_status": "POC_VERIFIED (isolated)",
+   "number_maps": [
+    "TM48/49/50/51",
+    "M03-G*",
+    "FE-J01-08"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "P2 by directive: never blocks the personal-pro launch",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "mac-ready-frozen",
+   "title": "Mac Ready 01-04 frozen manifests",
+   "paths": [
+    "handoff/mac-ready/integration-manifest.json",
+    "handoff/mac-ready/01-START-HERE.md"
+   ],
+   "verify_status": "DESKTOP_VERIFIED (12 components; refreshed per batch)",
+   "number_maps": [
+    "M03-H09/10",
+    "FE-K03/04/05/06"
+   ],
+   "dependencies": [],
+   "platforms": [
+    "mac"
+   ],
+   "unfinished_reason": "K05/K06 groups = same manifest, sectioned by component id",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "rc3-stable",
+   "title": "RC3 stable candidate",
+   "paths": [
+    "branch dev/windows-tm-geometry @ current HEAD"
+   ],
+   "verify_status": "INTEGRATED (this branch IS the RC3 candidate; main untouched)",
+   "number_maps": [
+    "FE-K07"
+   ],
+   "dependencies": [
+    "mac-ready-frozen"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "RC4 branch split queued once P1 queues land",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "clean-room-acceptance",
+   "title": "Fresh clone + full gate on fixed SHA",
+   "paths": [
+    "backend/bootstrap.ps1",
+    "backend/tools/quality_gate.py"
+   ],
+   "verify_status": "DESKTOP_VERIFIED at 8d79c20 (fresh clone earlier); re-run at freeze",
+   "number_maps": [
+    "FE-K10"
+   ],
+   "dependencies": [
+    "rc3-stable"
+   ],
+   "platforms": [
+    "win"
+   ],
+   "unfinished_reason": "re-run at the final freeze SHA",
+   "commit_lineage": "lineage"
+  },
+  {
+   "capability_id": "device-acceptance-kit",
+   "title": "User-operable device acceptance pack",
+   "paths": [
+    "docs/mac/TM55-HANDOFF.md"
+   ],
+   "verify_status": "CHECKLIST EXISTS; FE-K11 user-friendly pack queued",
+   "number_maps": [
+    "FE-K11"
+   ],
+   "dependencies": [
+    "mac-ready-frozen"
+   ],
+   "platforms": [
+    "mac"
+   ],
+   "unfinished_reason": "P0 for the weekend: step-by-step, no-code-reading-required",
+   "commit_lineage": "lineage"
+  }
+ ],
+ "risk_ledger": [
+  {
+   "capability": "crosslang-vectors",
+   "risk": "FE-A02 asks >=1000 independent cases; have 174",
+   "class": "work-queued"
+  },
+  {
+   "capability": "standalone-verifiers",
+   "risk": "web verifier never ran in a REAL browser",
+   "class": "verification-gap",
+   "fix": "Playwright real-browser pass queued P0"
+  },
+  {
+   "capability": "flaky-fix",
+   "risk": "F08 prefix-observer timing flake (1 in ~3 full runs)",
+   "class": "test-stability",
+   "fix": "deterministic event sync queued P0"
+  },
+  {
+   "capability": "swift-geometry/swift-sync-package",
+   "risk": "never compiled on Windows (toolchain BLOCKED)",
+   "class": "cross-platform",
+   "mitigation": "vector-matched + rule-tested; Mac compiles"
+  },
+  {
+   "capability": "app-attest-server",
+   "risk": "synthetic CAs; real Apple root unverified",
+   "class": "device-pending",
+   "mitigation": "Mac cross-check in acceptance kit"
+  },
+  {
+   "capability": "image-registration",
+   "risk": "no implementation; selection review open",
+   "class": "not-started",
+   "boundary": "never auto-judges engineering quality"
+  },
+  {
+   "capability": "ocr-engineering",
+   "risk": "no implementation",
+   "class": "not-started"
+  },
+  {
+   "capability": "longrun-stability",
+   "risk": "no soak runner",
+   "class": "not-started"
+  },
+  {
+   "capability": "download-recovery",
+   "risk": "downlink originals not implemented",
+   "class": "not-started"
+  },
+  {
+   "capability": "trust-engine-10d",
+   "risk": "production route switch awaits product review",
+   "class": "decision-required"
+  },
+  {
+   "capability": "audit-chain",
+   "risk": "no external anchor => tail truncation undetectable",
+   "class": "stated-limitation",
+   "boundary": "documented + proven by test"
+  },
+  {
+   "capability": "measurement-quality",
+   "risk": "uncalibrated LiDAR = conservative defaults only",
+   "class": "device-pending"
+  },
+  {
+   "capability": "evpack2",
+   "risk": "browser zip reader refuses ZIP64 (honest message)",
+   "class": "stated-limitation",
+   "mitigation": "CLI covers large packages"
+  }
+ ]
+}

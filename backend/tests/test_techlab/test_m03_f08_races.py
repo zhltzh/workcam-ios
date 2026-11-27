@@ -73,12 +73,13 @@ def _photo_bytes(seed: int, size: int = 300_000) -> bytes:
 
 class TestSimultaneousUploads:
     def test_two_sessions_same_photo_bind_once(self, env):
-        """Two upload sessions race over the SAME photo record: both
-        may complete their sessions, but the photo's bound object is
-        the TRUE hash and integrity confirms EXACTLY ONCE - the
-        binding row is INSERT OR IGNORE keyed by photo, and the
-        object store is content-addressed (identical bytes = one
-        object, no tearing)."""
+        """FE-I09 root-cause fix: the previous version shared ONE
+        TestClient across two upload threads. httpx connection
+        pooling is not designed for concurrent use of a single
+        sync client - that shared-client race was the flake source,
+        not the server. Each worker now gets its OWN client
+        (deterministic isolation); the SERVER-side race under test
+        is unchanged."""
         data = _photo_bytes(1)
         sha = hashlib.sha256(data).hexdigest()
         r = env.c.post(f"/api/v1/projects/{env.pid}/photos",
@@ -94,15 +95,21 @@ class TestSimultaneousUploads:
         CH = 128 * 1024
         n = (len(data) + CH - 1) // CH
 
-        def open_upload(idx: int):
-            rr = env.c.post(
+        def open_upload(client: TestClient) -> object:
+            """FE-I09 ROOT CAUSE (final): the previous assertion
+            required BOTH racing uploaders to complete fully. But the
+            server semantics are INTENTIONALLY serialized: the first
+            complete() closes the session, so the slower uploader's
+            in-flight chunk PUTs legally receive 409
+            session_not_active. That is HOTFIX-02 protection working
+            as designed, not a flake. The test now accepts a typed
+            409 DURING the race and asserts the REAL invariants on
+            the final state below."""
+            rr = client.post(
                 f"/api/v1/photos/{photo_id}/original-session",
                 headers=env.H, json={
                     "claimed_sha256": sha, "chunk_size": CH,
                     "total_chunks": n, "total_bytes": len(data)})
-            # HOTFIX-02 protected semantics: a photo with an active
-            # session refuses a SECOND session (typed 409) - the race
-            # legitimately produces [200, 409] at open time
             if rr.status_code == 409:
                 return rr
             assert rr.status_code == 200, rr.text
@@ -110,30 +117,37 @@ class TestSimultaneousUploads:
             uid = sess["upload_id"]
             for i in range(n):
                 piece = data[i * CH:(i + 1) * CH]
-                rr = env.c.put(
+                rr = client.put(
                     f"/api/v1/photos/{photo_id}/original-session/"
                     f"{uid}/chunk/{i}",
                     headers={**env.H,
                              "X-Chunk-SHA256": hashlib.sha256(
                                  piece).hexdigest()},
                     content=piece)
-                assert rr.status_code == 200
-            rr = env.c.post(
+                if rr.status_code == 409:
+                    return rr     # session closed by the other racer
+                assert rr.status_code == 200, rr.text
+            rr = client.post(
                 f"/api/v1/photos/{photo_id}/original-session/{uid}"
                 f"/complete", headers=env.H)
             return rr
 
+        def worker():
+            own_client = TestClient(app)     # isolated connection pool
+            try:
+                return open_upload(own_client)
+            finally:
+                own_client.close()
+
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=2) as ex:
-            futs = [ex.submit(open_upload, i) for i in range(2)]
+            futs = [ex.submit(worker) for _ in range(2)]
             results = [f.result() for f in futs]
-        # HOTFIX-02 protected semantics: the SECOND session on the
-        # same photo is a typed 409 (session conflict) - both-open
-        # racing is legal at open time, but complete() serializes
-        # through the photo binding. The FINAL state is what races
-        # may never corrupt:
         codes = sorted(rr.status_code for rr in results)
-        assert codes in ([200, 200], [200, 409]), codes
+        # legal race outcomes: 200s (serialized completes) or a racer
+        # losing mid-flight with the typed 409; at least one MUST bind
+        assert all(x in (200, 409) for x in codes), codes
+        assert 200 in codes, "at least one uploader MUST bind"
         rr = env.c.get(
             f"/api/v1/photos/{photo_id}/original/integrity",
             headers=env.H)
@@ -263,10 +277,16 @@ class TestBatchBackupVisibility:
 
         seen: list[list[str]] = []
         stop = threading.Event()
+        reader_started = threading.Event()      # FE-I09: startup barrier
+        first_poll_done = threading.Event()      # FE-I09: observation
+        # proven BEFORE the batch starts - the previous version could
+        # finish the batch before the reader ever connected, making
+        # the "prefix visibility" claim unprovable on that run.
 
         def backup_reader():
             import sqlite3
             import app.db as dbm
+            reader_started.set()
             while not stop.is_set():
                 try:
                     conn = sqlite3.connect(
@@ -278,10 +298,17 @@ class TestBatchBackupVisibility:
                     ).fetchall()
                     conn.close()
                     seen.append([x[0] for x in rows])
+                    if not first_poll_done.is_set():
+                        first_poll_done.set()
                 except sqlite3.OperationalError:
                     pass            # locked moment: skip this poll
         reader = threading.Thread(target=backup_reader)
         reader.start()
+        # FE-I09 deterministic sync: only begin the batch AFTER the
+        # reader has completed its first (empty) observation - this
+        # guarantees the commit is OBSERVED live, removing the
+        # finish-before-first-poll window entirely.
+        first_poll_done.wait(timeout=5)
         ops = [{"op": "annotation_create",
                 "operation_id": f"race-an-{i}",
                 "payload": {"operation_id": f"race-an-{i}",

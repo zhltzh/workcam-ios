@@ -73,10 +73,11 @@ function setLedger(dims, verdictText){
 async function handle(files){
   if (!files.length) return;
   const f = files[0];
+  const name = f.name.toLowerCase();
   try {
-    if (f.name.toLowerCase().endsWith(".zip")) {
+    if (name.endsWith(".zip") || name.endsWith(".evpack")) {
       await verifyZip(f);
-    } else if (f.name.toLowerCase().endsWith(".json")) {
+    } else if (name.endsWith(".json")) {
       const text = await f.text();
       await verifyManifestPair(text);
     } else {
@@ -231,9 +232,42 @@ async function verifyEvidenceRecord(rec, entries){
   const key = await crypto.subtle.importKey(
       "raw", keyData,
       {name:"ECDSA", namedCurve:"P-256"}, false, ["verify"]);
-  const sig = b64ToBytes(rec.signature);
+  // FE-G09 REAL-BROWSER FINDING (fixed): the protocol signature is
+  // DER (SEQUENCE{INTEGER r, INTEGER s}); Web Crypto's ECDSA verify
+  // expects the RAW r||s form. Convert DER -> raw before verifying -
+  // the exact cross-format trap the task brief called out.
+  const der = b64ToBytes(rec.signature);
+  const sig = derToRaw(der);
   return crypto.subtle.verify(
       {name:"ECDSA", hash:"SHA-256"}, key, sig, payload);
+}
+
+function derToRaw(der){
+  // minimal DER SEQUENCE(INTEGER, INTEGER) -> 64-byte r||s
+  let p = 0;
+  if (der[p++] !== 0x30) throw new Error("bad DER: not a SEQUENCE");
+  const seqLen = der[p++];          // (payloads here are < 128 bytes)
+  if (seqLen & 0x80) throw new Error("long-form DER len unsupported");
+  function readInt(){
+    if (der[p++] !== 0x02) throw new Error("bad DER: not INTEGER");
+    const len = der[p++];
+    const raw = der.subarray(p, p + len); p += len;
+    let v = 0n;
+    for (const b of raw) v = (v << 8n) | BigInt(b);
+    return v;
+  }
+  const r = readInt(), s = readInt();
+  const out = new Uint8Array(64);
+  // big-endian into fixed 32-byte halves (BigInt keeps precision)
+  const half = (n, off) => {
+    for (let i = 0; i < 32; i++) out[off + i] = 0;
+    let t = n;
+    const tmp = new Uint8Array(32);
+    for (let i = 31; i >= 0; i--) { tmp[i] = Number(t & 0xFFn); t >>= 8n; }
+    out.set(tmp, off);
+  };
+  half(r, 0); half(s, 32);
+  return out;
 }
 
 function fmtNum(n){
