@@ -1,11 +1,11 @@
-{
+﻿{
   "manifest_version": "mac-ready/1.0",
   "candidate": {
     "branch": "dev/windows-tm-geometry",
-    "sha": "e5da8e4",
+    "sha": "8d79c20",
     "parent_line": "dev/windows-tm-security@2b535a0 via WIN-HOTFIX merge cd1219b",
     "frozen_at": "2026-11-27",
-    "backend_regression": "1538 passed, 3 skipped, 0 failed (full pytest, post-hotfix integration)",
+    "backend_regression": "1589 passed, 3 skipped, 0 failed (full pytest, fresh gate re-run on 8d79c20; one earlier gate run caught a transient timing flake in an F08 concurrency poll - re-run green, recorded honestly)",
     "quality_gate": "12/12 PASSED (tools/quality_gate.py)",
     "live_http": "win_hotfix_live.py PASS (enrollment 15ms, sync replay, chunk restart/resume, integrity, conflict, archive, pull)"
   },
