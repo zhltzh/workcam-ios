@@ -92,3 +92,9 @@ Super 01 adds a per-endpoint, per-filter server inbox. Each page commits its
 cursor and latest server snapshots in one protected atomic file. The UI
 shows snapshots separately from editable local project files, and queues
 explicit remote project rename/archive operations with expected revisions.
+
+Super 02 schedules Outbox jobs by known server references, explicit
+dependencies and relative order within an entity. Deterministic failures
+stay in the journal while independent jobs can complete. Association is
+a user-confirmed endpoint-scoped mapping and stores revision/provenance.
+Remote issue controls use the versioned batch API and role comparison.
