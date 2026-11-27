@@ -276,16 +276,27 @@ actor ProjectSyncQueue {
         var attempts: Int? = nil
         var phase: Phase? = nil
         var issue: String? = nil
+        var detail: String? = nil
+        var retryAfter: Date? = nil
+        var after: [String]? = nil
     }
 
     enum Phase: String, Codable, Sendable {
         case pending, sending, retry, conflict, failed
     }
 
+    private struct Association: Codable {
+        let server: String
+        let revision: Int
+        let source: String
+    }
+
     private struct Journal: Codable {
         var jobs: [Job] = []
         var completed: Set<String> = []
         var mappings: [String: String] = [:]
+        var replaced: [Job]? = nil
+        var associations: [String: Association]? = nil
     }
 
     private let file: URL
@@ -313,32 +324,106 @@ actor ProjectSyncQueue {
         return "\(journal.jobs.count) pending · \(phase.rawValue.capitalized) · attempt \(job.attempts ?? 0)"
     }
 
-    func flush(using api: WorkCamAPI) async throws {
+    func associate(local: UUID, server: UUID, revision: Int) throws {
+        let key = local.uuidString, value = server.uuidString.lowercased()
+        guard !running, revision > 0,
+              journal.mappings[key].map({ $0.lowercased() == value }) ?? true,
+              !journal.mappings.contains(where: { $0.key != key && $0.value.lowercased() == value }),
+              !journal.jobs.contains(where: { $0.id == "project-" + key }) else { throw EvidenceError.invalid }
+        var next = journal
+        next.mappings[key] = value
+        next.completed.insert("project-" + key)
+        var associations = next.associations ?? [:]
+        associations[key] = Association(server: value, revision: revision, source: "user_confirmed")
+        next.associations = associations
+        try persist(next)
+    }
+
+    func blockedJobs() -> [Job] {
+        journal.jobs.filter { $0.phase == .conflict || $0.phase == .failed }
+    }
+
+    private func scope(_ job: Job) -> String? {
+        for (prefix, field) in [("issue", "server_issue_id"), ("project", "server_project_id"),
+                                ("photo", "server_photo_id")] where job.kind.hasPrefix(prefix + "_") {
+            if let id = job.text[field] { return prefix + ":" + id.lowercased() }
+            if let local = job.references[field] ?? job.text["local_id"] {
+                return prefix + ":" + (journal.mappings[local] ?? local).lowercased()
+            }
+        }
+        return nil
+    }
+
+    private func ready(_ index: Int, visited: Set<String>, now: Date) -> Bool {
+        let job = journal.jobs[index]
+        guard !visited.contains(job.id), job.phase != .conflict, job.phase != .failed,
+              job.retryAfter.map({ $0 <= now }) ?? true,
+              (job.after ?? []).allSatisfy(journal.completed.contains),
+              job.references.values.allSatisfy({ journal.mappings[$0] != nil }),
+              job.consumes.map({ journal.mappings[$0] != nil }) ?? true else { return false }
+        guard let key = scope(job) else { return true }
+        return !journal.jobs[..<index].contains { scope($0) == key }
+    }
+
+    func resolve(_ id: String, newRevision: Int, replacementName: String? = nil) throws {
+        guard !running, newRevision > 0,
+              let index = journal.jobs.firstIndex(where: { $0.id == id && $0.phase == .conflict }),
+              journal.jobs[index].issue == "revision_conflict",
+              journal.jobs[index].integers["expected_revision"] != nil else { throw EvidenceError.invalid }
+        let old = journal.jobs[index]
+        var next = journal
+        var replacement = Job(id: UUID().uuidString, kind: old.kind, text: old.text, integers: old.integers,
+                              references: old.references, consumes: old.consumes, original: old.original,
+                              hash: old.hash, after: old.after)
+        replacement.integers["expected_revision"] = newRevision
+        if let replacementName, old.kind == "project_update" { replacement.text["name"] = replacementName }
+        next.replaced = (next.replaced ?? []) + [old]
+        next.jobs[index] = replacement
+        for i in next.jobs.indices {
+            next.jobs[i].after = next.jobs[i].after?.map { $0 == id ? replacement.id : $0 }
+        }
+        try persist(next)
+    }
+
+    @discardableResult
+    func flush(using api: WorkCamAPI) async throws -> Int {
         guard !running else { throw CocoaError(.fileLocking) }
         running = true
         defer { running = false }
-        while let job = journal.jobs.first {
+        var visited = Set<String>()
+        var confirmed = 0
+        while let index = journal.jobs.indices.first(where: { ready($0, visited: visited, now: .now) }) {
             try Task.checkCancellation()
+            let job = journal.jobs[index]
+            visited.insert(job.id)
             var attempt = journal
-            attempt.jobs[0].attempts = (job.attempts ?? 0) + 1
-            attempt.jobs[0].phase = .sending
-            attempt.jobs[0].issue = nil
+            attempt.jobs[index].attempts = (job.attempts ?? 0) + 1
+            attempt.jobs[index].phase = .sending
             try persist(attempt)
             do {
                 try await send(job, using: api)
+                confirmed += 1
             } catch {
                 var failure = journal
-                if let apiError = error as? WorkCamAPIError {
-                    failure.jobs[0].phase = apiError.status == 409 ? .conflict :
-                        (apiError.status == 401 || apiError.status >= 500 ? .retry : .failed)
-                    failure.jobs[0].issue = apiError.code
-                } else {
-                    failure.jobs[0].phase = error is EvidenceError ? .failed : .retry
-                }
+                guard let current = failure.jobs.firstIndex(where: { $0.id == job.id }) else { throw error }
+                let apiError = error as? WorkCamAPIError
+                let status = apiError?.status
+                let phase: Phase
+                if status == 409 { phase = .conflict }
+                else if let status, (400..<500).contains(status), ![401, 408, 429].contains(status) { phase = .failed }
+                else if error is EvidenceError { phase = .failed }
+                else { phase = .retry }
+                failure.jobs[current].phase = phase
+                failure.jobs[current].issue = apiError?.code
+                failure.jobs[current].detail = apiError?.detail
+                failure.jobs[current].retryAfter = phase == .retry && status != 401 && !Task.isCancelled
+                    ? Date().addingTimeInterval(pow(2, Double(min(failure.jobs[current].attempts ?? 1, 8)))) : nil
                 try persist(failure)
-                throw error
+                if status == 401 { throw error }
+                try Task.checkCancellation()
             }
         }
+        return confirmed
     }
 
     private func send(_ job: Job, using api: WorkCamAPI) async throws {
@@ -363,8 +448,13 @@ actor ProjectSyncQueue {
         }
         var next = journal
         next.mappings.merge(mapping) { _, new in new }
+        if job.kind == "project_create", let local = job.text["local_id"], let server = next.mappings[local] {
+            var associations = next.associations ?? [:]
+            associations[local] = Association(server: server, revision: 1, source: "server_receipt")
+            next.associations = associations
+        }
         next.completed.insert(job.id)
-        next.jobs.removeFirst()
+        next.jobs.removeAll { $0.id == job.id }
         try persist(next)
     }
 
@@ -406,7 +496,8 @@ extension ProjectSyncQueue.Job {
                 let linkHash = evidenceHash(Data(photoID.utf8))
                 jobs.append(Self(id: "issue-link-\(id)-\(role)-\(linkHash)", kind: "issue_photo_link",
                                  text: ["role": role], references: ["server_issue_id": id,
-                                     "server_photo_id": projectID + ":" + photoID]))
+                                     "server_photo_id": projectID + ":" + photoID],
+                                 after: ["upload-" + evidenceHash(Data((projectID + ":" + photoID).utf8))]))
             }
             let ladder: [InspectionIssue.Status] = [.open, .inProgress, .resolved, .closed]
             if let end = ladder.firstIndex(of: issue.status), end > 0 {
@@ -466,6 +557,13 @@ enum SwiftNetworkFixture {
         try await restarted.enqueue(jobs)
         let unchanged = try Data(contentsOf: original)
         guard await restarted.pending() == 0, unchanged == bytes else { throw EvidenceError.invalid }
+        let secondaryID = UUID().uuidString
+        var secondaryMetadata = metadata
+        secondaryMetadata["local_id"] = secondaryID
+        secondaryMetadata["idempotency_key"] = secondaryID
+        let secondary = try await api.submit(kind: "photo_register", id: secondaryID,
+            payload: secondaryMetadata, integers: photoJob.integers)
+        let replacementPhoto = try requiredID(secondary.result["server_photo_id"]).uuidString.lowercased()
         let projectRemote = projectID.uuidString.lowercased()
         let rename = UUID().uuidString
         _ = try await api.submit(kind: "project_update", id: rename,
@@ -493,6 +591,53 @@ enum SwiftNetworkFixture {
         issuePayload["server_project_id"] = projectID.uuidString.lowercased()
         let issueReceipt = try await api.submit(kind: issueJob.kind, id: issueJob.id, payload: issuePayload)
         let issueID = try requiredID(issueReceipt.result["server_issue_id"])
+        let isolatedFile = root.appendingPathComponent("isolated.json")
+        let isolated = try ProjectSyncQueue(file: isolatedFile)
+        let conflicting = ProjectSyncQueue.Job(id: UUID().uuidString, kind: "issue_transition",
+            text: ["server_issue_id": issueID.uuidString.lowercased(), "target_status": "resolved"],
+            integers: ["expected_revision": 1])
+        let unrelated = ProjectSyncQueue.Job(id: UUID().uuidString, kind: "project_create",
+            text: ["local_id": UUID().uuidString, "name": "Independent project"])
+        let dependent = ProjectSyncQueue.Job(id: UUID().uuidString, kind: "project_create",
+            text: ["local_id": UUID().uuidString, "name": "Dependent project"], after: [conflicting.id])
+        try await isolated.enqueue([conflicting, unrelated, dependent])
+        let count = try await isolated.flush(using: api)
+        let reopened = try ProjectSyncQueue(file: isolatedFile)
+        let blocked = await reopened.blockedJobs()
+        let pendingCount = await reopened.pending()
+        guard count == 1, pendingCount == 2, blocked.map(\.id) == [conflicting.id] else { throw EvidenceError.invalid }
+        try await reopened.resolve(conflicting.id, newRevision: 2)
+        guard try await reopened.flush(using: api) == 2, await reopened.pending() == 0 else { throw EvidenceError.invalid }
+        let issueRemote = issueID.uuidString.lowercased()
+        let originalRemote = photoID.uuidString.lowercased()
+        _ = try await api.submit(kind: "issue_update", id: UUID().uuidString,
+            payload: ["server_issue_id": issueRemote, "description": "Edited after rebase"],
+            integers: ["expected_revision": 3])
+        let roleFields = ["server_issue_id": issueRemote, "server_photo_id": originalRemote, "role": "before"]
+        var replacement = roleFields
+        replacement["server_photo_id"] = replacementPhoto
+        let staleRole = UUID().uuidString
+        do {
+            _ = try await api.submit(kind: "issue_photo_link", id: staleRole, payload: replacement)
+            throw EvidenceError.invalid
+        } catch let error as WorkCamAPIError where error.code == "photo_role_conflict" {}
+        replacement["expected_previous_photo_id"] = originalRemote
+        let replaceID = UUID().uuidString
+        _ = try await api.submit(kind: "issue_photo_link", id: replaceID, payload: replacement)
+        _ = try await api.submit(kind: "issue_photo_link", id: replaceID, payload: replacement)
+        var back = roleFields
+        back["expected_previous_photo_id"] = replacementPhoto
+        _ = try await api.submit(kind: "issue_photo_link", id: UUID().uuidString, payload: back)
+        _ = try await api.submit(kind: "issue_photo_unlink", id: UUID().uuidString, payload: roleFields)
+        _ = try await api.submit(kind: "issue_photo_link", id: UUID().uuidString, payload: roleFields)
+        let issueInbox = try SyncInbox(file: root.appendingPathComponent("issues.json"))
+        try await issueInbox.synchronize(using: api, filter: .issue, limit: 1)
+        let issueSnapshots = await issueInbox.snapshots()
+        guard let updated = issueSnapshots.first(where: { $0.id == issueRemote }),
+              updated.fields["description"] as? String == "Edited after rebase",
+              (updated.fields["photos"] as? [[String: String]])?.contains(where: {
+                  $0["role"] == "before" && $0["photo_id"] == originalRemote
+              }) == true else { throw EvidenceError.invalid }
         let conflict = UUID().uuidString
         for _ in 0..<2 {
             do {
@@ -526,6 +671,11 @@ actor SyncInbox {
         let tombstone: Bool
         let snapshot: Data?
         var key: String { kind + ":" + id }
+
+        var fields: [String: Any] {
+            guard let snapshot else { return [:] }
+            return (try? JSONSerialization.jsonObject(with: snapshot)) as? [String: Any] ?? [:]
+        }
 
         var projectRevision: Int? {
             guard kind == "project", let snapshot,
