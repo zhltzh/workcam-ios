@@ -1,0 +1,667 @@
+{
+  "schema_version": 1,
+  "project": "WorkCam",
+  "plan_id": "TECH-MARATHON-03",
+  "management_branch": "codex/workcam-windows-marathon-03-management",
+  "restored_on": "2026-11-27",
+  "baseline": {
+    "hotfix_code_sha": "2a53712a179ad8880f75cc72d1762fb5b14ec0a8",
+    "hotfix_report_sha": "5d9c61db14cc75cca0c60fe656d4539563cf56df",
+    "mac_integration02_code_sha": "53440feaf734c9ab21e29ddde9666fb8b5ef77cc"
+  },
+  "task_count": 80,
+  "states": [
+    "NOT_STARTED",
+    "IN_PROGRESS",
+    "DESKTOP_VERIFIED",
+    "CROSS_PLATFORM_PENDING",
+    "XCODE_PENDING",
+    "DEVICE_PENDING",
+    "POC_VERIFIED",
+    "INTEGRATED",
+    "BLOCKED"
+  ],
+  "instruction": "Reconcile each task against code and test proofs before updating status. Not started does not imply absence of prior work. Maintain original TM01–TM100 mapping in markdown. Do not claim all 80 tasks pending.",
+  "tasks": [
+    {
+      "id": "A01",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "A02",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "A03",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "A04",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "A05",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "A06",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "A07",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "A08",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "B01",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "B02",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "B03",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "B04",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "B05",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "B06",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "B07",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "B08",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "B09",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "B10",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "B11",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "B12",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "C01",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "C02",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "C03",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "C04",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "C05",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "C06",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "C07",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "C08",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "C09",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "C10",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "D01",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "D02",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "D03",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "D04",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "D05",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "D06",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "D07",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "D08",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "D09",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "D10",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "E01",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "E02",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "E03",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "E04",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "E05",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "E06",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "E07",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "E08",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "E09",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "E10",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "F01",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "F02",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "F03",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "F04",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "F05",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "F06",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "F07",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "F08",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "F09",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "F10",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "G01",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "G02",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "G03",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "G04",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "G05",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "G06",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "G07",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "G08",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "H01",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "H02",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "H03",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "H04",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "H05",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "H06",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "H07",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "H08",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "H09",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "H10",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "H11",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    },
+    {
+      "id": "H12",
+      "state": "NOT_STARTED",
+      "source": "TECH-MARATHON-03-QUEUE.md",
+      "commit": null,
+      "tests": [],
+      "notes": "Must inspect original TM tasks/hotfix before coding; NOT_STARTED means this restored queue has not confirmed item-level status, not that no implementation exists."
+    }
+  ]
+}
