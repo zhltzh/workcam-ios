@@ -10,6 +10,11 @@
 // cards driven by our real geometry core, (4) diff bindings between
 // Mac's editors and the Windows business models (B04/B05).
 
+// Platform gate (TM-04 A05): the Windows toolchain has no SwiftUI.
+// canImport keeps these reference views Apple-only (XCODE_PENDING
+// unchanged) while the pure-Foundation targets build on Windows.
+
+#if canImport(SwiftUI)
 import SwiftUI
 import WorkCamModels
 import WorkCamSync
@@ -205,3 +210,4 @@ public struct MeasurementCard: View {
         .accessibilityIdentifier("measurementCard_\(title)")
     }
 }
+#endif

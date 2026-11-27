@@ -8,6 +8,8 @@
 //   Original deletion is NOT OFFERED in this UI at all - it is a
 //   product decision (DECISION_REQUIRED) and stays absent until then.
 
+// Platform gate (TM-04 A05): the Windows toolchain has no SwiftUI.
+#if canImport(SwiftUI)
 import SwiftUI
 import WorkCamSync
 
@@ -128,3 +130,4 @@ public struct DeviceSection: View {
                     .foregroundStyle(.secondary) }
     }
 }
+#endif

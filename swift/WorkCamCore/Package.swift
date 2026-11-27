@@ -25,7 +25,13 @@ let package = Package(
     targets: [
         .target(name: "WorkCamGeometry"),
         .target(name: "WorkCamModels"),
-        .target(name: "WorkCamEvidence", dependencies: []),
+        .target(name: "WorkCamEvidence", dependencies: [
+            // TM-04 A05: CanonicalPayload reuses GeometryError
+            // (nonFinite/invalidParameter) - one typed error contract
+            // across the byte-layout code, matching the Python side's
+            // shared ValueError vocabulary.
+            "WorkCamGeometry",
+        ]),
         .target(name: "WorkCamTime", dependencies: []),
         .target(name: "WorkCamLocation", dependencies: ["WorkCamGeometry"]),
         .target(name: "WorkCamSync", dependencies: [

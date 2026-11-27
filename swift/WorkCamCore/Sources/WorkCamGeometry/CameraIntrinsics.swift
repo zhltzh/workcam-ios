@@ -116,7 +116,15 @@ public enum PixelOrientation: String, Sendable, CaseIterable {
         }
     }
 
-    var canonical: PixelOrientation {
+    /// The four base orientations every orientation maps onto. A
+    /// dedicated type keeps the switches above exhaustive BY
+    /// CONSTRUCTION (TM-04 fix: switching the 8-case public enum
+    /// over 4 cases never compiled).
+    public enum Canonical: Sendable {
+        case up, down, right, left
+    }
+
+    public var canonical: Canonical {
         switch self {
         case .up, .landscapeLeft: return .up
         case .down, .landscapeRight: return .down

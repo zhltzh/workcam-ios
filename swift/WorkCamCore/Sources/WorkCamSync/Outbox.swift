@@ -15,7 +15,10 @@ public enum OutboxState: String, Codable, Sendable {
 public struct OutboxOperation: Codable, Sendable, Equatable {
     public let operationID: String
     public let op: String                     // sync op vocabulary
-    public let payloadJSON: String
+    /// Mutable ONLY via OutboxEngine.resolveConflict (rebase flow:
+    /// same operation id, corrected payload). TM-04 fix: was `let`,
+    /// which made the documented rebase path uncompilable.
+    public var payloadJSON: String
     public let dependsOn: [String]             // op ids that must ack first
     public var state: OutboxState
     public var attempts: Int

@@ -14,6 +14,7 @@
 //    concurrency (Task cancellation propagates to the transport call)
 
 import Foundation
+import WorkCamEvidence
 
 // MARK: - error envelope (the server's unified ApiError shape)
 
@@ -197,8 +198,18 @@ public final class WorkCamAPIClient: Sendable {
         decoder = JSONDecoder()
     }
 
+    /// Bodyless overload. `(some Encodable)? = nil` cannot resolve
+    /// the opaque type at GET-style call sites (TM-04 fix: caught
+    /// by the first real Windows compile); Never is Codable, so the
+    /// generic Body stays inferable.
     private func call<Response: Decodable>(
-        _ method: String, _ path: String, body: (some Encodable)? = nil
+        _ method: String, _ path: String
+    ) async throws -> Response {
+        try await call(method, path, body: nil as Never?)
+    }
+
+    private func call<Response: Decodable, Body: Encodable>(
+        _ method: String, _ path: String, body: Body?
     ) async throws -> Response {
         let token = await tokenProvider.currentToken()
         var headers = ["Accept": "application/json"]

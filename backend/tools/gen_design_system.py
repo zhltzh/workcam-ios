@@ -62,7 +62,12 @@ swift = f'''// FE-E02: WorkCam Design System tokens (SwiftUI).
 // Direction A "Field Pro" is FROZEN as the launch direction; B and C
 // remain selectable in the JSON for product review.
 // XCODE_PENDING: authored on Windows; Mac compiles.
+//
+// Platform gate (TM-04 A05): the Windows toolchain has no SwiftUI;
+// canImport keeps these tokens Apple-only while the pure-Foundation
+// targets build on Windows.
 
+#if canImport(SwiftUI)
 import SwiftUI
 
 public enum WCDSpace {{
@@ -103,7 +108,9 @@ public enum WCDEvidence {{
     public static let badgeAlphaFailed: Double = {SH['evidence_status']['badge_alpha_failed']}
     /// The trust ORDER for display sorting (none -> failed states
     /// are independent claims; this is presentation order only).
-    public static let order = {[s for s in SH['evidence_status']['order']]}
+    /// json.dumps => Swift-legal double-quoted literals (TM-04 fix:
+    /// the Python list repr leaked single quotes and never compiled).
+    public static let order = {json.dumps(SH['evidence_status']['order'])}
 }}
 
 /// Annotation color palette (6 colors, shared).
@@ -115,6 +122,7 @@ public enum WCDAnnotationPalette {{
 public enum WCDFixedSurfaces {{
 {chr(10).join(f"    public static let {k} = {color(v)}" for k, v in SH['fixed_surfaces'].items() if v.startswith('#'))}
 }}
+#endif
 '''
 
 out_swift.parent.mkdir(parents=True, exist_ok=True)

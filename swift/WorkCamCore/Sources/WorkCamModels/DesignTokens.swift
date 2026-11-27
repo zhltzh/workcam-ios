@@ -6,7 +6,12 @@
 // Direction A "Field Pro" is FROZEN as the launch direction; B and C
 // remain selectable in the JSON for product review.
 // XCODE_PENDING: authored on Windows; Mac compiles.
+//
+// Platform gate (TM-04 A05): the Windows toolchain has no SwiftUI;
+// canImport keeps these tokens Apple-only while the pure-Foundation
+// targets build on Windows.
 
+#if canImport(SwiftUI)
 import SwiftUI
 
 public enum WCDSpace {
@@ -83,7 +88,9 @@ public enum WCDEvidence {
     public static let badgeAlphaFailed: Double = 0.12
     /// The trust ORDER for display sorting (none -> failed states
     /// are independent claims; this is presentation order only).
-    public static let order = ['none', 'unverified', 'signature_valid', 'verified', 'failed', 'anchored']
+    /// json.dumps => Swift-legal double-quoted literals (TM-04 fix:
+    /// the Python list repr leaked single quotes and never compiled).
+    public static let order = ["none", "unverified", "signature_valid", "verified", "failed", "anchored"]
 }
 
 /// Annotation color palette (6 colors, shared).
@@ -103,3 +110,4 @@ public enum WCDFixedSurfaces {
     public static let camera_stage = Color(red: 0.102, green: 0.102, blue: 0.102)
     public static let shutter_button = Color(red: 1.000, green: 1.000, blue: 1.000)
 }
+#endif

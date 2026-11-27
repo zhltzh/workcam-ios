@@ -23,6 +23,9 @@ public struct ProjectRecord: Codable, Sendable, Identifiable,
     public let createdAt: Date
     public var updatedAt: Date
 
+    /// Identifiable (TM-04 fix: declared but never synthesized).
+    public var id: String { projectID }
+
     public init(projectID: String, name: String,
                 description: String = "", siteAddress: String = "",
                 status: String = "active", revision: Int = 1,
@@ -61,6 +64,9 @@ public struct PhotoRecord: Codable, Sendable, Identifiable, Equatable {
     public var hasOriginalOnDisk: Bool    // F2 fact (TM70)
     public var isBound: Bool               // F3 fact
     public let createdAt: Date
+
+    /// Identifiable (TM-04 fix: declared but never synthesized).
+    public var id: String { photoID }
 
     public init(photoID: String, projectID: String,
                 originalSHA256: String? = nil,
@@ -111,6 +117,9 @@ public struct IssueRecord: Codable, Sendable, Identifiable, Equatable {
     public var remediationNote: String   // human-entered (v12)
     public var revision: Int
     public let createdAt: Date
+
+    /// Identifiable (TM-04 fix: declared but never synthesized).
+    public var id: String { issueID }
 
     public init(issueID: String, projectID: String, title: String,
                 severity: String, status: Status = .open,

@@ -9,6 +9,7 @@
 // the byte contract is protocol, not cryptography.
 
 import Foundation
+import WorkCamGeometry
 
 /// Protocol versions with the never-trust-unknown rule baked in.
 public enum EvidenceProtocolVersion: String, Codable, Sendable {

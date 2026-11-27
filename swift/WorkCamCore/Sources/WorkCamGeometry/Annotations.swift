@@ -118,6 +118,22 @@ public struct Annotation: Sendable, Equatable, Codable {
         try c.encode(zOrder, forKey: .zOrder)
     }
 
+    // Tuple arrays do not synthesize Equatable; caught by the first
+    // real Windows Swift 6.4.3 compile (TM-04 A04/A05, 2026-11-28).
+    public static func == (lhs: Annotation, rhs: Annotation) -> Bool {
+        lhs.annotationID == rhs.annotationID
+            && lhs.kind == rhs.kind
+            && lhs.points.count == rhs.points.count
+            && zip(lhs.points, rhs.points).allSatisfy {
+                $0.u == $1.u && $0.v == $1.v
+            }
+            && lhs.colorHex == rhs.colorHex
+            && lhs.strokeWidth == rhs.strokeWidth
+            && lhs.textContent == rhs.textContent
+            && lhs.markerNumber == rhs.markerNumber
+            && lhs.zOrder == rhs.zOrder
+    }
+
     public var bbox: (minU: Double, minV: Double,
                       maxU: Double, maxV: Double) {
         let us = points.map(\.u), vs = points.map(\.v)
@@ -129,28 +145,29 @@ public struct Annotation: Sendable, Equatable, Codable {
     public func transformed(orientation: PixelOrientation,
                             crop: CropRect? = nil) throws -> Annotation {
         let W = 1000, H = 1000
-        let px = points.map { ($0.u * Double(W - 1),
-                               $0.v * Double(H - 1)) }
+        let px: [(u: Double, v: Double)] = points.map {
+            (u: $0.u * Double(W - 1), v: $0.v * Double(H - 1))
+        }
         var oriented = px.map {
             orientation.uprightPixel(u: $0.u, v: $0.v,
                                     width: W, height: H)
         }
         if let crop {
-            let mapped: [(Double, Double)] = try oriented.map { p in
+            let mapped: [(u: Double, v: Double)] = try oriented.map { p in
                 let nu = (p.u / Double(W - 1) - crop.x) / crop.w
                 let nv = (p.v / Double(H - 1) - crop.y) / crop.h
                 guard nu >= 0, nu <= 1, nv >= 0, nv <= 1 else {
                     throw AnnotationError.outsideFrame(u: nu, v: nv)
                 }
-                return (nu, nv)
+                return (u: nu, v: nv)
             }
             oriented = mapped
         } else {
             let dims = orientation.uprightDimensions(width: W,
                                                       height: H)
             oriented = oriented.map {
-                ($0.u / Double(dims.width - 1),
-                 $0.v / Double(dims.height - 1))
+                (u: $0.u / Double(dims.width - 1),
+                 v: $0.v / Double(dims.height - 1))
             }
         }
         return try Annotation(
