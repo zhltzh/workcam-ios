@@ -1,0 +1,209 @@
+{
+  "manifest_version": "mac-ready/1.0",
+  "candidate": {
+    "branch": "dev/windows-tm-geometry",
+    "sha": "e5da8e4",
+    "parent_line": "dev/windows-tm-security@2b535a0 via WIN-HOTFIX merge cd1219b",
+    "frozen_at": "2026-11-27",
+    "backend_regression": "1538 passed, 3 skipped, 0 failed (full pytest, post-hotfix integration)",
+    "quality_gate": "12/12 PASSED (tools/quality_gate.py)",
+    "live_http": "win_hotfix_live.py PASS (enrollment 15ms, sync replay, chunk restart/resume, integrity, conflict, archive, pull)"
+  },
+  "components": [
+    {
+      "id": "01-exif-golden-vectors",
+      "name": "Fixed EXIF 1..8 golden vectors",
+      "paths": [
+        "test-vectors/geometry/exif-watermark-extreme-vectors.json",
+        "test-vectors/geometry/geometry-golden-vectors.json"
+      ],
+      "dependency": "none",
+      "verify_status": "DESKTOP_VERIFIED (Python consumer 56 tests); Mac runs the Swift consumer against the same files",
+      "integration": "copy the JSON into the Swift test resources; version mismatch FAILS the suite by design",
+      "known_limits": "TM15 legacy left/right NAME transposition vs EXIF 6/8 is pinned by test_tm15_name_to_exif_cross_reference - new code should use exif numbers directly",
+      "mac_needed": true, "device_needed": false
+    },
+    {
+      "id": "02-business-templates",
+      "name": "Engineering templates + checklist + forms",
+      "paths": ["backend/techlab/business/templates.py"],
+      "dependency": "none (pure data + rules)",
+      "verify_status": "DESKTOP_VERIFIED (19 tests); Swift port in 06",
+      "integration": "8 built-in English templates; unchecked items NEVER auto-pass; evidence requirements not waivable",
+      "known_limits": "templates are engineering defaults, NOT any country's mandatory regulation",
+      "mac_needed": false, "device_needed": false
+    },
+    {
+      "id": "03-swift-business",
+      "name": "WorkCamCore Swift package",
+      "paths": [
+        "swift/WorkCamCore/Package.swift",
+        "swift/WorkCamCore/Sources/WorkCamModels/WorkCamBusiness.swift",
+        "swift/WorkCamCore/Sources/WorkCamSync/Outbox.swift",
+        "swift/WorkCamCore/Sources/WorkCamSync/ChunkedUploadClient.swift",
+        "swift/WorkCamCore/Sources/WorkCamSync/APIClient.swift",
+        "swift/WorkCamCore/Sources/WorkCamSync/ConflictDetail.swift",
+        "swift/WorkCamCore/Sources/WorkCamSync/DataModels.swift",
+        "swift/WorkCamCore/Sources/WorkCamSync/PhotoIndex.swift",
+        "swift/WorkCamCore/Sources/WorkCamSync/EvidenceRecovery.swift",
+        "swift/WorkCamCore/Sources/WorkCamGeometry/*.swift",
+        "swift/WorkCamCore/Sources/WorkCamEvidence/EvidenceModels.swift",
+        "swift/WorkCamCore/Sources/WorkCamTime/TimeEstimate.swift",
+        "swift/WorkCamCore/Sources/WorkCamLocation/LocationQuality.swift",
+        "swift/WorkCamCore/Tests/WorkCamCoreTests/*.swift"
+      ],
+      "dependency": "Foundation only; CryptoKit on the app side via injected protocols (no hand-rolled crypto)",
+      "verify_status": "CROSS_PLATFORM_PENDING - authored+rule-tested on Windows, never compiled here (toolchain BLOCKED, 4 honest attempts); Mac: swift build && swift test --package-path swift/WorkCamCore",
+      "integration": "Package.swift 5.9+; pure-Foundation targets; Apple layers inject via ClockSource/HTTPTransport/UploadTransport/ChunkSource protocols",
+      "known_limits": "expected small syntax fixes on first Mac compile; RANSAC seeds differ Python/Swift (vectors pin seed-stable results only)",
+      "mac_needed": true, "device_needed": false
+    },
+    {
+      "id": "04-streaming-zip",
+      "name": "Streaming ZIP64 interface + reference",
+      "paths": ["backend/techlab/business/streaming_zip.py"],
+      "dependency": "stdlib zipfile (ZIP64 forced)",
+      "verify_status": "DESKTOP_VERIFIED (8 tests: 40MiB flat-memory proof, 70000 entries, cancellation cleanup, CRC re-verify)",
+      "integration": "Swift port notes in the module docstring - chunk-iterator entries, ~1MiB peak, atomic rename, .part never masquerades as complete",
+      "known_limits": "Night 05 ZIP32 128MiB in-memory cap REMOVED by this design; measured 1MiB chunk buffer is the STREAM unit, NOT total process memory",
+      "mac_needed": false, "device_needed": false
+    },
+    {
+      "id": "05-report-models",
+      "name": "Six professional report templates",
+      "paths": [
+        "backend/app/services/report_pdf.py",
+        "backend/app/api/reports.py",
+        "backend/tests/test_techlab/test_m03_d06_report_types.py",
+        "backend/tests/test_techlab/test_m03_d07_d08_pagination_branding.py"
+      ],
+      "dependency": "reportlab (BSD-3)",
+      "verify_status": "DESKTOP_VERIFIED (site_photo/inspection/evidence/measurement/before_after/project_summary x a4+letter; Page X of Y two-pass footer on every page; 100-photo batch zero content loss)",
+      "integration": "POST /api/v1/projects/{id}/reports report_type=<one of six>",
+      "known_limits": "sign-off is LAYOUT ONLY - no legal certification wording anywhere",
+      "mac_needed": false, "device_needed": false
+    },
+    {
+      "id": "06-evpack-v2",
+      "name": "Open evidence package V2",
+      "paths": [
+        "backend/techlab/business/evpack_v2.py",
+        "backend/tests/test_techlab/test_m03_d04_evpack_v2.py"
+      ],
+      "dependency": "stdlib",
+      "verify_status": "DESKTOP_VERIFIED (11 tests: tamper/missing NAMED, unknown version refused, strict-extra vs lenient, v1 import, Night 05 subset verification)",
+      "integration": "build sections -> build_evpack(); third parties verify with the standalone page (07) or CLI",
+      "known_limits": "Night 05 DeliveryZIP32 = strict subset (mapping documented in manifest.night05_map)",
+      "mac_needed": false, "device_needed": false
+    },
+    {
+      "id": "07-web-verifier",
+      "name": "Offline web evidence verifier",
+      "paths": [
+        "docs/web-verifier/verifier.html",
+        "backend/tools/web_verifier.py"
+      ],
+      "dependency": "none (browser Web Crypto; zero network)",
+      "verify_status": "DESKTOP_VERIFIED via Python mirror of the exact page logic (real signed package, tamper detected); browser run = any local file:// open",
+      "integration": "single self-contained HTML; drag an evpack zip or a manifest.json; JSON ledger export; no score",
+      "known_limits": "in-browser zip reader refuses ZIP64 with an HONEST message (CLI covers large packages)",
+      "mac_needed": false, "device_needed": false
+    },
+    {
+      "id": "08-api-contract",
+      "name": "API client contract",
+      "paths": [
+        "docs/api/openapi.json",
+        "swift/WorkCamCore/Sources/WorkCamSync/APIClient.swift",
+        "backend/tests/test_b02_w026_contract.py",
+        "test-vectors/win-hotfix/vectors.json",
+        "test-vectors/win-hotfix/SyncContract.swift"
+      ],
+      "dependency": "quality gate keeps live==repo (12-gate PASS)",
+      "verify_status": "DESKTOP_VERIFIED (88 ops match; Mac Integration 02 client parity: rejected-replay contract encoded, pullEvents downlink, integrity pre/post checks on uploads)",
+      "integration": "X-Device-Token header; typed envelope {code,message,details}; receipts applied/duplicate/rejected with error.code",
+      "known_limits": "rejected-replay = status duplicate + result.status rejected + preserved error is a FAILURE (receiptSucceeded)",
+      "mac_needed": true, "device_needed": false
+    },
+    {
+      "id": "09-sync-protocol",
+      "name": "Bidirectional sync protocol",
+      "paths": [
+        "backend/app/api/sync.py",
+        "swift/WorkCamCore/Sources/WorkCamSync/Outbox.swift",
+        "backend/tests/test_techlab/test_tm34_conflicts.py",
+        "backend/tests/test_techlab/test_tm91_weak_network.py",
+        "backend/tests/test_win_hotfix.py"
+      ],
+      "dependency": "idempotency ledger (W008 lineage)",
+      "verify_status": "DESKTOP_VERIFIED (10 conflict shapes zero silent overwrite; weak-net 7 scenarios incl. server-restart resume; hotfix 4: archive/versioned events/cursor pull/tombstones)",
+      "integration": "uplink POST /api/v1/sync/batch (max 50 ops); downlink GET /api/v1/sync/events?cursor&include_state (per-entity-type cursors)",
+      "known_limits": "single-owner model: cross-owner = 404 by design (W021 isolation)",
+      "mac_needed": true, "device_needed": false
+    },
+    {
+      "id": "10-time-location",
+      "name": "Time + location components",
+      "paths": [
+        "backend/techlab/time_uncertainty.py",
+        "backend/techlab/location_quality.py",
+        "backend/techlab/timegeo_trust.py",
+        "swift/WorkCamCore/Sources/WorkCamTime/TimeEstimate.swift",
+        "swift/WorkCamCore/Sources/WorkCamLocation/LocationQuality.swift",
+        "docs/tech-lab/tm11-gnss-research-brief.md"
+      ],
+      "dependency": "none",
+      "verify_status": "DESKTOP_VERIFIED (TM09 5 + TM10 11 + TM12 13; Mac Protocol02 already ran the ports: uncertainty 1.015 match, reset->nil)",
+      "integration": "ClockSource protocol injects real clocks on Mac; synthetic on Windows tests",
+      "known_limits": "extrapolated time is NEVER server-certified capture time; GNSS never reports verified; thresholds pending device calibration (TM22)",
+      "mac_needed": true, "device_needed": true
+    },
+    {
+      "id": "11-geometry-algorithms",
+      "name": "Engineering measurement algorithms",
+      "paths": [
+        "backend/techlab/geometry/camera.py",
+        "backend/techlab/geometry/measurement.py",
+        "backend/techlab/geometry/plane.py",
+        "backend/techlab/geometry/area.py",
+        "backend/techlab/geometry/quality.py",
+        "backend/techlab/geometry/pointcloud.py",
+        "backend/techlab/geometry/measurement_format.py",
+        "backend/techlab/geometry/geo.py",
+        "backend/tests/test_techlab/test_tm_geometry_core.py",
+        "backend/tests/test_techlab/test_tm88_geometry_vectors.py"
+      ],
+      "dependency": "none (pure math, no numpy)",
+      "verify_status": "DESKTOP_VERIFIED (85 tests + 34 golden vectors; RANSAC/LSQ plane fits, backprojection, geodesy incl. antimeridian)",
+      "integration": "Swift ports in WorkCamGeometry (same files, portable line-by-line)",
+      "known_limits": "classify_surface needs camera-pose context for floor-vs-ceiling; consumer GNSS is not surveying-grade",
+      "mac_needed": false, "device_needed": true
+    },
+    {
+      "id": "12-device-acceptance",
+      "name": "Device acceptance checklist",
+      "paths": [
+        "docs/mac/TM55-HANDOFF.md",
+        "docs/mac/WIN-HOTFIX-HANDOFF.md",
+        "tools/appattest/README.md"
+      ],
+      "dependency": "the components above",
+      "verify_status": "checklists defined; execution DEVICE_PENDING (Mac)",
+      "integration": "TM55 ten-item list + hotfix live-flow items; App Attest real-Apple-root cross-check first",
+      "known_limits": "Windows NEVER claims device results; every DEVICE_PENDING line stays until Mac reports",
+      "mac_needed": true, "device_needed": true
+    }
+  ],
+  "decision_required": [
+    "ten-dimension trust engine into production verify routes (protocol review; isolated candidate ready - tools/trust_engine + trust_bridge)",
+    "issue photo role column + server-side issue history table (Night 05 mapping doc)",
+    "original-photo deletion policy + quota enforce (report_only today)",
+    "multi-tenant / commercialization scope (B02-W028 study, never blocks the personal-pro launch)"
+  ],
+  "known_risks": [
+    "RISK-W021-R1: PUT original whole-buffer (streaming alternate = TM35 sessions; cutover awaits review)",
+    "Swift package never compiled on Windows (CROSS_PLATFORM_PENDING, honest)",
+    "App Attest real-Apple-root verification pending device",
+    "TM22 device calibration pending - conservative defaults in force"
+  ]
+}
