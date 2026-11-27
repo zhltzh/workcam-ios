@@ -1,0 +1,55 @@
+{
+  "baseline_version": "perf-baseline/1.0",
+  "candidate": {
+    "branch": "dev/windows-tm-geometry",
+    "measured_through": "4dd9ead",
+    "measured_at": "2026-11-27T17:30:00+08:00"
+  },
+  "environment": {
+    "host": "Windows 11 x64 (single desktop)",
+    "python": "3.12.10",
+    "db": "SQLite WAL, BEGIN IMMEDIATE per op (W008 ledger discipline)",
+    "http": "FastAPI TestClient (in-process, no network stack)",
+    "honesty": "ALL numbers are DESKTOP observations - they are NOT iPhone numbers, NOT production SLAs, and the test host is recorded per-run"
+  },
+  "database": {
+    "scale_medium": {
+      "projects": 100, "photos": 10000, "metadata_rows": 100000,
+      "bulk_load_seconds": 6.75,
+      "note": "direct-schema loader (loader not API)"
+    },
+    "query_latencies_p50_p95_p99_ms": {
+      "project_list": [12.2, 19.0, 22.4],
+      "photo_grid_by_project": [14.1, 27.4, 28.3],
+      "tag_search": [14.7, 42.8, 50.5],
+      "keyset_walk_1000": [12.3, 17.4, 17.4],
+      "annotation_join": [12.6, 40.8, 57.3],
+      "medium_top5000_keyset_single_ms": 105.2
+    },
+    "index_audit": "EXPLAIN QUERY PLAN: mvp_photo_tags queries SEARCH via INDEX (pinned by test - SCAN would fail)"
+  },
+  "chunked_upload": {
+    "photo_size_bytes": 300000,
+    "chunk_64kib_p50_p95_ms": [290.8, 324.1],
+    "chunk_128kib_p50_p95_ms": [193.3, 243.7],
+    "mid_upload_resume_ms": 223,
+    "plain_upload_ms": 198,
+    "duplicate_chunk_resend_avg_ms": 20.9,
+    "concurrency": "two sessions bind EXACTLY once; second complete typed 409; one binding row (F08)"
+  },
+  "report_generation": {
+    "photos_10_ms": 180, "pages_10": 7,
+    "photos_100_ms": 1238, "pages_100": 52,
+    "per_page": 4,
+    "note": "reportlab platypus, real JPEG embeds"
+  },
+  "zip_export": {
+    "bulk_500x256kb_entries": 500,
+    "payload_mb": 125,
+    "wall_ms": 2049,
+    "python_peak_delta_mb": 2.4,
+    "measurement": "tracemalloc peak around stream_export_zip; the ~1MiB chunk buffer is the STREAM UNIT, not process RSS (the module docstring says so and a test pins the wording)",
+    "integrity": "open-and-verify every CRC post-export (corruption raises)"
+  },
+  "weak_network_f08_91": "deterministic fault scheduler; offline/first-N/intermittent/partial-dies-after-K/reset; server-restart session survival; out-of-order chunks; ledger duplicate under flaky-proxy replay (exactly 1 row)"
+}
