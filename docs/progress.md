@@ -519,3 +519,25 @@ the simulator. Desktop inbox test verified persistence across reopening,
 malformed non-progress rejection and unchanged cursor on a failed write.
 Initial signed build lacked a profile; automatic provisioning retry built,
 and the connected iPhone installed in place. Launch was denied while locked.
+
+## Mac Super 02 — 2026-11-27
+
+Baseline 5130483, fixed Windows backend 2a53712a179ad8880f75cc72d1762fb5b14ec0a8.
+Reviewed issue comment 7220487179. #26 currently returned mergeable=true and
+the local merge tree completed. No branch history was rewritten.
+
+```sh
+xcrun swiftc -swift-version 6 -module-cache-path /tmp/super02-cache Core/Security/Evidence.swift Core/Storage/CaptureStore.swift Core/Sync/WorkCamAPI.swift Tests/Super01/main.swift -o /tmp/super02-inbox && /tmp/super02-inbox "$wc_test"
+bash /tmp/super02-all-ui.sh "$wc_hot" super02-final
+bash Tests/Integration02/run-simulator.sh "$wc_hot" super02-live-isolated
+bash /tmp/super02-download-ui.sh "$wc_hot" super02-download-isolated
+xcodebuild -jobs 1 -project WorkCam.xcodeproj -scheme WorkCam -configuration "$wc_c" -destination generic/platform=iOS -derivedDataPath "/tmp/WorkCamInt01-$wc_c" CODE_SIGNING_ALLOWED=NO build
+xcrun xctrace list devices
+```
+
+The all-UI variant removes the only-testing selector. The download variant
+selects testDownloadServerChangesUI. The combined run passed four of five;
+the second live scenario reached the fixed server's 60 requests/60 s rate
+limit. Isolated reruns use fresh test DBs with the fixed rate limit intact.
+Desktop tests passed atomic cursor and injected failure, association reopen
+and duplicate protection. Physical iPhone listed offline.
