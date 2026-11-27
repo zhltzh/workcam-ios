@@ -1,8 +1,8 @@
 # WorkCam Windows emergency candidate
 
-2026-11-27. Code SHA , parent .
-Candidate branch . Mac baseline PR #24,
- and report . No main merge or forced push.
+2026-11-27. Code SHA `2a53712a179ad8880f75cc72d1762fb5b14ec0a8`, parent `2b535a0`.
+Candidate branch `codex/workcam-windows-hotfix-01`. Mac baseline PR #24,
+`53440fe` and report `33cc1ca`. No main merge or forced push.
 
 ## WIN-HOTFIX-01
 
@@ -55,4 +55,4 @@ rejection replay, cursor page and sparse chunk fixture.
   and the export peak RSS helper retains the Windows implementation with
   a portable POSIX path. No Windows-native runner or iOS device was used.
 - Reproduction commands are in the handoff. Logs are local in
-   and .
+  `/tmp/workcam-win-hotfix-green.log` and `/tmp/workcam-win-hotfix-final-live.log`.
