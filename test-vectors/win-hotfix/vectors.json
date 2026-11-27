@@ -1,0 +1,27 @@
+{
+  "archive_request": {
+    "operations": [{
+      "op": "project_archive",
+      "operation_id": "fixture-archive-1",
+      "payload": {"operation_id": "fixture-archive-1", "server_project_id": "a0000000-0000-4000-8000-000000000001", "expected_revision": 2}
+    }]
+  },
+  "rejected_replay": {
+    "operation_id": "fixture-rejected-1",
+    "status": "duplicate",
+    "result": {"status": "rejected"},
+    "error": {"code": "revision_conflict", "message": "project revision changed", "details": {"current_revision": 3}}
+  },
+  "archive_page": {
+    "items": [{
+      "seq": 7, "entity_type": "project", "entity_id": "a0000000-0000-4000-8000-000000000001",
+      "action": "archived", "revision": 3, "payload_hint": "", "created_at": "2026-11-27T00:00:00Z",
+      "state": {"status": "archived", "revision": 3}, "tombstone": false
+    }],
+    "cursor": 7, "has_more": false, "limit": 1
+  },
+  "upload_session": {
+    "upload_id": "0123456789abcdef0123456789abcdef",
+    "chunk_size": 131072, "total_chunks": 3, "received_chunks": [0, 2], "status": "active"
+  }
+}

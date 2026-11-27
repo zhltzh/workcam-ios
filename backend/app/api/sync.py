@@ -65,6 +65,12 @@ class ProjectUpdateOp(BaseModel):
     site_address: str | None = Field(default=None, max_length=500)
 
 
+class ProjectArchiveOp(BaseModel):
+    operation_id: str = Field(min_length=1, max_length=128)
+    server_project_id: str = Field(min_length=1, max_length=64)
+    expected_revision: int = Field(ge=1)
+
+
 class PhotoRegisterOp(BaseModel):
     op: Literal["photo_register"] = "photo_register"
     operation_id: str = Field(min_length=1, max_length=128)
@@ -90,7 +96,7 @@ class PhotoRegisterOp(BaseModel):
 class SyncOp(BaseModel):
     """One queued client operation (discriminated by 'op')."""
     op: Literal[
-        "project_create", "project_update", "photo_register",
+        "project_create", "project_update", "project_archive", "photo_register",
         "annotation_create", "annotation_update", "annotation_delete",
         "issue_create", "issue_update", "issue_transition",
         "issue_photo_link", "issue_photo_unlink",
@@ -135,7 +141,7 @@ def _emit_event(conn, owner: str, entity_type: str, entity_id: str,
 
 
 def _require_revision(conn, project_id: str, token: str,
-                      expected: int) -> dict:
+                      expected: int, *, require_active: bool = False) -> dict:
     """Optimistic concurrency: the caller states the revision they saw;
     a mismatch is a typed conflict, NEVER a silent last-write-wins."""
     row = conn.execute(
@@ -143,6 +149,9 @@ def _require_revision(conn, project_id: str, token: str,
         (project_id,)).fetchone()
     if row is None or row["owner_token"] != token:
         raise ApiError(404, "not_found", "project not found")
+    if require_active and row["status"] == "archived":
+        raise ApiError(409, "project_archived", "archived projects are immutable",
+                       {"current_revision": row["revision"]})
     current = row["revision"]
     if current != expected:
         raise ApiError(
@@ -178,10 +187,7 @@ def _exec_project_create(conn, owner: str, payload: dict) -> dict:
 def _exec_project_update(conn, owner: str, payload: dict) -> dict:
     body = ProjectUpdateOp(**payload)
     row = _require_revision(conn, body.server_project_id, owner,
-                            body.expected_revision)
-    if row["status"] == "archived":
-        raise ApiError(409, "project_archived",
-                       "archived projects are immutable")
+                            body.expected_revision, require_active=True)
     updates, params = [], []
     for f in ("name", "description", "site_address"):
         v = getattr(body, f)
@@ -202,6 +208,21 @@ def _exec_project_update(conn, owner: str, payload: dict) -> dict:
                 "updated", new_rev, "")
     return {"server_project_id": body.server_project_id,
             "revision": new_rev}
+
+
+def _exec_project_archive(conn, owner: str, payload: dict) -> dict:
+    body = ProjectArchiveOp(**payload)
+    row = _require_revision(conn, body.server_project_id, owner, body.expected_revision)
+    revision = row["revision"]
+    if row["status"] != "archived":
+        revision += 1
+        now = utc_now()
+        conn.execute(
+            "UPDATE mvp_projects SET status='archived', archived_at=?, "
+            "updated_at=?, revision=? WHERE project_id=?",
+            (now, now, revision, body.server_project_id))
+        _emit_event(conn, owner, "project", body.server_project_id, "archived", revision, "")
+    return {"server_project_id": body.server_project_id, "revision": revision, "status": "archived"}
 
 
 def _exec_photo_register(conn, owner: str, payload: dict) -> dict:
@@ -335,6 +356,7 @@ class IssuePhotoLinkOp(BaseModel):
     server_issue_id: str = Field(min_length=1, max_length=64)
     server_photo_id: str = Field(min_length=1, max_length=64)
     role: str = Field(pattern="^(before|progress|after)$")
+    expected_previous_photo_id: str | None = Field(default=None, min_length=1, max_length=64)
 
 
 class IssuePhotoUnlinkOp(BaseModel):
@@ -589,6 +611,15 @@ def _exec_issue_photo_link(conn, owner: str, payload: dict) -> dict:
     if photo_proj["project_id"] != issue["project_id"]:
         raise ApiError(400, "photo_project_mismatch",
                        "photo belongs to a different project")
+    previous = conn.execute(
+        "SELECT photo_id FROM mvp_issue_photos WHERE issue_id = ? AND role = ?",
+        (body.server_issue_id, body.role)).fetchone()
+    current = previous["photo_id"] if previous else None
+    if current == body.server_photo_id and body.expected_previous_photo_id in (None, current):
+        return {"server_issue_id": body.server_issue_id, "server_photo_id": current, "role": body.role}
+    if current != body.expected_previous_photo_id:
+        raise ApiError(409, "photo_role_conflict", "photo role changed",
+                       {"role": body.role, "current_photo_id": current})
     conn.execute(
         "DELETE FROM mvp_issue_photos WHERE issue_id = ? AND role = ?",
         (body.server_issue_id, body.role))
@@ -640,6 +671,7 @@ def _exec_issue_photo_unlink(conn, owner: str, payload: dict) -> dict:
 _EXECUTORS = {
     "project_create": _exec_project_create,
     "project_update": _exec_project_update,
+    "project_archive": _exec_project_archive,
     "photo_register": _exec_photo_register,
     "annotation_create": _exec_annotation_create,
     "annotation_update": _exec_annotation_update,
@@ -730,6 +762,13 @@ async def sync_batch(body: SyncBatchRequest, request: Request):
                                           "different content"}))
                     continue
                 stored = json.loads(prior["result_json"])
+                if stored.get("status") == "rejected":
+                    receipts.append(OpReceipt(
+                        operation_id=op.operation_id, status="duplicate",
+                        result={"status": "rejected"}, error=stored.get("error") or {
+                            "code": "historical_rejection",
+                            "message": "This operation was previously rejected."}))
+                    continue
                 receipts.append(OpReceipt(
                     operation_id=op.operation_id, status="duplicate",
                     result=stored))
@@ -744,50 +783,27 @@ async def sync_batch(body: SyncBatchRequest, request: Request):
                            "message": f"unsupported op {op.op}"}))
                 continue
 
+            conn.execute("SAVEPOINT sync_operation")
+            error = None
             try:
-                # B02-W014: resolve intra-batch local refs BEFORE the
-                # executor runs. The request hash stays computed on the
-                # ORIGINAL payload - a replay with the same queue entry
-                # is byte-identical and hits the ledger above.
                 resolved_payload = _resolve_local_refs(op.payload, id_map)
                 result = executor(conn, token, resolved_payload)
-            except ApiError as e:
-                receipts.append(OpReceipt(
-                    operation_id=op.operation_id, status="rejected",
-                    error={"code": e.detail["code"]
-                           if isinstance(e.detail, dict) else "error",
-                           "message": str(e.detail)}))
-                # record the REJECTION too - a retried op that failed for
-                # a deterministic reason returns the same rejection
+            except ApiError as exc:
+                error = {**exc.detail, "message": str(exc.detail)} if isinstance(exc.detail, dict) else {
+                    "code": "error", "message": str(exc.detail)}
+            except pydanticValidationError as exc:
+                error = {"code": "invalid_payload", "message": "payload failed schema validation: " +
+                         "; ".join(f"{err['loc'][-1]}: {err['msg']}" for err in exc.errors()[:3])}
+            if error is not None:
+                conn.execute("ROLLBACK TO sync_operation")
+            conn.execute("RELEASE sync_operation")
+            if error is not None:
+                receipts.append(OpReceipt(operation_id=op.operation_id, status="rejected", error=error))
                 conn.execute(
                     "INSERT INTO mvp_sync_ops (operation_id, owner_token, "
-                    "request_hash, result_json, created_at) "
-                    "VALUES (?,?,?,?,?)",
+                    "request_hash, result_json, created_at) VALUES (?,?,?,?,?)",
                     (op.operation_id, token, request_hash,
-                     json.dumps({"status": "rejected"}), now))
-                continue
-            except pydanticValidationError as e:
-                # B02-W021 fix (ISSUE-W021-03): the SyncOp 'payload' is
-                # an opaque dict at the outer schema level, so a field
-                # violating the EXECUTOR's model (e.g. byte_size over
-                # the cap) used to escape as an unhandled 500. A schema
-                # violation in queued data is a typed REJECTION with the
-                # same ledger discipline as ApiError rejections - never a
-                # 5xx, and a retry with the same content replays the
-                # same stored rejection.
-                receipts.append(OpReceipt(
-                    operation_id=op.operation_id, status="rejected",
-                    error={"code": "invalid_payload",
-                           "message": "payload failed schema validation: "
-                                      + "; ".join(
-                                          f"{err['loc'][-1]}: {err['msg']}"
-                                          for err in e.errors()[:3])}))
-                conn.execute(
-                    "INSERT INTO mvp_sync_ops (operation_id, owner_token, "
-                    "request_hash, result_json, created_at) "
-                    "VALUES (?,?,?,?,?)",
-                    (op.operation_id, token, request_hash,
-                     json.dumps({"status": "rejected"}), now))
+                     json.dumps({"status": "rejected", "error": error}), now))
                 continue
 
             # propagate local->server id mapping for the client.
@@ -826,30 +842,61 @@ async def sync_batch(body: SyncBatchRequest, request: Request):
 # ------------------------------------------------------ incremental pull
 
 
+def _event_state(conn, token: str, kind: str, identifier: str) -> dict | None:
+    # Explicit public columns only; never serialize owner credentials.
+    if kind == "project":
+        row = conn.execute(
+            "SELECT project_id,name,description,site_address,status,revision,updated_at "
+            "FROM mvp_projects WHERE owner_token=? AND project_id=?", (token, identifier)).fetchone()
+    elif kind == "issue":
+        row = conn.execute(
+            "SELECT issue_id,project_id,title,description,severity,status,location_description,"
+            "assigned_to,remediation_note,revision,updated_at FROM mvp_issues "
+            "WHERE owner_token=? AND issue_id=?", (token, identifier)).fetchone()
+        if row is not None:
+            state = dict(row)
+            state["photos"] = [dict(photo) for photo in conn.execute(
+                "SELECT photo_id,role FROM mvp_issue_photos WHERE issue_id=? ORDER BY role", (identifier,))]
+            return state
+    elif kind == "annotation":
+        row = conn.execute(
+            "SELECT annotation_id,photo_id,annotation_type,norm_x1,norm_y1,norm_x2,norm_y2,"
+            "color_hex,stroke_width,text_content,marker_number,z_order,revision,is_active,updated_at "
+            "FROM mvp_annotations WHERE owner_token=? AND annotation_id=?", (token, identifier)).fetchone()
+    elif kind == "photo":
+        row = conn.execute(
+            "SELECT ph.photo_id,ph.project_id,ph.original_sha256,ph.original_filename,"
+            "ph.captured_at,ph.mime_type,ph.byte_size FROM mvp_photos ph "
+            "JOIN mvp_projects p ON ph.project_id=p.project_id WHERE p.owner_token=? AND ph.photo_id=?",
+            (token, identifier)).fetchone()
+    else:
+        return None
+    return dict(row) if row is not None else None
+
+
 @router.get("/events")
 async def pull_events(request: Request,
                       cursor: int = Query(0, ge=0),
                       limit: int = Query(100, gt=0,
                                          le=MAX_PULL_LIMIT),
+                       include_state: bool = Query(False, description="Include current owner-scoped state and tombstones."),
                        entity_type: str | None = Query(
                            None,
                            pattern="^(project|photo|evidence_link|"
                                    "original|annotation|issue)$")):
     """Incremental pull for the caller's OWN events only.
 
-    The cursor is the last seq the client has seen. Restart-stable:
-    seq is AUTOINCREMENT in the business DB. Pagination correctness
-    under concurrent inserts: the page query filters seq > cursor and
-    seq <= cursor + page_high_water (captured BEFORE reading), so rows
-    inserted mid-pull appear in the NEXT page, never cause a skip or
-    duplicate."""
+    The cursor advances monotonically over a captured owner high-water mark.
+    A filtered stream needs its own cursor. Limit counts matching rows rather
+    than global sequence slots, which may contain gaps or other owners' events.
+    """
     token = require_caller(request)
 
     with db() as conn:
         high_water = conn.execute(
             "SELECT COALESCE(MAX(seq), 0) FROM mvp_sync_events "
             "WHERE owner_token = ?", (token,)).fetchone()[0]
-        window_end = min(high_water, cursor + limit)
+        window_end = max(cursor, high_water)
         where = "owner_token = ? AND seq > ? AND seq <= ?"
         params: list = [token, cursor, window_end]
         if entity_type:
@@ -858,16 +905,20 @@ async def pull_events(request: Request,
         rows = conn.execute(
             f"SELECT * FROM mvp_sync_events WHERE {where} "
             "ORDER BY seq ASC", params).fetchall()
-        # fetch each entity's CURRENT state for the client
+        has_more = len(rows) > limit
         items = []
-        for r in rows:
+        for r in rows[:limit]:
             item = {"seq": r["seq"], "entity_type": r["entity_type"],
                     "entity_id": r["entity_id"], "action": r["action"],
                     "revision": r["revision"],
                     "payload_hint": r["payload_hint"],
                     "created_at": r["created_at"]}
+            if include_state:
+                item["state"] = _event_state(conn, token, r["entity_type"], r["entity_id"])
+                item["tombstone"] = r["entity_type"] == "annotation" and r["action"] == "soft_deleted"
             items.append(item)
 
-    return {"items": items, "cursor": window_end,
-            "has_more": window_end < high_water,
+    next_cursor = items[-1]["seq"] if has_more else window_end
+    return {"items": items, "cursor": next_cursor,
+            "has_more": has_more,
             "limit": limit}

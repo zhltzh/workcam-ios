@@ -234,8 +234,8 @@ def test_startup_refuses_production_plus_experimental(tmp_path, capfd):
         "from app.services.security_config import check_startup_security; "
         "check_startup_security(fail_fast=True); print('BOOTED')"
     )
-    venv_py = REPO_ROOT / "backend" / ".venv" / "Scripts" / "python.exe"
-    proc = subprocess.run([str(venv_py), "-c", code],
+    import sys
+    proc = subprocess.run([sys.executable, "-c", code],
                            capture_output=True, encoding="utf-8",
                            cwd=str(REPO_ROOT / "backend"))
     assert proc.returncode == 1
