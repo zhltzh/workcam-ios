@@ -445,35 +445,47 @@
   },
   {
    "id": "E03",
-   "state": "NOT_STARTED",
+   "state": "XCODE_PENDING",
    "source": "TECH-MARATHON-03-QUEUE.md",
    "commit": "79933e4",
-   "tests": [],
-   "notes": "UI reference work not started; E01 audit first"
+   "tests": [
+    "A06 contract test covers the E05 binding live",
+    "swift authored; Mac compiles"
+   ],
+   "notes": "CameraService protocol = the ONE seam Mac adopts (AVFoundation stays in CameraController); CameraRefModel fully testable without hardware (grid/flash/project/offline/quickNote state + shoot() through the seam); offline never blocks the shutter, only labels the queue (TM67)"
   },
   {
    "id": "E04",
-   "state": "NOT_STARTED",
+   "state": "XCODE_PENDING",
    "source": "TECH-MARATHON-03-QUEUE.md",
    "commit": "79933e4",
-   "tests": [],
-   "notes": "UI reference work not started; E01 audit first"
+   "tests": [
+    "A06 contract test covers the E05 binding live",
+    "swift authored; Mac compiles"
+   ],
+   "notes": "ProjectsRefModel: search/archived-filter/selection + batchTag with B07 failure-only-retry semantics (vocabulary structurally free of original-delete); EmptyProjectsState (ContentUnavailableView) + ErrorBanner with retry - the two states the audit found missing on Mac"
   },
   {
    "id": "E05",
-   "state": "NOT_STARTED",
+   "state": "XCODE_PENDING",
    "source": "TECH-MARATHON-03-QUEUE.md",
    "commit": "79933e4",
-   "tests": [],
-   "notes": "UI reference work not started; E01 audit first"
+   "tests": [
+    "A06 contract test covers the E05 binding live",
+    "swift authored; Mac compiles"
+   ],
+   "notes": "DELIVERED AS DIFF BINDINGS not a canvas rewrite (E01 audit verdict): AnnotationBinding.opPayload maps Mac PhotoAnnotation fields -> server sync payload (live-verified in A06 contract test); checklist entry seam documented for B02; Mac keeps its editor"
   },
   {
    "id": "E06",
-   "state": "NOT_STARTED",
+   "state": "XCODE_PENDING",
    "source": "TECH-MARATHON-03-QUEUE.md",
    "commit": "79933e4",
-   "tests": [],
-   "notes": "UI reference work not started; E01 audit first"
+   "tests": [
+    "A06 contract test covers the E05 binding live",
+    "swift authored; Mac compiles"
+   ],
+   "notes": "MeasurementCard: title/value/unit/quality(TM22 good-fair-poor-invalid)/uncertainty; UNCALIBRATED shows honest wording instead of a fake interval; simulated data by design - real ARKit/LiDAR stays Mac DEVICE_PENDING"
   },
   {
    "id": "E07",
@@ -805,10 +817,10 @@
    "DESKTOP_VERIFIED": 47,
    "CROSS_PLATFORM_PENDING": 3,
    "BLOCKED": 2,
-   "NOT_STARTED": 15,
+   "NOT_STARTED": 11,
    "POC_VERIFIED": 2,
    "IN_PROGRESS": 6,
-   "XCODE_PENDING": 5
+   "XCODE_PENDING": 9
   }
  }
 }
