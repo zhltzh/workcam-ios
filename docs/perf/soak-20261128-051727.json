@@ -1,0 +1,373 @@
+{
+ "mode": "DESKTOP_SOAK",
+ "host": "Windows dev machine (not iPhone, not SLA)",
+ "duration_s": 30.0,
+ "iterations": 490,
+ "errors": 490,
+ "ops_per_s": 16.32,
+ "iteration_latency_ms": {
+  "p50": 55.2,
+  "max": 921.5
+ },
+ "growth": {
+  "first": {
+   "iteration": 10,
+   "db_bytes": 315392,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  "last": {
+   "iteration": 490,
+   "db_bytes": 827392,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  }
+ },
+ "probes": [
+  {
+   "iteration": 10,
+   "db_bytes": 315392,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 20,
+   "db_bytes": 323584,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 30,
+   "db_bytes": 327680,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 40,
+   "db_bytes": 344064,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 50,
+   "db_bytes": 360448,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 60,
+   "db_bytes": 364544,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 70,
+   "db_bytes": 372736,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 80,
+   "db_bytes": 385024,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 90,
+   "db_bytes": 389120,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 100,
+   "db_bytes": 401408,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 110,
+   "db_bytes": 409600,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 120,
+   "db_bytes": 417792,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 130,
+   "db_bytes": 425984,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 140,
+   "db_bytes": 438272,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 150,
+   "db_bytes": 450560,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 160,
+   "db_bytes": 462848,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 170,
+   "db_bytes": 471040,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 180,
+   "db_bytes": 487424,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 190,
+   "db_bytes": 495616,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 200,
+   "db_bytes": 507904,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 210,
+   "db_bytes": 516096,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 220,
+   "db_bytes": 532480,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 230,
+   "db_bytes": 540672,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 240,
+   "db_bytes": 552960,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 250,
+   "db_bytes": 561152,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 260,
+   "db_bytes": 573440,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 270,
+   "db_bytes": 585728,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 280,
+   "db_bytes": 598016,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 290,
+   "db_bytes": 606208,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 300,
+   "db_bytes": 618496,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 310,
+   "db_bytes": 630784,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 320,
+   "db_bytes": 643072,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 330,
+   "db_bytes": 651264,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 340,
+   "db_bytes": 663552,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 350,
+   "db_bytes": 671744,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 360,
+   "db_bytes": 684032,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 370,
+   "db_bytes": 692224,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 380,
+   "db_bytes": 708608,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 390,
+   "db_bytes": 716800,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 400,
+   "db_bytes": 729088,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 410,
+   "db_bytes": 737280,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 420,
+   "db_bytes": 749568,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 430,
+   "db_bytes": 761856,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 440,
+   "db_bytes": 774144,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 450,
+   "db_bytes": 782336,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 460,
+   "db_bytes": 794624,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 470,
+   "db_bytes": 806912,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 480,
+   "db_bytes": 819200,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  },
+  {
+   "iteration": 490,
+   "db_bytes": 827392,
+   "originals_bytes": 0,
+   "photos": 0,
+   "sync_events": 0
+  }
+ ]
+}
