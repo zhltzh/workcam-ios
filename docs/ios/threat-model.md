@@ -79,3 +79,8 @@ integrity. It does not establish scene authenticity or device attestation.
 Pulled server snapshots never overwrite pending local intent or evidence.
 A remote project's edits are explicit, versioned Outbox jobs. Rejected
 duplicate receipts cannot advance the successful queue checkpoint.
+
+Rebasing a conflict retains the previous intent and assigns a new operation
+ID. Room for user-driven conflict review remains separate from the signed
+evidence store. The association action changes synchronization metadata
+and leaves local records and original bytes intact.
