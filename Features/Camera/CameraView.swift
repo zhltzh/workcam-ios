@@ -3,6 +3,7 @@ import ImageIO
 import QuickLook
 import PDFKit
 import AVFoundation
+import CoreLocation
 
 @MainActor
 final class CameraModel: ObservableObject {
@@ -55,6 +56,62 @@ final class CameraModel: ObservableObject {
     }
 }
 
+@MainActor
+private final class CameraLocation: NSObject, ObservableObject, @preconcurrency CLLocationManagerDelegate {
+    private let manager = CLLocationManager()
+    @Published private(set) var status = "Unknown"
+    private var requested = false
+
+    override init() {
+        super.init()
+        manager.delegate = self
+    }
+
+    func request() {
+        requested = true
+        updateAuthorization()
+    }
+
+    private func updateAuthorization() {
+        guard requested else { return }
+        switch manager.authorizationStatus {
+        case .notDetermined:
+            manager.requestWhenInUseAuthorization()
+        case .authorizedAlways, .authorizedWhenInUse:
+            status = "Acquiring location…"
+            manager.requestLocation()
+        case .denied, .restricted:
+            requested = false
+            status = "Unavailable — check Settings"
+        @unknown default:
+            requested = false
+            status = "Unknown"
+        }
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        updateAuthorization()
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard requested else { return }
+        requested = false
+        guard let fix = locations.last, fix.horizontalAccuracy >= 0,
+              (0...30).contains(Date().timeIntervalSince(fix.timestamp)) else {
+            status = "Unknown — no recent fix"
+            return
+        }
+        let precision = manager.accuracyAuthorization == .fullAccuracy ? "Precise permission" : "Approximate permission"
+        status = "\(precision) · ±\(Int(fix.horizontalAccuracy.rounded(.up))) m · \(fix.timestamp.formatted(date: .omitted, time: .standard))"
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        guard requested else { return }
+        requested = false
+        status = "Unknown — fix unavailable"
+    }
+}
+
 struct CameraView: View {
     @StateObject private var model: CameraModel
     private let project: WorkProject?
@@ -64,6 +121,7 @@ struct CameraView: View {
         _model = StateObject(wrappedValue: CameraModel(project: project, didSave: didSave))
     }
     @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var location = CameraLocation()
     @State private var visible = false
 
     @State private var showGrid = false
@@ -106,8 +164,11 @@ struct CameraView: View {
 
             Text(model.status).accessibilityIdentifier("cameraStatus")
             Text(model.saved).font(.caption)
-            Text("Location: Not Implemented · Local storage")
-                .font(.caption).foregroundStyle(.secondary)
+            HStack {
+                Text("Location: \(location.status)")
+                    .accessibilityIdentifier("cameraLocationStatus")
+                Button("Check Location", systemImage: "location") { location.request() }
+            }.font(.caption)
 
             HStack {
                 Button(showGrid ? "Grid On" : "Grid Off", systemImage: "grid") { showGrid.toggle() }
