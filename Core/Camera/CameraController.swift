@@ -11,15 +11,16 @@ final class CameraController: NSObject, @unchecked Sendable, AVCapturePhotoCaptu
     private var configured = false
     private var active = false
     private var capturing = false
+    private var captureContext: CaptureContext?
     private var requestingPermission = false
     private var observers: [NSObjectProtocol] = []
     var onStatus: (@Sendable (String, Bool) -> Void)?
     var onSaved: (@Sendable (URL?, String?) -> Void)?
     var onCapabilities: (@Sendable (Bool, Bool, String) -> Void)?
 
-    private let savePhoto: @Sendable (Data) throws -> URL
+    private let savePhoto: @Sendable (Data, CaptureContext?) throws -> URL
 
-    init(savePhoto: @escaping @Sendable (Data) throws -> URL = CaptureStore.save) {
+    init(savePhoto: @escaping @Sendable (Data, CaptureContext?) throws -> URL = CaptureStore.save) {
         self.savePhoto = savePhoto
         super.init()
         for name in [AVCaptureSession.wasInterruptedNotification, AVCaptureSession.interruptionEndedNotification, AVCaptureSession.runtimeErrorNotification] {
@@ -190,10 +191,11 @@ final class CameraController: NSObject, @unchecked Sendable, AVCapturePhotoCaptu
         active && session.isRunning && !session.isInterrupted && !capturing
     }
 
-    func capture(flash: Bool) {
+    func capture(flash: Bool, context: CaptureContext) {
         queue.async {
             guard self.active, self.session.isRunning, !self.session.isInterrupted, !self.capturing else { return }
             self.capturing = true
+            self.captureContext = context
             self.onStatus?("Capturing…", false)
             let settings = AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.jpeg])
             if flash, self.input?.device.isFlashAvailable == true,
@@ -215,7 +217,7 @@ final class CameraController: NSObject, @unchecked Sendable, AVCapturePhotoCaptu
             do {
                 if let message { throw NSError(domain: "WorkCam", code: 3, userInfo: [NSLocalizedDescriptionKey: message]) }
                 guard let data else { throw self.cameraError() }
-                let url = try self.savePhoto(data)
+                let url = try self.savePhoto(data, self.captureContext)
                 self.onSaved?(url, nil)
             } catch { self.onSaved?(nil, "Save failed: \(error.localizedDescription)") }
         }
@@ -225,6 +227,7 @@ final class CameraController: NSObject, @unchecked Sendable, AVCapturePhotoCaptu
         let message = error?.localizedDescription
         queue.async {
             self.capturing = false
+            self.captureContext = nil
             if let message { self.onStatus?("Capture failed: \(message)", self.active && self.session.isRunning) }
             else if self.active { self.startIfAuthorized() }
         }
