@@ -63,7 +63,8 @@
    "integration": "Package.swift 5.9+; pure-Foundation targets; Apple layers inject via ClockSource/HTTPTransport/UploadTransport/ChunkSource protocols",
    "known_limits": "expected small syntax fixes on first Mac compile; RANSAC seeds differ Python/Swift (vectors pin seed-stable results only)",
    "mac_needed": true,
-   "device_needed": false
+   "device_needed": false,
+   "workcamcore_version": "0.4.0-rc4-candidate.1"
   },
   {
    "id": "04-streaming-zip",
@@ -137,7 +138,8 @@
    "integration": "X-Device-Token header; typed envelope {code,message,details}; receipts applied/duplicate/rejected with error.code",
    "known_limits": "rejected-replay = status duplicate + result.status rejected + preserved error is a FAILURE (receiptSucceeded)",
    "mac_needed": true,
-   "device_needed": false
+   "device_needed": false,
+   "workcamcore_version": "0.4.0-rc4-candidate.1"
   },
   {
    "id": "09-sync-protocol",
@@ -154,7 +156,8 @@
    "integration": "uplink POST /api/v1/sync/batch (max 50 ops); downlink GET /api/v1/sync/events?cursor&include_state (per-entity-type cursors)",
    "known_limits": "single-owner model: cross-owner = 404 by design (W021 isolation)",
    "mac_needed": true,
-   "device_needed": false
+   "device_needed": false,
+   "workcamcore_version": "0.4.0-rc4-candidate.1"
   },
   {
    "id": "10-time-location",
@@ -172,7 +175,8 @@
    "integration": "ClockSource protocol injects real clocks on Mac; synthetic on Windows tests",
    "known_limits": "extrapolated time is NEVER server-certified capture time; GNSS never reports verified; thresholds pending device calibration (TM22)",
    "mac_needed": true,
-   "device_needed": true
+   "device_needed": true,
+   "workcamcore_version": "0.4.0-rc4-candidate.1"
   },
   {
    "id": "11-geometry-algorithms",
@@ -223,7 +227,8 @@
    "dependency": "none (Apple Vision does the recognition on device)",
    "verify_status": "schema/confirmation-machine contract tested on Windows Swift (9/9) + Python parity (11 passed); recognition itself is Mac DEVICE side",
    "integration": "adopt TextRecognitionService with VNRecognizeTextRequest; run the sample set per taxonomy field and report accuracy per type; OCR text enters the search index ONLY via the confirmed state",
-   "known_limits": "no accuracy claims from Windows; OCR never upgrades issues or facts; languages start en-US only"
+   "known_limits": "no accuracy claims from Windows; OCR never upgrades issues or facts; languages start en-US only",
+   "workcamcore_version": "0.4.0-rc4-candidate.1"
   },
   {
    "id": "14-registration-poc",
