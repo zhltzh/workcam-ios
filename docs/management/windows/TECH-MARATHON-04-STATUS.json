@@ -503,13 +503,15 @@
   {
    "id": "D04",
    "queue": "D",
-   "state": "IN_PROGRESS",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 B02 evidence requirements",
-   "commit": null,
+   "commit": "0eeacd4",
    "tests": [
-    "backend/tests/test_techlab/test_m03_b01_b03_business.py"
+    "backend/tests/test_techlab/test_tm04_d04_required_evidence.py (15)",
+    "swift ChecklistEvidenceMatrixTests 9/9 (REAL)",
+    "test_m03_b01_b03_business.py zero-regression"
    ],
-   "notes": "evidence requirements covered; required-photo/note/measurement-link validation consolidation pending"
+   "notes": "full required-evidence matrix (photo/note/measurement, combined, NA/not-inspected exemptions); TWO real gate-bypass defects fixed both sides: whitespace notes passed the note gate (now trim-checked), NaN/Inf measurements passed the measurement gate (now isFinite + unit required)"
   },
   {
    "id": "D05",
@@ -536,13 +538,14 @@
   {
    "id": "D07",
    "queue": "D",
-   "state": "IN_PROGRESS",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 B08 location index",
-   "commit": null,
+   "commit": "a1b348a",
    "tests": [
-    "backend/tests/test_techlab/test_m03_b07_b08_business.py"
+    "swift LocationModelTests 11/11 (REAL)",
+    "backend/tests/test_techlab/test_tm04_d07_location_model.py (12)"
    ],
-   "notes": "location tag indexed; area/floor/room hierarchy model pending"
+   "notes": "area/floor/room/spot hierarchy: explicitness rule (empty segments refused never dropped), casefolded index key, segment-aligned prefix matching (a/b never matches a/bc), traversal-string refusal, insertion-order grouping; cross-language parity pinned"
   },
   {
    "id": "D08",
@@ -613,13 +616,15 @@
   {
    "id": "D14",
    "queue": "D",
-   "state": "IN_PROGRESS",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 A03 (migrations v1-v14 + rollback)",
-   "commit": "79933e4",
+   "commit": "ef9a9e5",
    "tests": [
-    "backend/tests/test_techlab/test_tm93_upgrade_matrix.py (14)"
+    "backend/tests/test_techlab/test_tm04_d14_archive_restore.py (8)",
+    "test_tm93_upgrade_matrix.py 20/20 incl. v14->v15",
+    "full gate 12/12 PASSED (1703 tests)"
    ],
-   "notes": "archive/restore policy queries pending; migration safety inherited"
+   "notes": "project_restore = the ONE explicit exit from archived (CAS-gated, restored event, archived_at cleared, writes reopen; not_archived named refusal; archived = lock not delete - history fully readable); v15 migration grows the event action vocabulary via table-rebuild (history verbatim); gate migration count derived from MIGRATIONS not hardcoded"
   },
   {
    "id": "D15",
@@ -998,14 +1003,13 @@
   {
    "id": "G08",
    "queue": "G",
-   "state": "IN_PROGRESS",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 F09",
-   "commit": "79933e4",
+   "commit": "861fd84",
    "tests": [
-    "backend/tests/test_techlab/test_tm45_fault_injection.py (5)",
-    "backend/tests/test_techlab/test_tm32_crash_recovery.py (14)"
+    "backend/tests/test_techlab/test_tm04_g08_fault_injection.py (2)"
    ],
-   "notes": "network/disk/db/crash covered; tmpfile-uncreatable + cache-corruption queued"
+   "notes": "tmpfile-uncreatable (scoped os.replace seam) + corrupted-derivative injections closed; ONE REAL production defect found and fixed: download integrity was a BARE ASSERT (compiled out under python -O = corrupt bytes served) -> typed 409 derivative_corrupt"
   },
   {
    "id": "G09",
@@ -1045,29 +1049,35 @@
   {
    "id": "H02",
    "queue": "H",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 G02 design notes only",
-   "commit": null,
-   "tests": [],
-   "notes": "enterprise reserve, isolated"
+   "commit": "32bae67",
+   "tests": [
+    "swift TeamBookkeepingTests 5/5 (REAL, WorkCamEnterprise EXPERIMENTAL target)"
+   ],
+   "notes": "enterprise/team/project membership records + bookkeeping: last-Owner-irremovable, assigns owner/admin-only, owner seat never via assign path; isolated from RC4/single-user product by target boundary"
   },
   {
    "id": "H03",
    "queue": "H",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 G02 design notes only",
-   "commit": null,
-   "tests": [],
-   "notes": "enterprise reserve, isolated"
+   "commit": "32bae67",
+   "tests": [
+    "swift RoleMatrixTests 6/6 (REAL)"
+   ],
+   "notes": "Owner/Admin/Inspector/Member/Viewer matrix, deny-by-default; org actions exist only in org scope (action-scope pairing is action property); inspector closes issues but never deletes photos; member cannot close; viewer read-only"
   },
   {
    "id": "H04",
    "queue": "H",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 G03 design notes only",
-   "commit": null,
-   "tests": [],
-   "notes": "enterprise reserve, isolated; no real email"
+   "commit": "32bae67",
+   "tests": [
+    "swift InvitationTests 7/7 (REAL)"
+   ],
+   "notes": "invitation lifecycle: NO email (token only), mint owner/admin-only, owner seat never mintable, accept single-use with injected clock, expiry/revocation terminal, sweep idempotent"
   },
   {
    "id": "H05",
@@ -1081,11 +1091,13 @@
   {
    "id": "H06",
    "queue": "H",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 G04 design notes only",
-   "commit": null,
-   "tests": [],
-   "notes": "enterprise reserve, isolated"
+   "commit": "b44ab01",
+   "tests": [
+    "swift AuditJournalTests 6/6 (REAL)"
+   ],
+   "notes": "append-only per-org monotone audit journal (no update/delete API exists), actor/action/target/window read-only views, payload hints not full payloads"
   },
   {
    "id": "H07",
@@ -1126,20 +1138,24 @@
   {
    "id": "I01",
    "queue": "I",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "W028 commerce study (TM-03 G05 design notes)",
-   "commit": null,
-   "tests": [],
-   "notes": "candidate design only"
+   "commit": "b205c2c",
+   "tests": [
+    "swift EntitlementsTests (matrix subset) (REAL)"
+   ],
+   "notes": "Free/Pro/Team entitlement matrix, single authority, deny-by-default; CANDIDATE design (no pricing decisions)"
   },
   {
    "id": "I02",
    "queue": "I",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": null,
-   "commit": null,
-   "tests": [],
-   "notes": "candidate design only"
+   "commit": "b205c2c",
+   "tests": [
+    "swift EntitlementsTests (grace subset, 11/11 total) (REAL)"
+   ],
+   "notes": "offline license-grace: fixed 14d window counted against an INJECTED clock; paid user offline keeps full features in-window; window end goes dark as free with DATA intact; honest English status copy; StoreKit real purchases stay Mac (I03)"
   },
   {
    "id": "I03",
@@ -1162,29 +1178,35 @@
   {
    "id": "I05",
    "queue": "I",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 G06 design notes only",
-   "commit": null,
-   "tests": [],
-   "notes": "candidate design only; no automatic evidence deletion"
+   "commit": "2fea9a2",
+   "tests": [
+    "swift DataPortabilityTests 11/11 (REAL)"
+   ],
+   "notes": "export manifest (workcam-export/1.0, originals always, completeness = no dup paths + 64-hex digests) + two-phase deletion (7d window, injected clock, cancel restores untouched, confirm builds explicit gone-forever plan; engine deletes nothing - DECISION_REQUIRED stays)"
   },
   {
    "id": "I06",
    "queue": "I",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 G07 partial (H01 SBOM work)",
-   "commit": null,
-   "tests": [],
-   "notes": "privacy inventory pending"
+   "commit": "e3ebb1b",
+   "tests": [
+    "docs/management/windows/TM04-I06-PRIVACY-INVENTORY.md"
+   ],
+   "notes": "9 data categories with fields/location/lifetime/control; explicitly-NOT-collected list verified against SBOM + zero-dep Swift package; permission table; lifecycle summary; zero third-party exposure; honest open items"
   },
   {
    "id": "I07",
    "queue": "I",
-   "state": "IN_PROGRESS",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "project-wide English UI rule + design-system strings",
-   "commit": null,
-   "tests": [],
-   "notes": "English UI enforced; glossary + localization check pass pending"
+   "commit": "ae2fbe0",
+   "tests": [
+    "backend/tools/ui_glossary_check.py (171 literals, zero violations)"
+   ],
+   "notes": "glossary checker: pinned English vocabulary, forbidden synonyms rejected, banned marketing words rejected (guaranteed/certified/forever/100%/unlimited/instantly), non-ASCII flagged as warnings; first run clean"
   },
   {
    "id": "I08",
@@ -1370,6 +1392,27 @@
     "NOT_STARTED": 18,
     "CROSS_PLATFORM_PENDING": 1,
     "IN_PROGRESS": 30,
+    "BLOCKED": 1
+   }
+  },
+  "sprint_3": {
+   "commits": [
+    "ee98eaf",
+    "ef9a9e5",
+    "9e28718",
+    "32bae67",
+    "b44ab01",
+    "b205c2c",
+    "2fea9a2",
+    "e3ebb1b",
+    "ae2fbe0",
+    "861fd84"
+   ],
+   "counts": {
+    "DESKTOP_VERIFIED": 83,
+    "NOT_STARTED": 10,
+    "CROSS_PLATFORM_PENDING": 1,
+    "IN_PROGRESS": 25,
     "BLOCKED": 1
    }
   }
