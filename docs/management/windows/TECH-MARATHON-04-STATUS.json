@@ -89,11 +89,13 @@
   {
    "id": "A06",
    "queue": "A",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 E02-E10 XCODE_PENDING set",
-   "commit": null,
-   "tests": [],
-   "notes": "Windows-side syntax/dependency/interface/vector/isolation checks for XCODE_PENDING components"
+   "commit": "4336b1d",
+   "tests": [
+    "backend/tools/xcode_pending_checks.py - 5 checks all green: swift build (real 6.4.3), tests compile, platform-gate scan, vectors versioned, label honesty (5 XCODE_PENDING files listed)"
+   ],
+   "notes": "the Windows half of XCODE_PENDING acceptance is now a RE-RUNNABLE check; the Apple half (real compile of gated files) stays Mac and the labels stay honest"
   },
   {
    "id": "A07",
@@ -992,13 +994,15 @@
   {
    "id": "G07",
    "queue": "G",
-   "state": "IN_PROGRESS",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 F07 (30s real soak)",
-   "commit": "c7fe170",
+   "commit": "28cb339",
    "tests": [
-    "backend/tests/test_techlab/test_fe_f07_soak.py (3)"
+    "docs/perf/soak-20261128-155734.json (5min: 1400 it, 0 err)",
+    "docs/perf/soak-20261128-194349.json (30min: 6187 it, 0 err)",
+    "30s tier inherited from TM-03 c7fe170"
    ],
-   "notes": "30s soak DESKTOP_VERIFIED; 5min/30min tiered runs pending"
+   "notes": "three-tier soak ladder complete (30s/5min/30min): zero errors at every tier, monotone growth (no leak signature), p50 175-196ms, honest long-tail report (max 16.5s during report+backup cycles); DESKTOP host labels, never iPhone claims, durations informative only"
   },
   {
    "id": "G08",
@@ -1102,11 +1106,14 @@
   {
    "id": "H07",
    "queue": "H",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 H07 (RC4 branch not yet split) + TM-04 J01",
-   "commit": null,
-   "tests": [],
-   "notes": "RC4 experimental line split is this session's job"
+   "commit": "bf4ea8f",
+   "tests": [
+    "backend/tests/test_techlab/test_tm04_b13_multiclient.py (7, run twice) - the multi-editor conflict + data-isolation experiment over the REAL backend",
+    "docs/management/windows/RC4-CANDIDATE.md (experimental quarantine list)"
+   ],
+   "notes": "the TM-03 H07 experiment is delivered as B13: same-owner concurrent sessions race real SQLite CAS (exactly one applies, typed revision_conflict for the loser), cross-owner reads 404 + foreign writes rejected - isolation as a feature; enterprise multi-tenant editing stays in the WorkCamEnterprise quarantine (H02-H04/H06), never merged into the single-user product"
   },
   {
    "id": "H08",
@@ -1256,11 +1263,15 @@
   {
    "id": "J02",
    "queue": "J",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": null,
-   "commit": null,
-   "tests": [],
-   "notes": "versioned dependency management for Swift components pending"
+   "commit": "c5932c8",
+   "tests": [
+    "backend/tools/j02_version_lock.py (3 checks green)",
+    "swift/WorkCamCore/VERSION = 0.4.0-rc4-candidate.1",
+    "manifest components pinned"
+   ],
+   "notes": "WorkCamCore version pinned; zero-external-deps is a REVIEW GATE (any .package declaration fails the check); Mac manifest binds components to the exact Windows-verified version"
   },
   {
    "id": "J03",
@@ -1413,6 +1424,18 @@
     "NOT_STARTED": 10,
     "CROSS_PLATFORM_PENDING": 1,
     "IN_PROGRESS": 25,
+    "BLOCKED": 1
+   }
+  },
+  "sprint_3_close": {
+   "commits": [
+    "28cb339"
+   ],
+   "counts": {
+    "DESKTOP_VERIFIED": 87,
+    "CROSS_PLATFORM_PENDING": 1,
+    "IN_PROGRESS": 24,
+    "NOT_STARTED": 7,
     "BLOCKED": 1
    }
   }

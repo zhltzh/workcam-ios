@@ -1,9 +1,9 @@
-# WORKCAM-WINDOWS-TECH-MARATHON-04 · 研发报告（冲刺 1+2，进行中）
+# WORKCAM-WINDOWS-TECH-MARATHON-04 · 研发报告（冲刺 1+2+3，进行中）
 
 管理基线：TECH-MARATHON-04（120 项工作包）
 分支：`dev/windows-tm04`（自 `a8b59ed` 创建；RC3 冻结 `1f645b6` 为已验证祖先，未动）
 状态源：`docs/management/windows/TECH-MARATHON-04-STATUS.json`
-本两冲刺推送：`690c011..c378aae`（远端已同步；push 经本机代理，直连被重置时用 `git -c http.proxy=...`）
+推送：`690c011..28cb339`（远端持续同步；直连被重置时经本机代理）
 
 ## 里程碑：Windows Swift 从 BLOCKED 到真实全绿
 
@@ -44,15 +44,30 @@ authored+vector-matched but never compiled here"）。本冲刺发现
 - Foundation `replaceItemAt` 在 Windows 是未实现 fatal stub：AtomicFile 改用 remove+move（窗口语义如实注明）
 - 测试资源需 `Bundle.module`（`Bundle(for:)` 在 SwiftPM Windows 下找不到资源）
 
-## 120 项状态（冲刺 2 后）
+## 120 项状态（冲刺 3 后）
 
-| 状态 | 冲刺前 | 冲刺 1 后 | 冲刺 2 后 |
+| 状态 | 冲刺前 | 冲刺 2 后 | 冲刺 3 后 |
 |---|---|---|---|
-| DESKTOP_VERIFIED | 40 | 65 | **70** |
-| IN_PROGRESS | 39 | 30 | 30 |
-| NOT_STARTED | 38 | 23 | 18 |
-| BLOCKED | 2（Swift/Docker） | 1（仅 Docker） | 1（仅 Docker） |
+| DESKTOP_VERIFIED | 40 | 70 | **87** |
+| IN_PROGRESS | 39 | 30 | 24 |
+| NOT_STARTED | 38 | 18 | 7 |
+| BLOCKED | 2（Swift/Docker） | 1 | 1（仅 Docker） |
 | CROSS_PLATFORM_PENDING | 1 | 1 | 1 |
+
+### 冲刺 3 新增交付
+
+- **D04** 必填验证矩阵 + 修复两个真实绕门缺陷（空白 note 与 NaN/Inf 测量在两侧都曾通过验证门——现在 trim + isFinite 校验）
+- **D07** 工程位置层级（area/floor/room/spot，显式性规则、段对齐前缀匹配防 a/b 匹配 a/bc、穿越串拒绝），Swift 11 + Python 12 双语言对拍
+- **D14** 归档/恢复/历史策略（真实后端 8 测试）+ **v15 迁移**（事件表 action 词表加 restored，v9 表重建模式）+ 修复 quality_gate 硬编码 14 的迁移计数
+- **G07** 三档 soak 阶梯完整收口：30s（继承）/ 5min（1400 迭代 0 错误）/ 30min（**6187 迭代 0 错误**），增长全单调无泄漏特征
+- **G08** 两个缺失故障注入收口 + **抓到一个真实生产缺陷**：derivatives 下载完整性是裸 `assert`——`python -O` 下静默失效（损坏字节会被直接下发）→ 修复为 typed 409 `derivative_corrupt`
+- **A06** XCODE_PENDING 静态验收成可重跑工具（5 项检查：真编译/测试编译/平台门扫描/向量版本/标签诚实）
+- **H02/H03/H04/H06** 企业储备四件套进隔离 target `WorkCamEnterprise`（角色矩阵 deny-by-default、最后 Owner 不可移除、邀请生命周期无邮件、只追加审计日志）——**永不进 RC4/单用户产品**
+- **H07** 由 B13 交付（真实后端并发竞争 + 跨 owner 隔离 404/rejected 即特性）
+- **I01/I02/I05** 商业化候选：权益矩阵（单一权威）+ 14 天离线宽限（注入时钟；到期降级为 free 但**数据完好**）+ 数据导出/两阶段删除（引擎永不执行删除，计划明示 gone-forever）
+- **I06** 隐私数据清单（9 类数据全生命周期 + 经 SBOM 验证的"明确不收集"清单）
+- **I07** UI 术语表检查器（钉住词汇 + 禁营销词 guaranteed/certified/forever/100%/unlimited/instantly——诚实规则变成门禁；171 字面量首查零违规）
+- **J02** WorkCamCore 版本锁定 0.4.0-rc4-candidate.1 + 零外部依赖成为**评审门禁**（任何 .package 声明即失败）
 
 **B 队列 12/15 收口**（B04/B06/B07/B13/B15 新增 DV；B08/B10 只剩命名续片；B14 继承 TM91/TM35 证据待整合矩阵）。
 
@@ -106,11 +121,12 @@ authored+vector-matched but never compiled here"）。本冲刺发现
 - **H01** SBOM：CycloneDX 1.5（39 组件=9 直接+30 传递）+ **OSV 真扫**（走代理）：发现 pip 12 个已知 CVE → 升级 25.0.1→26.3 → 重扫 0 漏洞；覆盖率如实报告
 - **H07/J01** RC4 线定义（`RC4-CANDIDATE.md`）：实验隔离清单、冻结规则、验收规则
 
-## 全量验证
+## 全量验证（冲刺 3 收口）
 
-- **Python**：冲刺 2 专项 1647+ passed（1663 全量 + B13 7 项等新增，零回归；最终数字以最终一轮全量为准）
-- **门禁**：12/12 PASSED（冲刺开始在干净树上重跑）
-- **Swift**：152 tests / 0 failures（Windows 6.4.3 真实执行，exit 0；含冲刺 2 的 IntentImport 12 项）
+- **Python**：1705 passed / 3 skipped / 0 failed（全量重跑，零回归；race 观察协议 flake 根治——连跑五遍稳定）
+- **Swift**：218 tests / 0 failures（Windows 6.4.3 真实执行，exit 0；冲刺 3 新增 66 项：Location 11 + Evidence 9 + Enterprise 18 + Audit 6 + Entitlements 11 + DataPortability 11）
+- **门禁**：12/12 PASSED（v15 迁移计入后复验）
+- **Soak 阶梯**：30s / 5min(1400 it) / 30min(6187 it) 全档 0 错误、增长单调
 
 ## Mac 待办（不变 + 新增）
 
