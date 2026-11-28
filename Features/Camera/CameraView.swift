@@ -18,9 +18,9 @@ final class CameraModel: ObservableObject {
     @Published var latest: UIImage?
 
     init(project: WorkProject?, didSave: @escaping @MainActor () -> Void) {
-        controller = CameraController { data in
-            if let project { return try ProjectStore.capture(data, in: project) }
-            return try CaptureStore.save(data)
+        controller = CameraController { data, context in
+            if let project { return try ProjectStore.capture(data, in: project, context: context) }
+            return try CaptureStore.save(data, context: context)
         }
         controller.onStatus = { [weak self] status, ready in
             Task { @MainActor [weak self] in self?.status = status; self?.ready = ready }
@@ -61,6 +61,36 @@ private final class CameraLocation: NSObject, ObservableObject, @preconcurrency 
     private let manager = CLLocationManager()
     @Published private(set) var status = "Unknown"
     private var requested = false
+    private var fix: CaptureContext.LocationFix?
+    private var fixAcceptedAt: (wall: Date, uptime: TimeInterval)?
+    private var missingReason = "not_requested"
+
+    func snapshot() -> CaptureContext {
+        let now = Date()
+        let authorization: String
+        switch manager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse: authorization = "authorized"
+        case .denied: authorization = "denied"
+        case .restricted: authorization = "restricted"
+        case .notDetermined: authorization = "not_determined"
+        @unknown default: authorization = "unknown"
+        }
+        var usable: CaptureContext.LocationFix?
+        var reason = authorization == "authorized" ? missingReason : authorization
+        if authorization == "authorized", let fix, let accepted = fixAcceptedAt {
+            let elapsed = ProcessInfo.processInfo.systemUptime - accepted.uptime
+            let age = now.timeIntervalSince(fix.sampledAt)
+            if abs(now.timeIntervalSince(accepted.wall) - elapsed) > 2 {
+                reason = "clock_changed"
+            } else if (0...30).contains(age) && (0...30).contains(elapsed) {
+                usable = fix
+            } else {
+                reason = "stale"
+            }
+        }
+        return CaptureContext(version: 1, capturedAt: now, locationAuthorization: authorization,
+                              location: usable, locationMissingReason: usable == nil ? reason : nil)
+    }
 
     override init() {
         super.init()
@@ -68,6 +98,9 @@ private final class CameraLocation: NSObject, ObservableObject, @preconcurrency 
     }
 
     func request() {
+        fix = nil
+        fixAcceptedAt = nil
+        missingReason = "awaiting_fix"
         requested = true
         updateAuthorization()
     }
@@ -98,9 +131,20 @@ private final class CameraLocation: NSObject, ObservableObject, @preconcurrency 
         requested = false
         guard let fix = locations.last, fix.horizontalAccuracy >= 0,
               (0...30).contains(Date().timeIntervalSince(fix.timestamp)) else {
+            missingReason = "invalid_or_stale_fix"
             status = "Unknown — no recent fix"
             return
         }
+        let source: String
+        if fix.sourceInformation?.isSimulatedBySoftware == true { source = "simulated" }
+        else if fix.sourceInformation?.isProducedByAccessory == true { source = "accessory" }
+        else { source = "core_location_unspecified" }
+        self.fix = .init(latitude: fix.coordinate.latitude, longitude: fix.coordinate.longitude,
+                         sampledAt: fix.timestamp, horizontalAccuracy: fix.horizontalAccuracy,
+                         verticalAccuracy: fix.verticalAccuracy >= 0 ? fix.verticalAccuracy : nil,
+                         precision: manager.accuracyAuthorization == .fullAccuracy ? "full" : "reduced",
+                         source: source)
+        fixAcceptedAt = (Date(), ProcessInfo.processInfo.systemUptime)
         let precision = manager.accuracyAuthorization == .fullAccuracy ? "Precise permission" : "Approximate permission"
         status = "\(precision) · ±\(Int(fix.horizontalAccuracy.rounded(.up))) m · \(fix.timestamp.formatted(date: .omitted, time: .standard))"
     }
@@ -108,6 +152,7 @@ private final class CameraLocation: NSObject, ObservableObject, @preconcurrency 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         guard requested else { return }
         requested = false
+        missingReason = "fix_unavailable"
         status = "Unknown — fix unavailable"
     }
 }
@@ -189,7 +234,7 @@ struct CameraView: View {
                     }
                 }.disabled(model.latest == nil).accessibilityLabel("Review latest photo")
 
-                Button { model.controller.capture(flash: flash) } label: {
+                Button { model.controller.capture(flash: flash, context: location.snapshot()) } label: {
                     Image(systemName: "camera.fill").font(.title)
                         .frame(width: 72, height: 62)
                 }.buttonStyle(.borderedProminent)

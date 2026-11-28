@@ -61,6 +61,25 @@ struct EvidenceKey {
     }
 }
 
+/// Local capture metadata. This is outside the v1.1 signed manifest.
+struct CaptureContext: Codable, Sendable {
+    let version: Int
+    let capturedAt: Date
+    let locationAuthorization: String
+    let location: LocationFix?
+    let locationMissingReason: String?
+
+    struct LocationFix: Codable, Sendable {
+        let latitude: Double
+        let longitude: Double
+        let sampledAt: Date
+        let horizontalAccuracy: Double
+        let verticalAccuracy: Double?
+        let precision: String
+        let source: String
+    }
+}
+
 struct EvidenceRecord: Codable {
     var manifest: EvidenceManifest?
     var photoID: String
@@ -68,6 +87,7 @@ struct EvidenceRecord: Codable {
     var publicKeyID: String?
     var status: String
     var failure: String?
+    var unsignedCaptureContext: CaptureContext? = nil
 }
 
 struct ProjectEvidenceLink: Codable, Sendable {
@@ -191,6 +211,7 @@ struct EvidenceStore {
         _ data: Data,
         recordID: UUID = UUID(),
         projectLink: ProjectEvidenceLink? = nil,
+        context: CaptureContext? = nil,
         storageRoot: URL? = nil,
         loadKey: () throws -> SecureEnclave.P256.Signing.PrivateKey = { try EvidenceKey.load() },
         writeOriginal: (Data, URL) throws -> Void = {
@@ -215,7 +236,7 @@ struct EvidenceStore {
         try writeOriginal(data, photo)
         let hash = evidenceHash(try Data(contentsOf: photo))
         guard hash == expectedHash else { throw EvidenceError.invalid }
-        var record = EvidenceRecord(photoID: id, sha256: hash, status: "Unsigned")
+        var record = EvidenceRecord(photoID: id, sha256: hash, status: "Unsigned", unsignedCaptureContext: context)
         do {
             let key = try loadKey()
             let publicData = key.publicKey.x963Representation

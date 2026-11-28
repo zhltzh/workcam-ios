@@ -1,8 +1,8 @@
 import Foundation
 
 struct CaptureStore {
-    static func save(_ data: Data) throws -> URL {
-        try EvidenceStore.capture(data)
+    static func save(_ data: Data, context: CaptureContext? = nil) throws -> URL {
+        try EvidenceStore.capture(data, context: context)
     }
 }
 
@@ -82,13 +82,13 @@ enum ProjectStore {
         try JSONEncoder().encode(project).write(to: url, options: [.atomic, .completeFileProtection])
     }
 
-    static func capture(_ data: Data, in project: WorkProject) throws -> URL {
+    static func capture(_ data: Data, in project: WorkProject, context: CaptureContext? = nil) throws -> URL {
         let timestamp = Int64((Date().timeIntervalSince1970 * 1000).rounded())
         let projectFolder = try directory(project.id)
         let stored = try JSONDecoder().decode(WorkProject.self, from: Data(contentsOf:
             projectFolder.appendingPathComponent("project.json")))
         guard stored.id == project.id, stored.archived != true else { throw CocoaError(.fileWriteNoPermission) }
-        return try EvidenceStore.capture(data, projectLink: .init(projectID: project.id, timestamp: timestamp))
+        return try EvidenceStore.capture(data, projectLink: .init(projectID: project.id, timestamp: timestamp), context: context)
     }
 
     static func photos(in project: WorkProject) throws -> [WorkPhoto] {
