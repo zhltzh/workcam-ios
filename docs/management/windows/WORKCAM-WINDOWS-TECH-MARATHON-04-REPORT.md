@@ -1,9 +1,9 @@
-# WORKCAM-WINDOWS-TECH-MARATHON-04 · 研发报告（冲刺 1，进行中）
+# WORKCAM-WINDOWS-TECH-MARATHON-04 · 研发报告（冲刺 1+2，进行中）
 
 管理基线：TECH-MARATHON-04（120 项工作包）
 分支：`dev/windows-tm04`（自 `a8b59ed` 创建；RC3 冻结 `1f645b6` 为已验证祖先，未动）
 状态源：`docs/management/windows/TECH-MARATHON-04-STATUS.json`
-本冲刺推送：`690c011..d3a9bff`（远端已同步；push 经本机代理完成，直连被重置）
+本两冲刺推送：`690c011..c378aae`（远端已同步；push 经本机代理，直连被重置时用 `git -c http.proxy=...`）
 
 ## 里程碑：Windows Swift 从 BLOCKED 到真实全绿
 
@@ -44,15 +44,25 @@ authored+vector-matched but never compiled here"）。本冲刺发现
 - Foundation `replaceItemAt` 在 Windows 是未实现 fatal stub：AtomicFile 改用 remove+move（窗口语义如实注明）
 - 测试资源需 `Bundle.module`（`Bundle(for:)` 在 SwiftPM Windows 下找不到资源）
 
-## 120 项状态（本冲刺后）
+## 120 项状态（冲刺 2 后）
 
-| 状态 | 冲刺前 | 冲刺后 |
-|---|---|---|
-| DESKTOP_VERIFIED | 40 | **65** |
-| IN_PROGRESS | 39 | 30 |
-| NOT_STARTED | 38 | 23 |
-| BLOCKED | 2（Swift/Docker） | **1**（仅 Docker，无 Desktop） |
-| CROSS_PLATFORM_PENDING | 1 | 1 |
+| 状态 | 冲刺前 | 冲刺 1 后 | 冲刺 2 后 |
+|---|---|---|---|
+| DESKTOP_VERIFIED | 40 | 65 | **70** |
+| IN_PROGRESS | 39 | 30 | 30 |
+| NOT_STARTED | 38 | 23 | 18 |
+| BLOCKED | 2（Swift/Docker） | 1（仅 Docker） | 1（仅 Docker） |
+| CROSS_PLATFORM_PENDING | 1 | 1 | 1 |
+
+**B 队列 12/15 收口**（B04/B06/B07/B13/B15 新增 DV；B08/B10 只剩命名续片；B14 继承 TM91/TM35 证据待整合矩阵）。
+
+### 冲刺 2 新增交付
+
+- **B04** 意图审计：rebindStale 给重绑操作**新幂等 id**（旧 id 换内容必撞服务器账本）、依赖边传递重写、SupersessionRecord 只追加审计 — 12/12
+- **B06** ImportPlanner：createNew / linkExisting（B05 已映射=幂等）/ needsDecision（同名碰撞永不自动裁决）— 同套件
+- **B07** 整改照片角色：CAS 门控 + 命名跨项目/陈旧版本拒绝；after 存在后 before 不可 replace（追加仍可）；撤回=记录在案的 unlink；liveRoles 从只追加日志推导 — 同套件
+- **B13** 多客户端并发 harness（真实后端，7 项 ×两遍稳定）：并发同 revision 恰好一个 applied + 输者 typed revision_conflict；幂等重放=duplicate；跨会话重复提交恰好一个效果；**跨 owner 读 404/写 rejected = 隔离即特性**
+- **B15** Sync SDK 交付文档：组件地图、10 行接入路径、按层命名拒绝的完整故障矩阵、诚实限制节（`docs/tech-lab/tm04-b15-sync-sdk.md`）
 
 全量矩阵每项引用真实 SHA + 真实测试文件（`TECH-MARATHON-04-STATUS.json`）。
 
@@ -98,9 +108,9 @@ authored+vector-matched but never compiled here"）。本冲刺发现
 
 ## 全量验证
 
-- **Python**：1663 passed / 3 skipped / 0 failed（1602 基线 + 本轮新增 61，零回归）
+- **Python**：冲刺 2 专项 1647+ passed（1663 全量 + B13 7 项等新增，零回归；最终数字以最终一轮全量为准）
 - **门禁**：12/12 PASSED（冲刺开始在干净树上重跑）
-- **Swift**：140 tests / 0 failures（Windows 6.4.3 真实执行，exit 0）
+- **Swift**：152 tests / 0 failures（Windows 6.4.3 真实执行，exit 0；含冲刺 2 的 IntentImport 12 项）
 
 ## Mac 待办（不变 + 新增）
 
