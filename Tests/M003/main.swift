@@ -222,3 +222,19 @@ let stagedLink = try JSONDecoder().decode(ProjectEvidenceLink.self, from: Data(c
     failedWriteStage.appendingPathComponent("project-link.json")))
 precondition(stagedLink.projectID == projectLink.projectID)
 print("PASS injected original write failure never publishes project association or evidence")
+
+precondition(restored.unsignedCaptureContext == nil)
+let context = CaptureContext(version: 1, capturedAt: Date(timeIntervalSince1970: 10),
+    locationAuthorization: "authorized", location: .init(latitude: 0, longitude: 0,
+        sampledAt: Date(timeIntervalSince1970: 9), horizontalAccuracy: 5,
+        verticalAccuracy: nil, precision: "reduced", source: "simulated"), locationMissingReason: nil)
+var withContext = record
+withContext.unsignedCaptureContext = context
+let reopened = try JSONDecoder().decode(EvidenceRecord.self, from: JSONEncoder().encode(withContext))
+precondition(reopened.unsignedCaptureContext?.location?.source == "simulated")
+precondition(reopened.unsignedCaptureContext?.location?.verticalAccuracy == nil)
+let unchangedPayload = try reopened.manifest?.payload()
+precondition(unchangedPayload == payload)
+let contextVerification = try EvidenceStore.verify(reopened, photo: photo)
+precondition(contextVerification.contains("passed"))
+print("PASS capture context roundtrip and unchanged legacy signing payload")
