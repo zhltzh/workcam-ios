@@ -172,11 +172,13 @@
   {
    "id": "B04",
    "queue": "B",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": null,
-   "commit": null,
-   "tests": [],
-   "notes": "stale-intent audit, operation IDs, dependency rebinding, receipt history pending"
+   "commit": "47ad555",
+   "tests": [
+    "swift IntentImportTests 12/12 (REAL execution)"
+   ],
+   "notes": "rebindStale: stale ops re-issued under NEW idempotency ids, dependent edges rewritten transitively, append-only SupersessionRecord audit; old receipts never overwritten"
   },
   {
    "id": "B05",
@@ -192,20 +194,24 @@
   {
    "id": "B06",
    "queue": "B",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": null,
-   "commit": null,
-   "tests": [],
-   "notes": "server project import plan/preview/confirm/idempotency pending"
+   "commit": "47ad555",
+   "tests": [
+    "swift IntentImportTests - import plan partition + idempotent rerun"
+   ],
+   "notes": "ImportPlanner: createNew / linkExisting (B05-mapped, idempotent) / needsDecision (name collision never auto-resolved); plan is preview-only, nothing written"
   },
   {
    "id": "B07",
    "queue": "B",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": null,
-   "commit": null,
-   "tests": [],
-   "notes": "remediation content/status/role bidirectional sync core pending"
+   "commit": "47ad555",
+   "tests": [
+    "swift IntentImportTests - CAS-gated link semantics"
+   ],
+   "notes": "remediation photo-role link events: named cross-project and stale-revision refusals; before not replaceable once after exists; withdraw is a recorded unlink; liveRoles derives state from the append-only journal"
   },
   {
    "id": "B08",
@@ -267,11 +273,13 @@
   {
    "id": "B13",
    "queue": "B",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": null,
-   "commit": null,
-   "tests": [],
-   "notes": "multi-client concurrency harness pending"
+   "commit": "bf4ea8f",
+   "tests": [
+    "backend/tests/test_techlab/test_tm04_b13_multiclient.py (7 passed, run twice for stability)"
+   ],
+   "notes": "REAL-backend harness: concurrent same-revision race = exactly one applied + typed revision_conflict loser; idempotent replay=duplicate; same-id-different-content refused; cross-session duplicate converges to ONE effect; cross-owner read 404 + foreign write rejected (isolation pinned as a feature); multi-client in the single-user product = same-owner concurrent sessions, stated honestly"
   },
   {
    "id": "B14",
@@ -282,16 +290,19 @@
    "tests": [
     "backend/tests/test_techlab/test_tm91_weak_network.py"
    ],
-   "notes": "session survival/restart/out-of-order covered; expiry/cancel/duplicate-chunk matrix consolidation pending"
+   "notes": "TM91/TM35 already cover session restart survival, partial resume, duplicate chunks, out-of-order (inherited DV evidence in test_tm91_weak_network.py); the TM-04 consolidation matrix (expiry/cancel naming) remains the open slice"
   },
   {
    "id": "B15",
    "queue": "B",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": null,
-   "commit": null,
-   "tests": [],
-   "notes": "final SDK packaging: real-HTTP tests + Swift intake example + failure matrix pending"
+   "commit": "47ad555",
+   "tests": [
+    "docs/tech-lab/tm04-b15-sync-sdk.md",
+    "swift test 140/0 + parity 25 + multiclient 7 (the SDK's verification ledger)"
+   ],
+   "notes": "SDK delivery: component map, 10-line Swift intake path, complete failure matrix with named refusals per layer, honest known-limits section (in-process loopback only; B14 upload-session matrix is the open continuation)"
   },
   {
    "id": "C01",
@@ -1344,6 +1355,19 @@
    "counts": {
     "DESKTOP_VERIFIED": 65,
     "NOT_STARTED": 23,
+    "CROSS_PLATFORM_PENDING": 1,
+    "IN_PROGRESS": 30,
+    "BLOCKED": 1
+   }
+  },
+  "third_push": {
+   "commits": [
+    "47ad555",
+    "bf4ea8f"
+   ],
+   "counts": {
+    "DESKTOP_VERIFIED": 70,
+    "NOT_STARTED": 18,
     "CROSS_PLATFORM_PENDING": 1,
     "IN_PROGRESS": 30,
     "BLOCKED": 1
