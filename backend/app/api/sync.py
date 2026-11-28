@@ -71,6 +71,15 @@ class ProjectArchiveOp(BaseModel):
     expected_revision: int = Field(ge=1)
 
 
+class ProjectRestoreOp(BaseModel):
+    """TM-04 D14: explicit unarchive (B09 semantics: archived ->
+    active is a deliberate, CAS-checked event - never a side
+    effect of anything else)."""
+    operation_id: str = Field(min_length=1, max_length=128)
+    server_project_id: str = Field(min_length=1, max_length=64)
+    expected_revision: int = Field(ge=1)
+
+
 class PhotoRegisterOp(BaseModel):
     op: Literal["photo_register"] = "photo_register"
     operation_id: str = Field(min_length=1, max_length=128)
@@ -96,7 +105,8 @@ class PhotoRegisterOp(BaseModel):
 class SyncOp(BaseModel):
     """One queued client operation (discriminated by 'op')."""
     op: Literal[
-        "project_create", "project_update", "project_archive", "photo_register",
+        "project_create", "project_update", "project_archive",
+        "project_restore", "photo_register",
         "annotation_create", "annotation_update", "annotation_delete",
         "issue_create", "issue_update", "issue_transition",
         "issue_photo_link", "issue_photo_unlink",
@@ -223,6 +233,28 @@ def _exec_project_archive(conn, owner: str, payload: dict) -> dict:
             (now, now, revision, body.server_project_id))
         _emit_event(conn, owner, "project", body.server_project_id, "archived", revision, "")
     return {"server_project_id": body.server_project_id, "revision": revision, "status": "archived"}
+
+
+def _exec_project_restore(conn, owner: str, payload: dict) -> dict:
+    """TM-04 D14: the ONE explicit path out of 'archived'. CAS on
+    expected_revision; refusing a non-archived project keeps the
+    event log honest (no fake 'restored' events)."""
+    body = ProjectRestoreOp(**payload)
+    row = _require_revision(conn, body.server_project_id, owner, body.expected_revision)
+    revision = row["revision"]
+    if row["status"] != "archived":
+        raise ApiError(409, "not_archived",
+                       "project is not archived; nothing to restore")
+    revision += 1
+    now = utc_now()
+    conn.execute(
+        "UPDATE mvp_projects SET status='active', archived_at=NULL, "
+        "updated_at=?, revision=? WHERE project_id=?",
+        (now, revision, body.server_project_id))
+    _emit_event(conn, owner, "project", body.server_project_id,
+                "restored", revision, "")
+    return {"server_project_id": body.server_project_id,
+            "revision": revision, "status": "active"}
 
 
 def _exec_photo_register(conn, owner: str, payload: dict) -> dict:
@@ -672,6 +704,7 @@ _EXECUTORS = {
     "project_create": _exec_project_create,
     "project_update": _exec_project_update,
     "project_archive": _exec_project_archive,
+    "project_restore": _exec_project_restore,
     "photo_register": _exec_photo_register,
     "annotation_create": _exec_annotation_create,
     "annotation_update": _exec_annotation_update,

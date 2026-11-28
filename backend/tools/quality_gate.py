@@ -112,6 +112,9 @@ print(f'{{len(live_set)}} ops match')
 
 def gate_migrations(results: list) -> None:
     import tempfile
+    sys.path.insert(0, str(ROOT))
+    import app.db as dbm_ref          # MIGRATIONS count (v15 now)
+    MIGRATIONS_REF = dbm_ref.MIGRATIONS
     with tempfile.TemporaryDirectory() as td:
         db = Path(td) / "m.db"
         code, out = run([sys.executable, "-c", f"""
@@ -122,9 +125,10 @@ os.environ['WORKCAM_BUSINESS_DB'] = r'{db}'
 import app.db as dbm
 applied = dbm.migrate()
 cur = dbm.connect().execute('PRAGMA user_version').fetchone()[0]
-assert applied == 14, f'expected 14 migrations, got {{applied}}'
-assert cur == 14, f'user_version {{cur}}'
-print('v1..v14 fresh install OK')
+expected = len(dbm.MIGRATIONS)          # v15 with TM-04 D14
+assert applied == expected, f'expected {{expected}} migrations, got {{applied}}'
+assert cur == expected, f'user_version {{cur}}'
+print(f'v1..v{{expected}} fresh install OK')
 """])
         if code != 0:
             results.append(("GATE-FAIL", "migrations",
@@ -140,7 +144,8 @@ print('v1..v14 fresh install OK')
                         "poisoned-level rollback test failed"))
     else:
         results.append(("GATE-PASS", "migrations",
-                        "fresh install v14 + rollback pinned"))
+                        f"fresh install v{len(MIGRATIONS_REF)} "
+                        f"+ rollback pinned"))
 
 
 def gate_dependency_lock(results: list) -> None:

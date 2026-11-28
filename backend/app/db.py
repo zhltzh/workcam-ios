@@ -545,6 +545,38 @@ CREATE TABLE IF NOT EXISTS mvp_photo_exports (
     CREATE INDEX IF NOT EXISTS idx_upload_sessions_photo
         ON mvp_upload_sessions(photo_id, status);
     """,
+    # v15 (TM-04 D14): the sync-event vocabulary grows 'restored' -
+    # the explicit unarchive event (B09: archived -> active is a
+    # deliberate recorded transition). SQLite cannot edit a CHECK
+    # in place, so this mirrors the v9 table-rebuild pattern: build
+    # the new shape, copy the history verbatim, swap names.
+    15: """
+    CREATE TABLE mvp_sync_events_v15 (
+        seq             INTEGER PRIMARY KEY AUTOINCREMENT,
+        owner_token     TEXT NOT NULL,
+        entity_type     TEXT NOT NULL CHECK (entity_type IN
+                          ('project', 'photo', 'evidence_link', 'original',
+                           'annotation', 'issue')),
+        entity_id       TEXT NOT NULL,
+        action          TEXT NOT NULL CHECK (action IN
+                          ('created', 'updated', 'archived', 'bound',
+                           'status_changed', 'soft_deleted',
+                           'photo_linked', 'photo_unlinked',
+                           'restored')),
+        revision        INTEGER,
+        payload_hint    TEXT NOT NULL DEFAULT '',
+        created_at      TEXT NOT NULL
+    );
+    INSERT INTO mvp_sync_events_v15 (seq, owner_token, entity_type,
+        entity_id, action, revision, payload_hint, created_at)
+        SELECT seq, owner_token, entity_type, entity_id, action,
+               revision, payload_hint, created_at
+        FROM mvp_sync_events;
+    DROP TABLE mvp_sync_events;
+    ALTER TABLE mvp_sync_events_v15 RENAME TO mvp_sync_events;
+    CREATE INDEX IF NOT EXISTS idx_sync_events_owner
+        ON mvp_sync_events(owner_token, seq ASC);
+    """,
 }
 
 _write_lock = threading.Lock()
