@@ -1,4 +1,4 @@
-// TM-04 B02 tests: the four conflict decisions and their outbox
+﻿// TM-04 B02 tests: the four conflict decisions and their outbox
 // semantics. Runs for real on Windows Swift 6.4.3 and on Mac.
 
 import XCTest
@@ -16,7 +16,7 @@ final class ConflictResolutionTests: XCTestCase {
     }
 
     func test_keep_local_stamps_base_revision_and_requeues() throws {
-        let clock = FixedClock(start: Date(timeIntervalSince1970: 100))
+        let clock = FixedClock(date: Date(timeIntervalSince1970: 100))
         let resolved = try ConflictResolution.apply(
             .keepLocal, to: conflictedOp(), serverRevision: 7,
             clock: clock)
@@ -35,7 +35,7 @@ final class ConflictResolutionTests: XCTestCase {
         XCTAssertThrowsError(
             try ConflictResolution.apply(
                 .keepLocal, to: conflictedOp(), serverRevision: nil,
-                clock: FixedClock(start: Date(timeIntervalSince1970: 0)))
+                clock: FixedClock(date: Date(timeIntervalSince1970: 0)))
         ) { error in
             guard case ConflictResolutionError.missingServerRevision
                     = error else {
@@ -49,7 +49,7 @@ final class ConflictResolutionTests: XCTestCase {
         let before = op.payloadJSON
         let resolved = try ConflictResolution.apply(
             .takeServer, to: op, serverRevision: 7,
-            clock: FixedClock(start: Date(timeIntervalSince1970: 0)))
+            clock: FixedClock(date: Date(timeIntervalSince1970: 0)))
         XCTAssertEqual(resolved.state, .acknowledged)
         XCTAssertNil(resolved.nextAttemptAt)
         // audit red line: the local edit is NOT deleted
@@ -63,7 +63,7 @@ final class ConflictResolutionTests: XCTestCase {
             try ConflictResolution.apply(
                 .manualMerge, to: conflictedOp(), serverRevision: 3,
                 mergedPayloadJSON: nil,
-                clock: FixedClock(start: Date(timeIntervalSince1970: 0)))
+                clock: FixedClock(date: Date(timeIntervalSince1970: 0)))
         ) { error in
             guard case ConflictResolutionError.missingMergedPayload
                     = error else {
@@ -76,7 +76,7 @@ final class ConflictResolutionTests: XCTestCase {
         let resolved = try ConflictResolution.apply(
             .manualMerge, to: conflictedOp(), serverRevision: 3,
             mergedPayloadJSON: #"{"title":"user merged it"}"#,
-            clock: FixedClock(start: Date(timeIntervalSince1970: 0)))
+            clock: FixedClock(date: Date(timeIntervalSince1970: 0)))
         XCTAssertEqual(resolved.state, .pending)
         let data = resolved.payloadJSON.data(using: .utf8)!
         let obj = try JSONDecoder().decode(
@@ -90,7 +90,7 @@ final class ConflictResolutionTests: XCTestCase {
         op.nextAttemptAt = Date(timeIntervalSince1970: 50)
         let resolved = try ConflictResolution.apply(
             .deferred, to: op, serverRevision: 7,
-            clock: FixedClock(start: Date(timeIntervalSince1970: 0)))
+            clock: FixedClock(date: Date(timeIntervalSince1970: 0)))
         XCTAssertEqual(resolved.state, .conflict)
         XCTAssertNil(resolved.nextAttemptAt)   // drain must not pick it
         XCTAssertEqual(resolved.lastErrorCode, "deferred")
@@ -103,7 +103,7 @@ final class ConflictResolutionTests: XCTestCase {
         XCTAssertThrowsError(
             try ConflictResolution.apply(
                 .keepLocal, to: pending, serverRevision: 1,
-                clock: FixedClock(start: Date(timeIntervalSince1970: 0)))
+                clock: FixedClock(date: Date(timeIntervalSince1970: 0)))
         ) { error in
             guard case ConflictResolutionError.notInConflict("op-2")
                     = error else {

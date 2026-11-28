@@ -71,6 +71,11 @@ public enum FieldDiffEngine {
 
     public struct Summary: Sendable, Equatable {
         public let diffs: [FieldDiff]
+
+        public init(diffs: [FieldDiff]) {
+            self.diffs = diffs
+        }
+
         public var identical: [FieldDiff] {
             diffs.filter { $0.kind == .identical }
         }

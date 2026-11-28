@@ -10,25 +10,25 @@
  "results": [
   {
    "files": 1000,
-   "metadata_pass_seconds": 0.115,
-   "full_hash_pass_seconds": 0.323,
-   "incremental_after_edits_seconds": 0.093,
+   "metadata_pass_seconds": 0.093,
+   "full_hash_pass_seconds": 0.296,
+   "incremental_after_edits_seconds": 0.083,
    "files_rehashed_incrementally": 2,
    "bytes_hashed_full": 1932817
   },
   {
    "files": 5000,
-   "metadata_pass_seconds": 0.42,
-   "full_hash_pass_seconds": 1.49,
-   "incremental_after_edits_seconds": 0.441,
+   "metadata_pass_seconds": 0.425,
+   "full_hash_pass_seconds": 1.596,
+   "incremental_after_edits_seconds": 0.407,
    "files_rehashed_incrementally": 10,
    "bytes_hashed_full": 9418257
   },
   {
    "files": 10000,
-   "metadata_pass_seconds": 0.945,
-   "full_hash_pass_seconds": 3.076,
-   "incremental_after_edits_seconds": 0.928,
+   "metadata_pass_seconds": 0.916,
+   "full_hash_pass_seconds": 3.021,
+   "incremental_after_edits_seconds": 0.986,
    "files_rehashed_incrementally": 20,
    "bytes_hashed_full": 18545682
   }

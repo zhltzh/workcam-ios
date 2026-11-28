@@ -1,0 +1,135 @@
+{
+ "mode": "DESKTOP_SOAK",
+ "host": "Windows dev machine (not iPhone, not SLA)",
+ "duration_s": 30.1,
+ "iterations": 157,
+ "errors": 0,
+ "ops_per_s": 5.22,
+ "iteration_latency_ms": {
+  "p50": 163.5,
+  "max": 718.9
+ },
+ "growth": {
+  "first": {
+   "iteration": 10,
+   "db_bytes": 319488,
+   "originals_bytes": 40000,
+   "photos": 10,
+   "sync_events": 12
+  },
+  "last": {
+   "iteration": 150,
+   "db_bytes": 872448,
+   "originals_bytes": 600000,
+   "photos": 150,
+   "sync_events": 180
+  }
+ },
+ "probes": [
+  {
+   "iteration": 10,
+   "db_bytes": 319488,
+   "originals_bytes": 40000,
+   "photos": 10,
+   "sync_events": 12
+  },
+  {
+   "iteration": 20,
+   "db_bytes": 364544,
+   "originals_bytes": 80000,
+   "photos": 20,
+   "sync_events": 24
+  },
+  {
+   "iteration": 30,
+   "db_bytes": 405504,
+   "originals_bytes": 120000,
+   "photos": 30,
+   "sync_events": 36
+  },
+  {
+   "iteration": 40,
+   "db_bytes": 434176,
+   "originals_bytes": 160000,
+   "photos": 40,
+   "sync_events": 48
+  },
+  {
+   "iteration": 50,
+   "db_bytes": 471040,
+   "originals_bytes": 200000,
+   "photos": 50,
+   "sync_events": 60
+  },
+  {
+   "iteration": 60,
+   "db_bytes": 532480,
+   "originals_bytes": 240000,
+   "photos": 60,
+   "sync_events": 72
+  },
+  {
+   "iteration": 70,
+   "db_bytes": 561152,
+   "originals_bytes": 280000,
+   "photos": 70,
+   "sync_events": 84
+  },
+  {
+   "iteration": 80,
+   "db_bytes": 606208,
+   "originals_bytes": 320000,
+   "photos": 80,
+   "sync_events": 96
+  },
+  {
+   "iteration": 90,
+   "db_bytes": 643072,
+   "originals_bytes": 360000,
+   "photos": 90,
+   "sync_events": 108
+  },
+  {
+   "iteration": 100,
+   "db_bytes": 700416,
+   "originals_bytes": 400000,
+   "photos": 100,
+   "sync_events": 120
+  },
+  {
+   "iteration": 110,
+   "db_bytes": 737280,
+   "originals_bytes": 440000,
+   "photos": 110,
+   "sync_events": 132
+  },
+  {
+   "iteration": 120,
+   "db_bytes": 786432,
+   "originals_bytes": 480000,
+   "photos": 120,
+   "sync_events": 144
+  },
+  {
+   "iteration": 130,
+   "db_bytes": 811008,
+   "originals_bytes": 520000,
+   "photos": 130,
+   "sync_events": 156
+  },
+  {
+   "iteration": 140,
+   "db_bytes": 851968,
+   "originals_bytes": 560000,
+   "photos": 140,
+   "sync_events": 168
+  },
+  {
+   "iteration": 150,
+   "db_bytes": 872448,
+   "originals_bytes": 600000,
+   "photos": 150,
+   "sync_events": 180
+  }
+ ]
+}

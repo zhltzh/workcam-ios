@@ -1,0 +1,65 @@
+{
+ "mode": "DESKTOP_SOAK",
+ "host": "Windows dev machine (not iPhone, not SLA)",
+ "duration_s": 30.3,
+ "iterations": 50,
+ "errors": 0,
+ "ops_per_s": 1.65,
+ "iteration_latency_ms": {
+  "p50": 551.8,
+  "max": 1912.2
+ },
+ "growth": {
+  "first": {
+   "iteration": 10,
+   "db_bytes": 319488,
+   "originals_bytes": 40000,
+   "photos": 10,
+   "sync_events": 12
+  },
+  "last": {
+   "iteration": 50,
+   "db_bytes": 471040,
+   "originals_bytes": 200000,
+   "photos": 50,
+   "sync_events": 60
+  }
+ },
+ "probes": [
+  {
+   "iteration": 10,
+   "db_bytes": 319488,
+   "originals_bytes": 40000,
+   "photos": 10,
+   "sync_events": 12
+  },
+  {
+   "iteration": 20,
+   "db_bytes": 364544,
+   "originals_bytes": 80000,
+   "photos": 20,
+   "sync_events": 24
+  },
+  {
+   "iteration": 30,
+   "db_bytes": 405504,
+   "originals_bytes": 120000,
+   "photos": 30,
+   "sync_events": 36
+  },
+  {
+   "iteration": 40,
+   "db_bytes": 434176,
+   "originals_bytes": 160000,
+   "photos": 40,
+   "sync_events": 48
+  },
+  {
+   "iteration": 50,
+   "db_bytes": 471040,
+   "originals_bytes": 200000,
+   "photos": 50,
+   "sync_events": 60
+  }
+ ]
+}

@@ -44,3 +44,9 @@ logs/
 backend/data-docker/
 
 tools/tech-lab/exports/
+
+# Swift build artifacts (Windows toolchain scratch + test residue)
+swift/.build/
+swift/WorkCamCore/.build/
+swift/WorkCamCore/Info.plist
+swift/WorkCamCore/geometry-golden-vectors.json
