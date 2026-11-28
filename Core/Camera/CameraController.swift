@@ -146,14 +146,24 @@ final class CameraController: NSObject, @unchecked Sendable, AVCapturePhotoCaptu
             do {
                 try device.lockForConfiguration()
                 defer { device.unlockForConfiguration() }
-                if device.isFocusPointOfInterestSupported, device.isFocusModeSupported(.autoFocus) {
+                let canFocus = device.isFocusPointOfInterestSupported && device.isFocusModeSupported(.autoFocus)
+                let canExpose = device.isExposurePointOfInterestSupported && device.isExposureModeSupported(.continuousAutoExposure)
+                if canFocus {
                     device.focusPointOfInterest = point
                     device.focusMode = .autoFocus
                 }
-                if device.isExposurePointOfInterestSupported, device.isExposureModeSupported(.continuousAutoExposure) {
+                if canExpose {
                     device.exposurePointOfInterest = point
                     device.exposureMode = .continuousAutoExposure
                 }
+                let status: String
+                switch (canFocus, canExpose) {
+                case (true, true): status = "Focus and exposure requested"
+                case (true, false): status = "Focus requested · Exposure unavailable"
+                case (false, true): status = "Exposure requested · Focus unavailable"
+                case (false, false): status = "Focus and exposure unavailable for this lens"
+                }
+                self.onStatus?(status, self.canAdjustCamera)
             } catch {
                 self.onStatus?("Focus and exposure adjustment unavailable", self.canAdjustCamera)
             }
