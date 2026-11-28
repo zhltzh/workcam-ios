@@ -136,13 +136,14 @@
   {
    "id": "B01",
    "queue": "B",
-   "state": "IN_PROGRESS",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "swift/WorkCamCore/Sources/WorkCamSync/Outbox.swift (279 lines: OutboxEngine/OutboxStore/SyncTransport/ExponentialBackoff)",
-   "commit": null,
+   "commit": "d3a9bff",
    "tests": [
-    "swift/WorkCamCore/Tests/WorkCamCoreTests/OutboxRuleTests.swift"
+    "swift OutboxRuleTests 7/7 (REAL execution incl. transport-failure backoff + restart recovery)",
+    "swift test full suite green on Windows"
    ],
-   "notes": "pure-Swift state machine already extracted; coverage-vs-B-queue gaps audit pending"
+   "notes": "the pure-Swift Outbox state machine exists, is REAL-compiled and REAL-tested on Windows: pending/sending/acknowledged/failed/conflict, dependency ordering at drain, crash recovery, rebase resubmission; MutableClock added so retry-due semantics are testable"
   },
   {
    "id": "B02",
@@ -180,11 +181,13 @@
   {
    "id": "B05",
    "queue": "B",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": null,
-   "commit": null,
-   "tests": [],
-   "notes": "versioned local/server UUID mapping pending"
+   "commit": "d3a9bff",
+   "tests": [
+    "swift SyncBookkeepingTests (14) - mapping roundtrip, idempotent replay, conflicting-server-id refusals, namespace isolation"
+   ],
+   "notes": "versioned UUIDMappingStore: same-pair replay idempotent; different server id for a mapped local id is a named refusal; server-id double-binding refused; per-type namespaces"
   },
   {
    "id": "B06",
@@ -218,22 +221,24 @@
   {
    "id": "B09",
    "queue": "B",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": null,
-   "commit": null,
-   "tests": [],
-   "notes": "tombstone/archive/closed-terminal sync semantics pending"
+   "commit": "d3a9bff",
+   "tests": [
+    "swift SyncBookkeepingTests - lifecycle transition matrix"
+   ],
+   "notes": "EntityLifecycle sync semantics: tombstone final (marker replay ok), archived explicit-unarchive only + refuses new photos/edits, closedTerminal refuses every mutation; repo tombstones keep history resolvable"
   },
   {
    "id": "B10",
    "queue": "B",
-   "state": "IN_PROGRESS",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 H02 (cursor persistence, rejected receipts) + A07 e2e",
-   "commit": null,
+   "commit": "d3a9bff",
    "tests": [
-    "backend/tests/test_win_hotfix.py"
+    "swift SyncBookkeepingTests - cursor scopes, restart resume, anti-rewind"
    ],
-   "notes": "cursor/receipt semantics covered; atomic-commit + breakpoint-resume consolidation pending"
+   "notes": "owner+entity-scoped cursors persisted atomically (AtomicFile.writeVerified); crash restart resumes exactly; anti-rewind is a guarded no-op so event replays never move the cursor backwards"
   },
   {
    "id": "B11",
@@ -311,31 +316,35 @@
   {
    "id": "C03",
    "queue": "C",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": null,
-   "commit": null,
-   "tests": [],
-   "notes": "Repository protocols + DI pending"
+   "commit": "a8b7448",
+   "tests": [
+    "swift RepositoryTests 6/6 (REAL execution)"
+   ],
+   "notes": "ProjectRepository/PhotoRepository protocols + ServiceRegistry DI + memory doubles; saves are revision-CHECKED (typed staleRevision refusal); tombstones repo-side so wire models stay untouched (OpenAPI gate safe)"
   },
   {
    "id": "C04",
    "queue": "C",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": null,
-   "commit": null,
-   "tests": [],
-   "notes": "persistence transaction abstraction pending"
+   "commit": "4a920fa",
+   "tests": [
+    "swift TransactionTests 4/4 (REAL execution)"
+   ],
+   "notes": "TransactionalStore reference semantics: staged visibility, rollback zero-residue, all-or-nothing commit; two real Dictionary<String,String?> nil-vs-missing traps found by first execution and fixed"
   },
   {
    "id": "C05",
    "queue": "C",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "TM-03 C09 (atomic derivative ops, backend/tests/test_techlab/test_m03_c09_privacy.py)",
-   "commit": null,
+   "commit": "4a920fa",
    "tests": [
-    "backend/tests/test_techlab/test_m03_c09_privacy.py"
+    "swift AtomicFileTests 5/5 (REAL execution incl. FIPS 180-4 vector pins)"
    ],
-   "notes": "atomic-write component not yet factored out; privacy suite proves the pattern"
+   "notes": "temp+swap write (Foundation replaceItemAt is an unimplemented FATAL stub on Windows - documented, remove+move with honest bounded window), read-back SHA-256 verification, pattern-gated stale-temp cleanup that can never match committed files, portable Foundation-only SHA-256"
   },
   {
    "id": "C06",
@@ -346,7 +355,7 @@
    "tests": [
     "backend/tests/test_techlab/test_m03_b07_b08_business.py"
    ],
-   "notes": "keyset index exists; pagination/incremental-scan unification pending (F03 profiling feeds this)"
+   "notes": "keyset index exists; pagination/incremental-scan unification pending (F03 profiling feeds this) | TM-04 F03 delivered the incremental-scan engine (snapshot+delta, unchanged files reuse digests, only touched rehashed) at 1k/5k/10k scale - docs/perf/tm04-f03-scan-cost.json; index/pagination unification with PhotoIndex still open"
   },
   {
    "id": "C07",
@@ -371,11 +380,13 @@
   {
    "id": "C09",
    "queue": "C",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": null,
-   "commit": null,
-   "tests": [],
-   "notes": "sync task scheduler + dependency graph pending"
+   "commit": "4a920fa",
+   "tests": [
+    "swift SyncSchedulerTests 6/6 (REAL execution)"
+   ],
+   "notes": "Kahn topological batching: linear/diamond correct, deterministic sorted layers, acked deps free, named errors for missing dependencies and cycles"
   },
   {
    "id": "C10",
@@ -413,22 +424,24 @@
   {
    "id": "C13",
    "queue": "C",
-   "state": "NOT_STARTED",
+   "state": "DESKTOP_VERIFIED",
    "inherits": null,
-   "commit": null,
-   "tests": [],
-   "notes": "permission/availability/offline state models pending"
+   "commit": "a8b7448",
+   "tests": [
+    "swift AvailabilityTests 6/6 (REAL execution)"
+   ],
+   "notes": "PermissionSnapshot + FeatureGate: offline NEVER blocks the shutter (TM67); sync-offline says queue-and-drain honestly; restricted distinct from denied; OfflineState unknown never fabricates confidence"
   },
   {
    "id": "C14",
    "queue": "C",
-   "state": "IN_PROGRESS",
+   "state": "DESKTOP_VERIFIED",
    "inherits": "Outbox.swift FixedClock + InMemoryOutboxStore (injectable clock/store/transport)",
-   "commit": null,
+   "commit": "a8b7448",
    "tests": [
-    "swift/WorkCamCore/Tests/WorkCamCoreTests/OutboxRuleTests.swift"
+    "swift UUIDProviderTests 3/3 + OutboxRuleTests (injectable clock/store/transport already proven)"
    ],
-   "notes": "clock injectable; filesystem/network/UUID injectors pending"
+   "notes": "injectable seams complete: BackoffClock (Fixed/Mutable), OutboxStore (InMemory), SyncTransport (scripted), TokenProvider, UUIDProvider (System/Sequential)"
   },
   {
    "id": "C15",
@@ -1322,6 +1335,19 @@
    "CROSS_PLATFORM_PENDING": 1,
    "IN_PROGRESS": 33,
    "BLOCKED": 1
+  },
+  "second_push": {
+   "commits": [
+    "a8b7448",
+    "d3a9bff"
+   ],
+   "counts": {
+    "DESKTOP_VERIFIED": 65,
+    "NOT_STARTED": 23,
+    "CROSS_PLATFORM_PENDING": 1,
+    "IN_PROGRESS": 30,
+    "BLOCKED": 1
+   }
   }
  }
 }
