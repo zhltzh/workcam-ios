@@ -21,10 +21,19 @@ let package = Package(
         .library(name: "WorkCamTime", targets: ["WorkCamTime"]),
         .library(name: "WorkCamLocation", targets: ["WorkCamLocation"]),
         .library(name: "WorkCamSync", targets: ["WorkCamSync"]),
+        // EXPERIMENTAL RESERVE (TM-04 H queue, P2): enterprise
+        // models never enter the stable RC4 delivery (J08) and are
+        // never wired into the single-user product. Mac adopts only
+        // after a product review.
+        .library(name: "WorkCamEnterprise",
+                 targets: ["WorkCamEnterprise"]),
     ],
     targets: [
         .target(name: "WorkCamGeometry"),
         .target(name: "WorkCamModels"),
+        .target(name: "WorkCamEnterprise", dependencies: [
+            "WorkCamModels", "WorkCamSync",   // UUIDProvider seam
+        ]),
         .target(name: "WorkCamEvidence", dependencies: [
             // TM-04 A05: CanonicalPayload reuses GeometryError
             // (nonFinite/invalidParameter) - one typed error contract
@@ -42,6 +51,7 @@ let package = Package(
             dependencies: [
                 "WorkCamGeometry", "WorkCamModels", "WorkCamEvidence",
                 "WorkCamTime", "WorkCamLocation", "WorkCamSync",
+                "WorkCamEnterprise",
             ],
             resources: [
                 // copied verbatim from
