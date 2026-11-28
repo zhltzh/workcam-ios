@@ -238,3 +238,23 @@ precondition(unchangedPayload == payload)
 let contextVerification = try EvidenceStore.verify(reopened, photo: photo)
 precondition(contextVerification.contains("passed"))
 print("PASS capture context roundtrip and unchanged legacy signing payload")
+let contextRoot = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+try FileManager.default.createDirectory(at: contextRoot, withIntermediateDirectories: false)
+defer { try? FileManager.default.removeItem(at: contextRoot) }
+let firstCapture = try EvidenceStore.capture(photo, context: context, storageRoot: contextRoot,
+    loadKey: { throw EvidenceError.unavailable })
+let deniedContext = CaptureContext(version: 1, capturedAt: Date(timeIntervalSince1970: 11),
+    locationAuthorization: "denied", location: nil, locationMissingReason: "denied")
+let secondCapture = try EvidenceStore.capture(photo, context: deniedContext, storageRoot: contextRoot,
+    loadKey: { throw EvidenceError.unavailable })
+func readContext(_ directory: URL) throws -> CaptureContext? {
+    try JSONDecoder().decode(EvidenceRecord.self,
+        from: Data(contentsOf: directory.appendingPathComponent("record.json"))).unsignedCaptureContext
+}
+let firstContext = try readContext(firstCapture)
+let secondContext = try readContext(secondCapture)
+let originalBytes = try Data(contentsOf: firstCapture.appendingPathComponent("photo.jpg"))
+precondition(originalBytes == photo)
+precondition(firstContext?.location?.source == "simulated")
+precondition(secondContext?.location == nil && secondContext?.locationMissingReason == "denied")
+print("PASS committed capture snapshots stay distinct and original bytes are preserved")
