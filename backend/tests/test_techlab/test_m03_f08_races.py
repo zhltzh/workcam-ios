@@ -321,6 +321,20 @@ class TestBatchBackupVisibility:
         rr = env.c.post("/api/v1/sync/batch", headers=env.H,
                         json={"operations": ops})
         assert rr.status_code == 200
+        # TM-04 fix (observation protocol, not a wall-clock gate):
+        # the batch has COMMITTED (rr is 200), so the 5 rows exist in
+        # the DB; but the reader thread may be mid-poll-retry and the
+        # old code stopped it before it captured the complete state,
+        # turning a protocol race into a flaky failure. Wait for the
+        # FUNCTIONAL event - one complete observation - before
+        # stopping; it is guaranteed reachable (rows are committed)
+        # so the loop is bounded by the reader's own poll cadence.
+        import time as _time
+        deadline = _time.monotonic() + 10
+        while not any(len(obs) == 5 for obs in seen):
+            if _time.monotonic() > deadline:
+                break        # fall through to the honest assert below
+            _time.sleep(0.005)
         stop.set()
         reader.join()
         # every observation is a PREFIX of [0,1,2,3,4] in order -
