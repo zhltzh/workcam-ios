@@ -12,6 +12,26 @@ final class WorkflowTests: XCTestCase {
         add(screenshot)
     }
 
+    func testCameraControlsWithoutPhysicalCamera() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--night04-fixture"]
+        app.launch()
+        let openCamera = app.buttons["Open Camera"]
+        XCTAssertTrue(openCamera.waitForExistence(timeout: 15))
+        openCamera.tap()
+
+        let status = app.staticTexts["cameraStatus"]
+        XCTAssertTrue(status.waitForExistence(timeout: 10))
+        let capture = app.buttons["Capture"]
+        XCTAssertTrue(capture.exists)
+        XCTAssertFalse(capture.isEnabled)
+        XCTAssertTrue(app.staticTexts["cameraLocationStatus"].label.contains("Unknown"))
+        app.buttons["Grid Off"].tap()
+        XCTAssertTrue(app.buttons["Grid On"].exists)
+        app.buttons["Grid On"].tap()
+        XCTAssertTrue(app.buttons["Grid Off"].exists)
+    }
+
     func testProjectAndDeliveryThroughUI() {
         let app = XCUIApplication()
         app.launchArguments = ["--night04-fixture"]
