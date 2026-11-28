@@ -11,6 +11,7 @@ final class CameraController: NSObject, @unchecked Sendable, AVCapturePhotoCaptu
     private var configured = false
     private var active = false
     private var capturing = false
+    private var requestingPermission = false
     private var observers: [NSObjectProtocol] = []
     var onStatus: (@Sendable (String, Bool) -> Void)?
     var onSaved: (@Sendable (URL?, String?) -> Void)?
@@ -24,9 +25,10 @@ final class CameraController: NSObject, @unchecked Sendable, AVCapturePhotoCaptu
         for name in [AVCaptureSession.wasInterruptedNotification, AVCaptureSession.interruptionEndedNotification, AVCaptureSession.runtimeErrorNotification] {
             observers.append(NotificationCenter.default.addObserver(forName: name, object: session, queue: nil) { [weak self] note in
                 let name = note.name
+                let reset = (note.userInfo?[AVCaptureSessionErrorKey] as? AVError)?.code == .mediaServicesWereReset
                 self?.queue.async { [weak self] in
                     guard let self else { return }
-                    if name == AVCaptureSession.interruptionEndedNotification {
+                    if name == AVCaptureSession.interruptionEndedNotification || reset {
                         self.startIfAuthorized()
                     } else {
                         self.onStatus?(name == AVCaptureSession.runtimeErrorNotification ? "Camera error — close and reopen camera" : "Camera interrupted", false)
@@ -54,8 +56,13 @@ final class CameraController: NSObject, @unchecked Sendable, AVCapturePhotoCaptu
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .notDetermined:
             onStatus?("Camera permission required", false)
+            guard !requestingPermission else { return }
+            requestingPermission = true
             AVCaptureDevice.requestAccess(for: .video) { [weak self] _ in
-                self?.queue.async { [weak self] in self?.startIfAuthorized() }
+                self?.queue.async { [weak self] in
+                    self?.requestingPermission = false
+                    self?.startIfAuthorized()
+                }
             }
         case .denied, .restricted:
             onStatus?("Camera access denied or restricted — check Settings", false)
@@ -131,6 +138,46 @@ final class CameraController: NSObject, @unchecked Sendable, AVCapturePhotoCaptu
                 self.onStatus?("Lens change failed", self.session.isRunning && !self.session.isInterrupted)
             }
         }
+    }
+
+    func focusAndExpose(at point: CGPoint) {
+        queue.async {
+            guard let device = self.input?.device, self.canAdjustCamera else { return }
+            do {
+                try device.lockForConfiguration()
+                defer { device.unlockForConfiguration() }
+                if device.isFocusPointOfInterestSupported, device.isFocusModeSupported(.autoFocus) {
+                    device.focusPointOfInterest = point
+                    device.focusMode = .autoFocus
+                }
+                if device.isExposurePointOfInterestSupported, device.isExposureModeSupported(.continuousAutoExposure) {
+                    device.exposurePointOfInterest = point
+                    device.exposureMode = .continuousAutoExposure
+                }
+            } catch {
+                self.onStatus?("Focus and exposure adjustment unavailable", self.canAdjustCamera)
+            }
+        }
+    }
+
+    func adjustZoom(by scale: CGFloat) {
+        guard scale.isFinite, scale > 0 else { return }
+        queue.async {
+            guard let device = self.input?.device, self.canAdjustCamera else { return }
+            do {
+                try device.lockForConfiguration()
+                defer { device.unlockForConfiguration() }
+                let requested = device.videoZoomFactor * scale
+                device.videoZoomFactor = min(device.maxAvailableVideoZoomFactor,
+                                             max(device.minAvailableVideoZoomFactor, requested))
+            } catch {
+                self.onStatus?("Zoom adjustment unavailable", self.canAdjustCamera)
+            }
+        }
+    }
+
+    private var canAdjustCamera: Bool {
+        active && session.isRunning && !session.isInterrupted && !capturing
     }
 
     func capture(flash: Bool) {

@@ -98,3 +98,13 @@ dependencies and relative order within an entity. Deterministic failures
 stay in the journal while independent jobs can complete. Association is
 a user-confirmed endpoint-scoped mapping and stores revision/provenance.
 Remote issue controls use the versioned batch API and role comparison.
+
+## KEY-01 camera controls
+
+The preview layer converts a tap from view coordinates to an AVFoundation
+device point. The camera queue applies focus and exposure independently when
+the active lens supports them. Pinch updates zoom within the active device's
+available range. The camera queue also coalesces outstanding authorization
+requests and retries startup after a media-services reset while the camera is
+active. Capture orientation remains portrait. These controls leave the original
+JPEG save and evidence pipeline unchanged.
