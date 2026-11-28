@@ -293,7 +293,13 @@ async def download_derivative(derivative_id: str, request: Request):
         raise ApiError(404, "object_missing",
                        "derivative bytes missing from storage")
     data = path.read_bytes()
-    assert hashlib.sha256(data).hexdigest() == row["derivative_sha256"]
+    # TM-04 G08 fix: this was a bare `assert` - silently compiled OUT
+    # under python -O (serving corrupt bytes) and a raw 500 when it
+    # fired. Integrity is a RUNTIME contract, not a debug aid.
+    if hashlib.sha256(data).hexdigest() != row["derivative_sha256"]:
+        raise ApiError(409, "derivative_corrupt",
+                       "derivative bytes do not match their recorded "
+                       "digest - the cache entry is corrupt")
     return Response(
         content=data, media_type="image/jpeg",
         headers={
