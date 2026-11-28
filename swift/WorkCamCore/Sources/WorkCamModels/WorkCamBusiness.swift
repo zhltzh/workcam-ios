@@ -147,7 +147,8 @@ public final class ChecklistRun: @unchecked Sendable {
                     }
                     st.photoIDs = p
                 case .note:
-                    guard !note.isEmpty else {
+                    guard !note.trimmingCharacters(
+                            in: .whitespacesAndNewlines).isEmpty else {
                         throw BusinessError.named(
                             "item \(itemID) requires a note")
                     }
@@ -156,6 +157,18 @@ public final class ChecklistRun: @unchecked Sendable {
                     guard let m = measurement else {
                         throw BusinessError.named(
                             "item \(itemID) requires a measurement")
+                    }
+                    // D04: a measurement must be a FINITE number -
+                    // NaN/Inf would smuggle a fake verification
+                    // through the required-evidence gate.
+                    guard m.0.isFinite else {
+                        throw BusinessError.named(
+                            "item \(itemID) measurement is not a " +
+                            "finite number")
+                    }
+                    guard !m.1.isEmpty else {
+                        throw BusinessError.named(
+                            "item \(itemID) measurement needs a unit")
                     }
                     st.measurementValue = m.0
                     st.measurementUnit = m.1

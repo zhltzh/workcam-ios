@@ -138,13 +138,22 @@ class ChecklistRun:
                         f"or fail - evidence requirements are NOT "
                         f"waivable")
                 st.photo_ids = photo_ids
-            if EvidenceRequired.note in req and not note:
+            if EvidenceRequired.note in req and not note.strip():
                 raise ChecklistStateError(
                     f"item {item_id!r} requires a note")
             if EvidenceRequired.measurement in req and not measurement:
                 raise ChecklistStateError(
                     f"item {item_id!r} requires a measurement")
         if measurement:
+            # D04: NaN/Inf never pass the required-evidence gate
+            import math
+            if not math.isfinite(measurement[0]):
+                raise ChecklistStateError(
+                    f"item {item_id!r} measurement is not a "
+                    f"finite number")
+            if not measurement[1]:
+                raise ChecklistStateError(
+                    f"item {item_id!r} measurement needs a unit")
             st.measurement_value, st.measurement_unit = measurement
         st.note = note
         if photo_ids:
